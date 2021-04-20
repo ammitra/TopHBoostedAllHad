@@ -104,3 +104,26 @@ class THClass:
             # self.a.DrawTemplates(templates,'plots/')
 
         outfile.Close()
+
+    def Snapshot(self,node=None):
+        if node == None: node = self.a.GetActiveNode()
+
+        columns = [
+            'FatJet_eta','FatJet_msoftdrop','FatJet_pt','FatJet_phi',
+            'FatJet_deepTagMD_HbbvsQCD', 'FatJet_deepTagMD_ZHbbvsQCD',
+            'FatJet_deepTagMD_TvsQCD', 'FatJet_particleNet_HbbvsQCD',
+            'FatJet_particleNet_TvsQCD', 'FatJet_rawFactor', 'FatJet_tau*',
+            'FatJet_jetId', 'nFatJet',
+            'HLT_PFHT.*', 'HLT_PFJet.*', 'HLT_AK8.*',
+            'event', 'eventWeight', 'luminosityBlock', 'run'
+        ]
+
+        if not self.a.isData:
+            columns.extend(['GenPart_.*', 'nGenPart',])
+            columns.extend(['pileup__nom','pileup__up','pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
+            if self.year == 16 or self.year == 17:
+                columns.append(['Prefire__nom','Prefire__up','Prefire__down'])
+            elif self.year == 18:
+                columns.append('HEM_drop__nom')
+
+        node.Snapshot(columns,'THsnapshot_%s_%s_%sof%s.root'%(self.setname,self.year,self.ijob,self.njobs),'Events')
