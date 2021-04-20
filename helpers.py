@@ -7,6 +7,9 @@ def SplitUp(filename,npieces,nFiles=False):
     '''
     files = open(filename,'r').readlines()
     nfiles = len(files)
+
+    if npieces > nfiles:
+        npieces = nfiles
     
     if not nFiles: files_per_piece = float(nfiles)/float(npieces)
     else: files_per_piece = npieces
@@ -16,7 +19,7 @@ def SplitUp(filename,npieces,nFiles=False):
     for ipiece in range(1,npieces+1):
         piece = []
         for ifile in range(iend,min(nfiles,int(ipiece*files_per_piece))):
-            piece.append(files[ifile])
+            piece.append(files[ifile].strip())
 
         iend = int(ipiece*files_per_piece)
         out.append(piece)
