@@ -97,7 +97,7 @@ the analysis is expected to be small (ie. quark will be along beamline).
 | abs(\eta)     | Both jets, < 2.4          |
 | \Delta \phi   | > M_PI/2                  |
 | Top tag       | DeepAK8 MD > 0.632 + 105 < mSD < 210 (5% mistag) |
-| Higgs tag     | **DeepDoubleB MD > 0.9**|
+| Higgs tag     | **DeepAK8 MD > 0.9**|
 
 ## QCD-enriched region (fail)
 | Variable      | Selection                 |
@@ -106,12 +106,17 @@ the analysis is expected to be small (ie. quark will be along beamline).
 | abs(\eta)     | Both jets, < 2.4          |
 | \Delta \phi   | > M_PI/2                  |
 | Top tag       | DeepAK8 MD < 0.632 + 105 < mSD < 210 (5% mistag) |
-| Higgs tag     | **DeepDoubleB MD < 0.9** |
+| Higgs tag     | **DeepAK8 MD < 0.9** |
 
 # Open questions
 - Do we use a tight and loose Higgs tag as in B2G-20-004?
 If so, what regions are available for the "fail" of 2D Alphabet?
 - Need the Higgs tagging SFs from B2G-20-004
 - Are the tagging WPs optimal?
-- Do we want to make the top the alphabet side?
 - Do we have any other kinematic cuts to make (delta eta or delta rapidity)?
+- Can we switch to the ParticleNet taggers?
+    - **Answer: Yes**
+- Can we try using pT cut of 400 GeV or higher to ensure the top merges?
+    - **Answer: Yes**
+- Do we want to make the top the alphabet side?
+    - **Answer: No. There are lots of ttbar events so establishing how much top doesn't tell you how much tH there are. On the other hand, the SM background for H+X is tiny.  So, finding H inside the preselection that includes top and QCD on the other side makes it much more likely that this is what we are looking for. You additionally avoid your signal jet mass being on top of the top jet mass ridge and instead it lives in the flat area of 100-140 GeV.**
