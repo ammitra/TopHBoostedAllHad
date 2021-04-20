@@ -55,16 +55,16 @@ class THClass:
         self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
         return self.a.GetActiveNode()
 
-    def ApplyStandardCorrections(self):
+    def ApplyStandardCorrections(self,snapshot=False):
         if self.a.isData:
             lumiFilter = ModuleWorker('LumiFilter','TIMBER/Framework/include/LumiFilter.h',[self.year])
-            self.a.Cut('lumiFilter',lumiFilter.MakeCall(inArgs={"lumi":"luminosityBlock"}))
+            self.a.Cut('lumiFilter',lumiFilter.GetCall(inArgs={"lumi":"luminosityBlock"}))
             if self.year == 18:
-                HEM_worker = ModuleWorker('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.a.fileName.split('_')[0],'{%s,%s}'%self.GetJetIdxTuple()])
-                self.a.Cut('HEM','%s == 1'%(HEM_worker.GetCall()))
+                HEM_worker = ModuleWorker('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname,'{%s,%s}'%self.GetJetIdxTuple()])
+                self.a.Cut('HEM','%s[0] > 0'%(HEM_worker.GetCall()))
 
         else:
-            # self.a = AutoPU(self.a, '20%sUL'%self.year)
+            self.a = AutoPU(self.a, '20%sUL'%self.year)
             self.a.AddCorrection(
                 Correction('Pdfweight','TIMBER/Framework/include/PDFweight_uncert.h',[self.a.lhaid],corrtype='uncert')
             )
@@ -74,10 +74,10 @@ class THClass:
                 )
             elif self.year == 18:
                 self.a.AddCorrection(
-                    Correction('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.a.fileName.split('_')[0],'{%s,%s}'%self.GetJetIdxTuple()],corrtype='corr')
+                    Correction('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname,'{%s,%s}'%self.GetJetIdxTuple()],corrtype='corr')
                 )
 
-            if 'ttbar' in self.a.fileName:
+            if 'ttbar' in self.a.fileName and not snapshot:
                 self.a.Define('GenPart_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass')
                 self.a.AddCorrection(
                     Correction('TptReweight','TIMBER/Framework/include/TopPt_weight.h',corrtype='weight'),
@@ -85,7 +85,7 @@ class THClass:
                         "jet0":"Top_vect"%self.dijetIdxs[0],
                         "jet":"Higgs_vect"%self.dijetIdxs[1]}
                 )
-        self.a.MakeWeightCols()
+        if not snapshot: self.a.MakeWeightCols()
         
         return self.a.GetActiveNode()
 
