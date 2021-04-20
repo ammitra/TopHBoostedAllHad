@@ -30,7 +30,7 @@ class THClass:
 
     def ApplyFlagsAndTrigs(self):
         self.a.Cut('flags',self.a.GetFlagString())
-        if self.a.isData: self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[self.year]))
+        # if self.a.isData: self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[self.year]))
 
     def ApplyKinematics(self):
         self.a.Cut('njets','nFatJet > max(%s,%s)'%self.GetJetIdxTuple())
