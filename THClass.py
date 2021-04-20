@@ -51,8 +51,8 @@ class THClass:
         self.a.ObjectFromCollection('Higgs','FatJet','hIdx')
         self.a.Define('Higgs_vect','hardware::TLvector(Higgs_pt,Higgs_eta,Higgs_phi,Higgs_msoftdrop)')
         
-        self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
-        self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
+        # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
+        # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
         return self.a.GetActiveNode()
 
     def ApplyStandardCorrections(self,snapshot=False):
