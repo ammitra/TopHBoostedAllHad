@@ -1,3 +1,11 @@
 *.pyc
 package.json
 settings.json
+logs/
+docker_stderror
+*.log
+*.tgz
+condor/*.txt
+THsnapshot*.root
+CondorHelper.py
+dijet_nano/*.txt
