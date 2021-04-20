@@ -2,12 +2,17 @@ import ROOT
 from TIMBER.Analyzer import Correction, ModuleWorker, analyzer
 from TIMBER.Tools.Common import CompileCpp
 from TIMBER.Tools.AutoPU import AutoPU
+from helpers import SplitUp
 
 class THClass:
-    def __init__(self,input,year):
+    def __init__(self,inputfile,year,ijob,njobs):
         CompileCpp('THmodules.cc')
-        self.a = analyzer(input)
+        infiles = SplitUp(inputfile, njobs)[ijob-1]
+        self.a = analyzer(infiles)
+        self.setname = inputfile.split('/')[-1].split('_')[0]
         self.year = year
+        self.ijob = ijob
+        self.njobs = njobs
         self.dijetIdxs = [0,1]
         self.trigs = {
             16:[],
