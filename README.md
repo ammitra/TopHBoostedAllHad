@@ -1,11 +1,11 @@
 # Analysis Strategy
 
 Dijet search for boosted X -> top+Higgs. The benchmark, X, is a VLQ T' produced
-in association with either a bottom quark. The interaction with an associated top quark
+in association with a bottom quark. The interaction with an associated top quark
 is currently ignored since the simulation samples are inconsistent with the UL
 versions available for all other MC. The associated quark will have 
 much lower transverse momentum than the T' decay products and so the affect on
-the analysis is expected to be small (quark will be along beamline).
+the analysis is expected to be small (ie. quark will be along beamline).
 
 # Data and simulation
 2016
