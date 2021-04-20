@@ -1,0 +1,8 @@
+root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/280000/219381D7-52B9-5142-A246-6DE4AE79C0A1.root
+root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/280000/010AF5B0-C47D-5941-974C-8F50DBC3781F.root
+root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/280000/65AAB307-CAA1-DE4F-B273-4D999E570DA6.root
+root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/280000/5599F1EF-D3F8-4645-88B9-E04AD318D40B.root
+root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/280000/B913EC7E-E99E-3C4B-93B3-831C11D0ED1E.root
+root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/40000/F0B6A235-8F5C-EF46-9B00-816FE4A5F164.root
+root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/40000/9568674F-3200-C240-A44C-F185B15FE062.root
+root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/QCD_HT2000toInf_TuneCP5_PSWeights_13TeV-madgraphMLM-pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/40000/89636225-5541-F44D-B02E-AED2C47CA279.root
