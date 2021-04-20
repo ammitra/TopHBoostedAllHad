@@ -22,8 +22,8 @@ If one wishes to add to the sets considered, simply modify the dictionary
 in `raw_nano/get_all_lpc.py` with the name of the set and the DAS path.
 ## 2. Perform snapshot on `raw_nano/` files
 The command to perform one snapshot using `THsnapshot.py` is 
-```python
-THsnapshot.py -s <setname> -y <16,17,18> -j <ijob> -n <njobs>
+```
+python THsnapshot.py -s <setname> -y <16,17,18> -j <ijob> -n <njobs>
 ```
 where `<ijob>` and `<njobs>` determine the job number and the number of jobs to split into and default
 to 1 and 1, respectively.
@@ -33,8 +33,8 @@ to 1 and 1, respectively.
 The `condor/tar_env.sh` script will create a tarball of the current environment and store
 it on EOS. 
 
-**NOTE 1:** You may need to modify this if you are not on LPC or wish to store the tarball somewhere else.
-**NOTE 2:** If you are a TIMBER developer, you need to rerun this script everytime you change TIMBER to
+- **NOTE 1:** You may need to modify this if you are not on LPC or wish to store the tarball somewhere else.
+- **NOTE 2:** If you are a TIMBER developer, you need to rerun this script everytime you change TIMBER to
 ensure the condor node has your latest changes.
 #### Arguments file
 To generate the arguments to submit to condor, use `python condor/snapshot_args.py` which will
@@ -43,7 +43,7 @@ This script will also split sets into N/2 jobs where N is the total number of ra
 quite aggressive to keep job runtimes under the 4 hour mark and can be changed as needed.
 
 #### Bash script to run on condor node
-The script that will run on the node is `condor/run_snapshot.sh`. You may need to modify it to suite your needs
+The script that will run on the node is `condor/run_snapshot.sh`. You may need to modify it to suit your needs
 but even without modifications, one needs to ensure that the `topHBoostedAllHad` exists on their EOS space.
 To create it on LPC, run
 ```
@@ -80,7 +80,7 @@ a job is still running or failed, it will not be included.
 ### Checking job success
 The most fool-proof method is to read the stdout/stderr of each job but this is of course very time consuming.
 A helper script (which is not promised to be fool-proof!) that can automate the most basic checks is 
-provided in `python condor/check_jobs.py -t <tasknumber>`. The task number is reported at several points
+provided in `python condor/check_jobs.py -t <tasknumber>`. The task* number is reported at several points
 but can be found in two ways post-submission depending on the stage of your jobs.
 - If your jobs are still running, the return of `condor_q <username>` will show lines like
 ```
@@ -103,7 +103,7 @@ on jobs finished, failed, and still running (if they exist) and prepare a report
 job runtimes (for those that have finished), a new set of arguments for resubmission of failed jobs (`logs/jobsToReRun_<tasknumber>.txt`),
 and jobs still running (and if they are in the Hold state, what the reason is).
 
-* - A "task" is the basket that "jobs" fall into - one `CondorHelper.py` call creates one "task" with several "jobs".
+\* A "task" is the basket that "jobs" fall into - one `CondorHelper.py` call creates one "task" with several "jobs".
 
 ## 4. Final selections and studies
 Once you are sure the snapshots are finished and available and their locations have been accessed,
