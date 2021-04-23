@@ -3,6 +3,7 @@ from TIMBER.Analyzer import Correction, ModuleWorker, analyzer
 from TIMBER.Tools.Common import CompileCpp
 from TIMBER.Tools.AutoPU import AutoPU
 from helpers import SplitUp
+from THpileup import ApplyPU
 
 class THClass:
     def __init__(self,inputfile,year,ijob,njobs):
@@ -64,16 +65,7 @@ class THClass:
                 self.a.Cut('HEM','%s[0] > 0'%(HEM_worker.GetCall()))
 
         else:
-            self.a = AutoPU(self.a, '20%sUL'%self.year)
-            self.a.AddCorrection(
-                Correction('Pdfweight','TIMBER/Framework/include/PDFweight_uncert.h',[self.a.lhaid],corrtype='uncert')
-            )
-            if self.year == 16 or self.year == 17:
-                self.a.AddCorrection(
-                    Correction("Prefire","TIMBER/Framework/include/Prefire_weight.h",[self.year],corrtype='weight')
-                )
-            elif self.year == 18:
-                self.a.AddCorrection(
+                self.a = ApplyPU(self.a,'%s_%s'%(self.setname,self.year), '20%sUL'%self.year)
                     Correction('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname,'{%s,%s}'%self.GetJetIdxTuple()],corrtype='corr')
                 )
 

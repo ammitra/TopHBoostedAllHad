@@ -20,7 +20,20 @@ python raw_nano/get_all_lpc.py
 ```
 If one wishes to add to the sets considered, simply modify the dictionary
 in `raw_nano/get_all_lpc.py` with the name of the set and the DAS path.
-## 2. Perform snapshot on `raw_nano/` files
+## 2. Create pileup distributions for pileup weights
+This is handled by THpileup.py.
+```
+python THpileup.py -s <setname> -y <year>
+```
+This script simply draws into a histogram the
+distribution of the number of primary vertices in the set. This is relatively quick
+but not quick enough to include in every snapshot or to run interactively.
+To run with condor, use...
+```
+python CondorHelper.py -r condor/run_pileup.sh -a condor/pileup_args.txt -i "THpileup.py raw_nano/"
+```
+To collect the outputs to one local file called `THpileup.root`, use `scripts/get_pileup_file.sh`.
+## 3. Perform snapshot on `raw_nano/` files
 The command to perform one snapshot using `THsnapshot.py` is 
 ```
 python THsnapshot.py -s <setname> -y <16,17,18> -j <ijob> -n <njobs>
@@ -67,7 +80,7 @@ To check on jobs, run `condor_q <username>`.
 **NOTE:** This step assumes you have performed the previous steps of creating an environment tarball and creating a list of
 jobs to submit in the condor task.
 
-## 3. Collect condor snapshot outputs
+## 4. Collect condor snapshot outputs
 Job outputs will automatically be moved to your EOS in the `condor/run_snapshot.sh` script that runs
 per-job on the condor nodes. The information for these can be collected with
 ```
@@ -105,7 +118,7 @@ and jobs still running (and if they are in the Hold state, what the reason is).
 
 \* A "task" is the basket that "jobs" fall into - one `CondorHelper.py` call creates one "task" with several "jobs".
 
-## 4. Final selections and studies
+## 5. Final selections and studies
 Once you are sure the snapshots are finished and available and their locations have been accessed,
 the basic selection can be performed with `python THselection.py -s <setname> -y <year>`. This script
 will take in the corresponding txt file in `dijet_nano/*.txt` and perform the basic signal region and "fail" region

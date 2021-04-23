@@ -1,0 +1,1 @@
+hadd -f THpileup.root `xrdfsls -u /store/user/lcorcodi/topHBoostedAllHad/pileup/ | grep 'THpileup.*root'`
