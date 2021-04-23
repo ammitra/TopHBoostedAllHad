@@ -1,6 +1,6 @@
 import subprocess, os
 redirector = 'root://cmseos.fnal.gov/'
-eos_path = '/store/user/%s/topHBoostedAllHad/'%os.getenv('USER')
+eos_path = '/store/user/%s/topHBoostedAllHad/snapshots/'%os.getenv('USER')
 
 files = subprocess.check_output('eos root://cmseos.fnal.gov ls %s'%(eos_path), shell=True)
 org_files = {}

@@ -10,7 +10,8 @@ def CheckLogsExist(logsList):
     nJobs = 0
     for l in allLogs:
         jobNumber = GetJobNumber(l)
-        if int(jobNumber) > nJobs: nJobs = int(jobNumber)+1
+        if int(jobNumber) >= nJobs: 
+            nJobs = int(jobNumber)+1
 
     if len(allLogs) != nJobs: # ERROR: These don't match!
         if len(allLogs) < nJobs:
@@ -38,7 +39,7 @@ def ParseCondorQ(stdout,tasknumber):
                     break
                 
         if l.startswith(tasknumber):
-            info = [i.strip() for i in l.split(' ')]
+            info = [i.strip() for i in l.split(' ') if i != '']
             jobNumber = info[0].split('.')[-1]
             taskDict[jobNumber] = {
                 'runtime': info[4],
@@ -50,6 +51,15 @@ def ParseCondorQ(stdout,tasknumber):
                 taskDict[jobNumber]['holdreason'] = subprocess.check_output('condor_q %s %s.%s -name %s -af HoldReason'%(os.getenv('USER'), args.tasknumber, jobNumber, currentSchedd), shell=True)
 
     return taskDict
+
+def FindRuntimeLine(lines): # NOTE NOT GENERIC
+    runtime = ''
+    for i in range(1,101):
+        runtimeLine = lines[-1*i]
+        if 'sec' in runtimeLine:
+            runtime = int( float(runtimeLine.split(' ')[0].strip()) )
+            break
+    return runtime
 
 if __name__ == '__main__':
     parser = ArgumentParser()
@@ -82,22 +92,24 @@ if __name__ == '__main__':
             hasError = False
             for lstderr in stderrLines:
                 if 'error' in lstderr.lower():
-                    print ('Found error: %s'%lstderr)
-                    print ('\t%s'%jobargs)
-                    jobsToReRun.append(jobargs)
                     hasError = True
+                    if FindRuntimeLine(stdoutLines) != '':
+                        hasError = False
+                    if hasError:
+                        print ('Found error: %s'%lstderr)
+                        print (f.replace('.log','.stderr'))
+                        print ('\t%s'%jobargs)
+                        print ('Found error: %s'%lstderr)
+                        print (f.replace('.log','.stderr'))
+                        print ('\t%s'%jobargs)
+                        jobsToReRun.append(jobargs)
                     break
             # If no error, get the time to finish
             if not hasError:
-                for i in range(1,10):
-                    runtimeLine = stdoutLines[-1*i]
-                    if 'sec' in runtimeLine:
-                        runtime = int( float(runtimeLine.split(' ')[0].strip()) )
-                        jobsFinished[GetJobNumber(f)] = {
-                            'runtime': time.strftime('%H:%M:%S', time.gmtime(runtime)),
-                            'args': jobargs.strip()
-                        }
-                        break
+                jobsFinished[GetJobNumber(f)] = {
+                    'runtime': time.strftime('%H:%M:%S', time.gmtime(FindRuntimeLine(stdoutLines))),
+                    'args': jobargs.strip()
+                }
 
     # Now build the report
     report = open('logs/report_%s.md'%args.tasknumber,'w')
