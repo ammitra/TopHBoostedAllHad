@@ -3,6 +3,7 @@ from TIMBER.Analyzer import Correction, ModuleWorker, analyzer
 from TIMBER.Tools.Common import CompileCpp
 from TIMBER.Tools.AutoPU import AutoPU
 from helpers import SplitUp
+from JMEvalsOnly import JMEvalsOnly
 from THpileup import ApplyPU
 
 class THClass:
@@ -57,28 +58,39 @@ class THClass:
         return self.a.GetActiveNode()
 
     def ApplyStandardCorrections(self,snapshot=False):
-        if self.a.isData:
-            lumiFilter = ModuleWorker('LumiFilter','TIMBER/Framework/include/LumiFilter.h',[self.year])
-            self.a.Cut('lumiFilter',lumiFilter.GetCall(inArgs={"lumi":"luminosityBlock"}))
-            if self.year == 18:
-                HEM_worker = ModuleWorker('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname,'{%s,%s}'%self.GetJetIdxTuple()])
-                self.a.Cut('HEM','%s[0] > 0'%(HEM_worker.GetCall()))
+        if not snapshot:
+            if self.a.isData:
+                lumiFilter = ModuleWorker('LumiFilter','TIMBER/Framework/include/LumiFilter.h',[self.year])
+                self.a.Cut('lumiFilter',lumiFilter.GetCall(evalArgs={"lumi":"luminosityBlock"}))
+                if self.year == 18:
+                    HEM_worker = ModuleWorker('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname])
+                    self.a.Cut('HEM','%s[0] > 0'%(HEM_worker.GetCall(evalArgs={"FatJet_eta":"Dijet_eta","FatJet_phi":"Dijet_phi"})))
 
-        else:
+            else:
                 self.a = ApplyPU(self.a,'%s_%s'%(self.setname,self.year), '20%sUL'%self.year)
-                    Correction('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname,'{%s,%s}'%self.GetJetIdxTuple()],corrtype='corr')
-                )
-
-            if 'ttbar' in self.a.fileName and not snapshot:
-                self.a.Define('GenPart_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass')
                 self.a.AddCorrection(
-                    Correction('TptReweight','TIMBER/Framework/include/TopPt_weight.h',corrtype='weight'),
-                    evalArgs={
-                        "jet0":"Top_vect"%self.dijetIdxs[0],
-                        "jet":"Higgs_vect"%self.dijetIdxs[1]}
+                    Correction('Pdfweight','TIMBER/Framework/include/PDFweight_uncert.h',[self.a.lhaid],corrtype='uncert')
                 )
-        if not snapshot: self.a.MakeWeightCols()
-        
+                if self.year == 16 or self.year == 17:
+                    self.a.AddCorrection(
+                        Correction("Prefire","TIMBER/Framework/include/Prefire_weight.h",[self.year],corrtype='weight')
+                    )
+                elif self.year == 18:
+                    self.a.AddCorrection(
+                        Correction('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname],corrtype='corr')
+                    )
+
+                if 'ttbar' in self.a.fileName:
+                    self.a.Define('GenPart_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass)')
+                    self.a.AddCorrection(
+                        Correction('TptReweight','TIMBER/Framework/include/TopPt_weight.h',corrtype='weight'),
+                        evalArgs={
+                            "jet0":"Dijet_vect[0]",
+                            "jet1":"Dijet_vect[1]"
+                        }
+                    )
+            self.a = JMEvalsOnly(self.a, 'Dijet', str(2000+self.year), self.setname)
+            self.a.MakeWeightCols()
         return self.a.GetActiveNode()
 
     def ApplyHiggsTag(self):
