@@ -15,7 +15,7 @@ class THClass:
         self.year = year
         self.ijob = ijob
         self.njobs = njobs
-        self.dijetIdxs = [0,1]
+        # self.dijetIdxs = [0,1]
         self.trigs = {
             16:[],
             17:[],
@@ -24,34 +24,36 @@ class THClass:
 
         self.ApplyFlagsAndTrigs()
         
-    def SetJetIdxs(self,idx0,idx1):
-        self.dijetIdxs = [idx0,idx1]
+    # def SetJetIdxs(self,idx0,idx1):
+    #     self.dijetIdxs = [idx0,idx1]
     
-    def GetJetIdxTuple(self):
-        return (self.dijetIdxs[0],self.dijetIdxs[1])
+    # def GetJetIdxTuple(self):
+    #     return (self.dijetIdxs[0],self.dijetIdxs[1])
 
     def ApplyFlagsAndTrigs(self):
         self.a.Cut('flags',self.a.GetFlagString())
         # if self.a.isData: self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[self.year]))
 
     def ApplyKinematics(self):
-        self.a.Cut('njets','nFatJet > max(%s,%s)'%self.GetJetIdxTuple())
-        self.a.Cut('pT','FatJet_pt[%s] > 350 && FatJet_pt[%s] > 350'%self.GetJetIdxTuple())
-        self.a.Cut('eta','abs(FatJet_eta[%s]) < 2.4 && abs(FatJet_eta[%s]) < 2.4'%self.GetJetIdxTuple())
-        self.a.Cut('deltaPhi','hardware::DeltaPhi(FatJet_phi[%s],FatJet_phi[%s]) > M_PI/2'%self.GetJetIdxTuple())
+        self.a.Cut('njets','nFatJet > 2')
+        self.a.Cut('pT', 'FatJet_pt[0] > 350 && FatJet_pt[1] > 350')
+        self.a.Define('DijetIdxs','PickDijets(FatJet_pt, FatJet_eta, FatJet_phi, FatJet_msoftdrop)')
+        self.a.Cut('dijetsExist','DijetIdxs[0] > -1 && DijetIdxs[1] > -1')
+        self.a.SubCollection('Dijet','FatJet','DijetIdxs',useTake=True)
+        self.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt, Dijet_eta, Dijet_phi, Dijet_msoftdrop)')
         return self.a.GetActiveNode()
 
-    def ApplyTopPick(self):
-        self.a.Define('jetIdxs','PickTop(FatJet_msoftdrop, FatJet_deepTag_TvsQCD, {%s, %s})'%self.GetJetIdxTuple())
-        self.a.Define('tIdx','jetIdxs[0]')
-        self.a.Define('hIdx','jetIdxs[1]')
-        self.a.Cut('HasTop','tIdx > -1')
+    def DefineTopIdx(self):
+        self.a.Define('ObjIdxs','PickTop(Dijet_msoftdrop, Dijet_deepTag_TvsQCD, {0, 1})')
+        self.a.Define('tIdx','ObjIdxs[0]')
+        self.a.Define('hIdx','ObjIdxs[1]')
 
-        self.a.ObjectFromCollection('Top','FatJet','tIdx')
-        self.a.Define('Top_vect','hardware::TLvector(Top_pt,Top_eta,Top_phi,Top_msoftdrop)')
-        
-        self.a.ObjectFromCollection('Higgs','FatJet','hIdx')
-        self.a.Define('Higgs_vect','hardware::TLvector(Higgs_pt,Higgs_eta,Higgs_phi,Higgs_msoftdrop)')
+    def ApplyTopPick(self):
+        if 'tIdx' not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
+            self.DefineTopIdx()
+        self.a.Cut('HasTop','tIdx > -1')
+        self.a.ObjectFromCollection('Top','Dijet','tIdx')       
+        self.a.ObjectFromCollection('Higgs','Dijet','hIdx')
         
         # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
         # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
@@ -113,20 +115,24 @@ class THClass:
         if node == None: node = self.a.GetActiveNode()
 
         columns = [
-            'FatJet_eta','FatJet_msoftdrop','FatJet_pt','FatJet_phi',
-            'FatJet_deepTagMD_HbbvsQCD', 'FatJet_deepTagMD_ZHbbvsQCD',
-            'FatJet_deepTagMD_TvsQCD', 'FatJet_particleNet_HbbvsQCD',
-            'FatJet_particleNet_TvsQCD', 'FatJet_rawFactor', 'FatJet_tau*',
-            'FatJet_jetId', 'nFatJet',
+            'Dijet_eta','Dijet_msoftdrop','Dijet_pt','Dijet_phi',
+            'Dijet_deepTagMD_HbbvsQCD', 'Dijet_deepTagMD_ZHbbvsQCD',
+            'Dijet_deepTagMD_TvsQCD', 'Dijet_particleNet_HbbvsQCD',
+            'Dijet_particleNet_TvsQCD', 'Dijet_rawFactor', 'Dijet_tau*',
+            'Dijet_jetId', 'nFatJet', 'Dijet_JES_nom',
             'HLT_PFHT.*', 'HLT_PFJet.*', 'HLT_AK8.*',
             'event', 'eventWeight', 'luminosityBlock', 'run'
         ]
 
         if not self.a.isData:
-            columns.extend(['GenPart_.*', 'nGenPart',])
+            columns.extend(['GenPart_.*', 'nGenPart'])
+            columns.extend(['Dijet_JES_up','Dijet_JES_down',
+                            'Dijet_JER_nom','Dijet_JER_up','Dijet_JER_down',
+                            'Dijet_JMS_nom','Dijet_JMS_up','Dijet_JMS_down',
+                            'Dijet_JMR_nom','Dijet_JMR_up','Dijet_JMR_down'])
             columns.extend(['pileup__nom','pileup__up','pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
             if self.year == 16 or self.year == 17:
-                columns.append(['Prefire__nom','Prefire__up','Prefire__down'])
+                columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])
             elif self.year == 18:
                 columns.append('HEM_drop__nom')
 
