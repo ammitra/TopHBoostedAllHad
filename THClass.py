@@ -20,9 +20,6 @@ class THClass:
             17:[],
             18:[]
         }
-
-        self.ApplyFlagsAndTrigs()
-        
     # def SetJetIdxs(self,idx0,idx1):
     #     self.dijetIdxs = [idx0,idx1]
     
