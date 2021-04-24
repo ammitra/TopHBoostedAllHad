@@ -127,7 +127,7 @@ class THClass:
                             'Dijet_JER_nom','Dijet_JER_up','Dijet_JER_down',
                             'Dijet_JMS_nom','Dijet_JMS_up','Dijet_JMS_down',
                             'Dijet_JMR_nom','Dijet_JMR_up','Dijet_JMR_down'])
-            columns.extend(['pileup__nom','pileup__up','pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
+            columns.extend(['Pileup__nom','Pileup__up','Pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
             if self.year == 16 or self.year == 17:
                 columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])
             elif self.year == 18:

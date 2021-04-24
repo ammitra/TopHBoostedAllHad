@@ -23,6 +23,7 @@ args = parser.parse_args()
 start = time.time()
 
 selection = THClass('raw_nano/%s_%s.txt'%(args.setname,args.era),int(args.era),args.ijob,args.njobs)
+selection.ApplyFlagsAndTrigs()
 selection.ApplyKinematics()
 out = selection.ApplyStandardCorrections(snapshot=True)
 selection.Snapshot(out)
