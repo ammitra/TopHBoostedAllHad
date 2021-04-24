@@ -100,6 +100,18 @@ class THClass:
                     )
             self.a = JMEvalsOnly(self.a, 'Dijet', str(2000+self.year), self.setname)
             self.a.MakeWeightCols()
+        
+        else:
+            if not self.a.isData:
+                self.a.AddCorrection(Correction('pileup',corrtype='weight'))
+                self.a.AddCorrection(Correction('Pdfweight',corrtype='uncert'))
+                if self.year == 16 or self.year == 17:
+                    self.a.AddCorrection(Correction('Prefire',corrtype='weight'))
+                elif self.year == 18:
+                    self.a.AddCorrection(Correction('HEM_drop',corrtype='corr'))
+                if 'ttbar' in self.a.fileName:
+                    self.a.AddCorrection(Correction('TptReweight',corrtype='weight'))
+                
         return self.a.GetActiveNode()
 
     def WrapUp(self,nodes):
