@@ -61,8 +61,8 @@ class THClass:
         # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
         return self.a.GetActiveNode()
     
-    def ApplyHiggsTag(self,tagger='deepTagMD_HbbvsQCD',mod=''):
-        self.a.Define('mth%s'%mod,'hardware::InvariantMass({Top_vect,Higgs_vect})')
+    def ApplyHiggsTag(self,tagger='deepTagMD_HbbvsQCD'):
+        self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
         passfail = self.a.Discriminate('HbbTag','Higgs_%s > 0.9'%tagger)
         return passfail
         
