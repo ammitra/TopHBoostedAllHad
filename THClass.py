@@ -125,6 +125,7 @@ class THClass:
         outfile.Close()
 
     def Snapshot(self,node=None):
+        startNode = self.a.GetActiveNode()
         if node == None: node = self.a.GetActiveNode()
 
         columns = [
@@ -149,4 +150,6 @@ class THClass:
             elif self.year == 18:
                 columns.append('HEM_drop__nom')
 
-        node.Snapshot(columns,'THsnapshot_%s_%s_%sof%s.root'%(self.setname,self.year,self.ijob,self.njobs),'Events')
+        self.a.SetActiveNode(node)
+        self.a.Snapshot(columns,'THsnapshot_%s_%s_%sof%s.root'%(self.setname,self.year,self.ijob,self.njobs),'Events')
+        self.a.SetActiveNode(startNode)
