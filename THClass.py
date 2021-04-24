@@ -39,22 +39,29 @@ class THClass:
         self.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt, Dijet_eta, Dijet_phi, Dijet_msoftdrop)')
         return self.a.GetActiveNode()
 
-    def DefineTopIdx(self):
-        self.a.Define('ObjIdxs','PickTop(Dijet_msoftdrop, Dijet_deepTag_TvsQCD, {0, 1})')
-        self.a.Define('tIdx','ObjIdxs[0]')
-        self.a.Define('hIdx','ObjIdxs[1]')
+    def DefineTopIdx(self,tagger='deepTagMD_TvsQCD',invert=False):
+        invertStr = 'Not' if invert else ''
+        objIdxs = 'ObjIdxs_%s%s'%(invertStr,tagger)
+        self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop, Dijet_%s, {0, 1}, %s)'%(tagger,'true' if invert else 'false'))
+        self.a.Define('tIdx','%s[0]'%objIdxs)
+        self.a.Define('hIdx','%s[1]'%objIdxs)
 
-    def ApplyTopPick(self):
-        if 'tIdx' not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
-            self.DefineTopIdx()
+    def ApplyTopPick(self,tagger='deepTagMD_TvsQCD',invert=False):
+        objIdxs = 'ObjIdxs_%s%s'%('Not' if invert else '',tagger)
+        if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
+            self.DefineTopIdx(tagger,invert)
         self.a.Cut('HasTop','tIdx > -1')
-        self.a.ObjectFromCollection('Top','Dijet','tIdx')       
+        self.a.ObjectFromCollection('Top','Dijet','tIdx')
         self.a.ObjectFromCollection('Higgs','Dijet','hIdx')
-        
         # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
         # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
         return self.a.GetActiveNode()
-
+    
+    def ApplyHiggsTag(self,tagger='deepTagMD_HbbvsQCD',mod=''):
+        self.a.Define('mth%s'%mod,'hardware::InvariantMass({Top_vect,Higgs_vect})')
+        passfail = self.a.Discriminate('HbbTag','Higgs_%s > 0.9'%tagger)
+        return passfail
+        
     def ApplyStandardCorrections(self,snapshot=False):
         if snapshot:
             if self.a.isData:
@@ -91,11 +98,6 @@ class THClass:
             self.a.MakeWeightCols()
         return self.a.GetActiveNode()
 
-    def ApplyHiggsTag(self):
-        self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
-        passfail = self.a.Discriminate('HbbTag','Higgs_deepTagMD_HbbvsQCD > 0.9')
-        return passfail
-        
     def WrapUp(self,nodes):
         outfile = ROOT.TFile.Open(self.a.fileName.replace('.txt','.root'),'RECREATE')
         for n in nodes:
@@ -104,7 +106,6 @@ class THClass:
             outfile.cd()
             templates.Do('Write')
             # self.a.DrawTemplates(templates,'plots/')
-
         outfile.Close()
 
     def Snapshot(self,node=None):
