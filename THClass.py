@@ -20,6 +20,10 @@ class THClass:
             17:[],
             18:[]
         }
+        if 'Data' in self.setname:
+            self.a.isData = True
+        else:
+            self.a.isData = False
     # def SetJetIdxs(self,idx0,idx1):
     #     self.dijetIdxs = [idx0,idx1]
     
