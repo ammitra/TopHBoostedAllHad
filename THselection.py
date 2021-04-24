@@ -72,11 +72,13 @@ def main(args):
         selection.ApplyTopPick(tagger=top_tagger,invert=True)
         passfailCR = selection.ApplyHiggsTag(tagger=higgs_tagger)
 
-        for n in passfailSR.values()+passfailCR.values():
-            selection.a.SetActiveNode(n)
-            selection.a.MakeWeightCols()
-            templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%t,'MthvMh with %s'%t,40,60,260,28,800,2200),['Higgs_msoftdrop','mth'])
-            templates.Do('Write')
+        for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():
+            for pfkey,n in rpair.items():
+                mod = "%s_%s_%s"%(t,rkey,pfkey)
+                selection.a.SetActiveNode(n)
+                selection.a.MakeWeightCols()
+                templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod,'MthvMh with %s'%t,40,60,260,28,800,2200),['Higgs_msoftdrop','mth'])
+                templates.Do('Write')
 
     kinPlots.Do('Write')
     selection.a.PrintNodeTree('NodeTree.pdf')
