@@ -1,4 +1,7 @@
+from glob import glob
 import subprocess, os
+
+from TIMBER.Tools.Common import ExecuteCmd
 redirector = 'root://cmseos.fnal.gov/'
 eos_path = '/store/user/%s/topHBoostedAllHad/snapshots/'%os.getenv('USER')
 
@@ -24,3 +27,9 @@ for y in org_files.keys():
         for f in org_files[y][s]:
             out.write(f+'\n')
         out.close()
+
+    # consolidate data files
+    subdatafiles = glob('dijet_nano/Data*_%s_snapshot.txt'%y)
+    ExecuteCmd('cat dijet_nano/Data*_{0}_snapshot.txt > dijet_nano/Data_{0}_snapshot.txt'.format(y))
+    for s in subdatafiles:
+        ExecuteCmd('rm %s'%s)
