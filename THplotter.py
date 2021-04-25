@@ -36,6 +36,10 @@ def multicore():
         args.proc, args.year = GetProcYear(f)
         args.threads = 4
         process_args.append(args)
+        if 'Data' not in args.proc and 'QCD' not in args.proc:
+            for jme in ['JES','JER','JMS','JMR']:
+                for v in ['up','down']:
+                    process_args.append(args + ' -v %s_%s'%(jme,v))
     pool.map(main,process_args)
 
 def plot():

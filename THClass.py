@@ -46,7 +46,7 @@ class THClass:
     def DefineTopIdx(self,tagger='deepTagMD_TvsQCD',invert=False):
         invertStr = 'Not' if invert else ''
         objIdxs = 'ObjIdxs_%s%s'%(invertStr,tagger)
-        self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop, Dijet_%s, {0, 1}, %s)'%(tagger,'true' if invert else 'false'))
+        self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corr, Dijet_%s, {0, 1}, %s)'%(tagger,'true' if invert else 'false'))
         self.a.Define('tIdx','%s[0]'%objIdxs)
         self.a.Define('hIdx','%s[1]'%objIdxs)
 
@@ -118,7 +118,7 @@ class THClass:
         outfile = ROOT.TFile.Open(self.a.fileName.replace('.txt','.root'),'RECREATE')
         for n in nodes:
             self.a.SetActiveNode(n)
-            templates = self.a.MakeTemplateHistos(ROOT.TH2F('MthvMh','MthvMh',40,60,260,28,800,2200),['Higgs_msoftdrop','mth'])
+            templates = self.a.MakeTemplateHistos(ROOT.TH2F('MthvMh','MthvMh',40,60,260,28,800,2200),['Higgs_msoftdrop_corr','mth'])
             outfile.cd()
             templates.Do('Write')
             # self.a.DrawTemplates(templates,'plots/')
