@@ -1,7 +1,7 @@
 import ROOT, time
 ROOT.gROOT.SetBatch(True)
 # ROOT.ROOT.EnableImplicitMT(2)
-
+from TIMBER.Tools.Common import CompileCpp
 from argparse import ArgumentParser
 from THClass import THClass
 
@@ -22,6 +22,7 @@ args = parser.parse_args()
 
 start = time.time()
 
+CompileCpp('THmodules.cc')
 selection = THClass('raw_nano/%s_%s.txt'%(args.setname,args.era),int(args.era),args.ijob,args.njobs)
 selection.ApplyFlagsAndTrigs()
 selection.ApplyKinematics()

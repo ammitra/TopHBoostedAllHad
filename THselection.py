@@ -1,6 +1,7 @@
 import ROOT, time
 
 from TIMBER.Analyzer import HistGroup
+from TIMBER.Tools.Common import CompileCpp
 ROOT.gROOT.SetBatch(True)
 
 from THClass import THClass
@@ -109,5 +110,5 @@ if __name__ == '__main__':
                         action='store', default='',
                         help='JES_up, JES_down, JMR_up,...')
     args = parser.parse_args()
-    args.threads = 1
+    CompileCpp('THmodules.cc')
     main(args)

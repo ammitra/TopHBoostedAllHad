@@ -7,7 +7,6 @@ from JMEvalsOnly import JMEvalsOnly
 
 class THClass:
     def __init__(self,inputfile,year,ijob,njobs):
-        CompileCpp('THmodules.cc')
         infiles = SplitUp(inputfile, njobs)[ijob-1]
         self.a = analyzer(infiles)
         self.setname = inputfile.split('/')[-1].split('_')[0]
