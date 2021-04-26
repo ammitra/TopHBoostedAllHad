@@ -60,6 +60,19 @@ class THClass:
         # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
         return self.a.GetActiveNode()
     
+    def ApplyTopPickViaMatch(self):
+        objIdxs = 'ObjIdxs_GenMatch'
+        if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
+            self.a.Define(objIdxs,'PickTopGenMatch(Dijet_vect, GenPart_vect, GenPart_pdgId)')
+            self.a.Define('tIdx','%s[0]'%objIdxs)
+            self.a.Define('hIdx','%s[1]'%objIdxs)
+        self.a.Cut('GoodMatches','tIdx > -1 && hIdx > -1')
+        self.a.ObjectFromCollection('Top','Dijet','tIdx')
+        self.a.ObjectFromCollection('Higgs','Dijet','hIdx')
+        # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
+        # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
+        return self.a.GetActiveNode()
+    
     def ApplyHiggsTag(self,tagger='deepTagMD_HbbvsQCD'):
         self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
         passfail = self.a.Discriminate('HbbTag','Higgs_%s > 0.9'%tagger)
