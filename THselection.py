@@ -41,36 +41,6 @@ def main(args):
         kinPlots.Add('deltaEta',selection.a.DataFrame.Histo1D(('deltaEta','| #Delta #eta |',48,0,4.8),'deltaEta'))
         kinPlots.Add('deltaY',selection.a.DataFrame.Histo1D(('deltaY','| #Delta y |',60,0,3),'deltaY'))
 
-        # Taggers after mass selection
-        selection.a.Define('TopMassBools','Dijet_msoftdrop_corr > 105 && Dijet_msoftdrop_corr < 210')
-        selection.a.Define('DAK8TopScoresInMassWindow', 'Dijet_deepTagMD_TvsQCD[TopMassBools]')
-        selection.a.Define('PNTopScoresInMassWindow', 'Dijet_particleNet_TvsQCD[TopMassBools]')
-        kinPlots.Add('DAK8TopScoresInMassWindow',selection.a.DataFrame.Histo1D(('DAK8TopScoresInMassWindow','DeepAK8 top score for jets in top mass window',50,0,1),'DAK8TopScoresInMassWindow'))
-        kinPlots.Add('PNTopScoresInMassWindow',selection.a.DataFrame.Histo1D(('PNTopScoresInMassWindow','ParticleNet top score for jets in top mass window',50,0,1),'PNTopScoresInMassWindow'))
-
-        selection.a.Define('HiggsMassBools','Dijet_msoftdrop_corr > 100 && Dijet_msoftdrop_corr < 140')
-        selection.a.Define('DAK8HiggsScoresInMassWindow','Dijet_deepTagMD_HbbvsQCD[HiggsMassBools]')
-        selection.a.Define('PNHiggsScoresInMassWindow','Dijet_particleNet_HbbvsQCD[HiggsMassBools]')
-        kinPlots.Add('DAK8HiggsScoresInMassWindow',selection.a.DataFrame.Histo1D(('DAK8HiggsScoresInMassWindow','DeepAK8 Higgs score for jets in Higgs mass window',50,0,1),'DAK8HiggsScoresInMassWindow'))
-        kinPlots.Add('PNHiggsScoresInMassWindow',selection.a.DataFrame.Histo1D(('PNHiggsScoresInMassWindow','ParticleNet Higgs score for jets in Higgs mass window',50,0,1),'PNHiggsScoresInMassWindow'))
-
-        # Mass after tagger selection
-        selection.a.Define('TopDAK8Bools','Dijet_deepTagMD_TvsQCD > 0.6')
-        selection.a.Define('TopPNBools','Dijet_particleNet_TvsQCD > 0.6')
-
-        selection.a.Define('TopMassAfterDAK8Tag', 'Dijet_msoftdrop_corr[TopDAK8Bools]')
-        selection.a.Define('TopMassAfterPNTag', 'Dijet_msoftdrop_corr[TopPNBools]')
-        kinPlots.Add('TopMassAfterDAK8Tag',selection.a.DataFrame.Histo1D(('TopMassAfterDAK8Tag','Jet mass after DAK8 top score > 0.6',25,50,300),'TopMassAfterDAK8Tag'))
-        kinPlots.Add('TopMassAfterPNTag',selection.a.DataFrame.Histo1D(('TopMassAfterPNTag','Jet mass after PN top score > 0.6',25,50,300),'TopMassAfterPNTag'))
-
-        selection.a.Define('HiggsDAK8Bools','Dijet_deepTagMD_HbbvsQCD > 0.6')
-        selection.a.Define('HiggsPNBools','Dijet_particleNet_HbbvsQCD > 0.6')
-
-        selection.a.Define('HiggsMassAfterDAK8Tag', 'Dijet_msoftdrop_corr[HiggsDAK8Bools]')
-        selection.a.Define('HiggsMassAfterPNTag', 'Dijet_msoftdrop_corr[HiggsPNBools]')
-        kinPlots.Add('HiggsMassAfterDAK8Tag',selection.a.DataFrame.Histo1D(('HiggsMassAfterDAK8Tag','Jet mass after DAK8 Higgs score > 0.6',25,50,300),'HiggsMassAfterDAK8Tag'))
-        kinPlots.Add('HiggsMassAfterPNTag',selection.a.DataFrame.Histo1D(('HiggsMassAfterPNTag','Jet mass after PN Higgs score > 0.6',25,50,300),'HiggsMassAfterPNTag'))
-
     out = ROOT.TFile.Open('rootfiles/THselection_%s_%s%s.root'%(args.setname,args.era,'_'+args.variation if args.variation != '' else ''),'RECREATE')
     out.cd()
     for t in ['deepTagMD','particleNet']:
