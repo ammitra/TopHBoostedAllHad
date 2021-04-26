@@ -61,3 +61,36 @@ std::vector<int> PickTop(RVec<float> mass, RVec<float> tagScore, RVec<int> idxs,
     }
     return out;
 }
+
+bool MatchToGen(int pdgID, ROOT::Math::PtEtaPhiMVector jet,
+                RVec<ROOT::Math::PtEtaPhiMVector> GenPart_vect,
+                RVec<int> GenPart_pdgId) {
+    bool found = false;
+    for (int igp = 0; igp<GenPart_vect.size(); igp++) {
+        if (abs(GenPart_pdgId[igp]) == pdgID) {
+            if (hardware::DeltaR(jet,GenPart_vect[igp]) < 0.8) {
+                found = true;
+                break;
+            }
+        }
+    }
+    return found;
+}
+
+std::vector<int> PickTopGenMatch(RVec<ROOT::Math::PtEtaPhiMVector> Dijet_vect,
+                                 RVec<ROOT::Math::PtEtaPhiMVector> GenPart_vect,
+                                 RVec<int> GenPart_pdgId) {
+    if (Dijet_vect.size()>2) {
+        std::cout << "PickTopGenMatch -- WARNING: You have input more than two indices. Only two accepted. Assuming first two indices.";
+    }
+    int tIdx = -1;
+    int hIdx = -1;
+    for (int ijet = 0; ijet < 2; ijet++) {
+        if (MatchToGen(6, Dijet_vect[ijet], GenPart_vect, GenPart_pdgId)) {
+            tIdx = ijet;
+        } else if (MatchToGen(25, Dijet_vect[ijet], GenPart_vect, GenPart_pdgId)) {
+            hIdx = ijet;
+        }
+    }
+    return {tIdx,hIdx};
+}
