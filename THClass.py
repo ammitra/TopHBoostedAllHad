@@ -138,7 +138,7 @@ class THClass:
         ]
 
         if not self.a.isData:
-            columns.extend(['GenPart_.*', 'nGenPart'])
+            columns.extend(['GenPart_.*', 'nGenPart','genWeight'])
             columns.extend(['Dijet_JES_up','Dijet_JES_down',
                             'Dijet_JER_nom','Dijet_JER_up','Dijet_JER_down',
                             'Dijet_JMS_nom','Dijet_JMS_up','Dijet_JMS_down',
