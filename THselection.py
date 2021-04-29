@@ -24,8 +24,8 @@ def main(args):
         selection.a.Define('Dijet_msoftdrop_corr','Dijet_msoftdrop')
 
     selection.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt_corr, Dijet_eta, Dijet_phi, Dijet_msoftdrop_corr)')
-    kinOnly = selection.ApplyStandardCorrections(snapshot=False)
-    selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
+    selection.ApplyStandardCorrections(snapshot=False)
+    kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
 
     if doStudies:
         selection.a.Define('pt0','Dijet_pt_corr[0]')
@@ -90,7 +90,7 @@ def main(args):
                 mod_name = "%s_%s_%s"%(t,rkey,pfkey)
                 mod_title = "%s %s"%(rkey,pfkey)
                 selection.a.SetActiveNode(n)
-                templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod_name,'MthvMh %s with %s'%(mod_title,t),40,60,260,28,800,2200),['Higgs_msoftdrop','mth'])
+                templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod_name,'MthvMh %s with %s'%(mod_title,t),40,60,260,28,800,2200),['Higgs_msoftdrop_corr','mth'])
                 templates.Do('Write')
 
     if doStudies:

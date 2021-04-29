@@ -112,7 +112,7 @@ class THClass:
                         Correction('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname],corrtype='corr')
                     )
 
-                if 'ttbar' in self.a.fileName:
+                if 'ttbar' in self.setname:
                     self.a.Define('GenPart_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass)')
                     self.a.AddCorrection(
                         Correction('TptReweight','TIMBER/Framework/include/TopPt_weight.h',corrtype='weight'),
