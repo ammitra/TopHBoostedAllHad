@@ -8,6 +8,17 @@
         "QCDHT700":6802,
         "QCDHT1000":1206,
         "QCDHT1500":120.4,
-        "QCDHT2000":25.25
+        "QCDHT2000":25.25,
+        "TprimeB-800": 1.0,
+        "TprimeB-900": 1.0,
+        "TprimeB-1000": 1.0,
+        "TprimeB-1100": 1.0,
+        "TprimeB-1200": 1.0,
+        "TprimeB-1300": 1.0,
+        "TprimeB-1400": 1.0,
+        "TprimeB-1500": 1.0,
+        "TprimeB-1600": 1.0,
+        "TprimeB-1700": 1.0,
+        "TprimeB-1800": 1.0
     }
 }
