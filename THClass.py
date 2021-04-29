@@ -122,7 +122,7 @@ class THClass:
                         }
                     )
             self.a = JMEvalsOnly(self.a, 'Dijet', str(2000+self.year), self.setname)
-            self.a.MakeWeightCols(extraNominal='genWeight')
+            self.a.MakeWeightCols(extraNominal='genWeight' if not self.a.isData else '')
         
         else:
             if not self.a.isData:
