@@ -112,6 +112,14 @@ if __name__ == '__main__':
                 }
 
     # Now build the report
+    print (
+'''
+SUMMARY
+========================================
+Finished: {0}, Running: {1}, Failed: {2}
+'''.format(len(jobsFinished.keys()),len(jobsRunning.keys()),len(jobsToReRun))
+    )
+
     report = open('logs/report_%s.md'%args.tasknumber,'w')
     report.write('# JOBS SUCCESSFUL\n')
     report.write('| Job Number | Args | Runtime |\n')
