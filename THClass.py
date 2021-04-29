@@ -1,6 +1,5 @@
 import ROOT
-from TIMBER.Analyzer import Correction, ModuleWorker, analyzer
-from TIMBER.Tools.Common import CompileCpp
+from TIMBER.Tools.Common import CompileCpp, OpenJSON
 from TIMBER.Tools.AutoPU import ApplyPU
 from helpers import SplitUp
 from JMEvalsOnly import JMEvalsOnly

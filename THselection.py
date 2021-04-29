@@ -69,7 +69,10 @@ def main(args):
 
     if doStudies: 
         kinPlots.Do('Write')
-        selection.a.PrintNodeTree('NodeTree.pdf')
+    if not selection.a.isData:
+        scale = ROOT.TH1F('scale','xsec*lumi/genEventSumw',1,0,1)
+        scale.SetBinContent(1,selection.GetXsecScale())
+        scale.Write()
     print ('%s sec'%(time.time()-start))
 
 if __name__ == '__main__':
