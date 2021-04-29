@@ -42,21 +42,46 @@ def main(args):
         kinPlots.Add('deltaEta',selection.a.DataFrame.Histo1D(('deltaEta','| #Delta #eta |',48,0,4.8),'deltaEta','weight__nominal'))
         kinPlots.Add('deltaY',selection.a.DataFrame.Histo1D(('deltaY','| #Delta y |',60,0,3),'deltaY','weight__nominal'))
 
+    if not selection.a.isData and doStudies:
+        selection.ApplyTopPickViaMatch()
+        kinPlots.Add('tIdx',selection.a.DataFrame.Histo1D(('tIdx','Top jet idx',2,0,2),'tIdx'))
+        kinPlots.Add('hIdx',selection.a.DataFrame.Histo1D(('hIdx','Higgs jet idx',2,0,2),'hIdx'))
+        
+        selection.a.SetActiveNode(kinOnly)
+        selection.a.ObjectFromCollection('LeadTop','Dijet',0)
+        nminus1Node = selection.a.ObjectFromCollection('SubleadHiggs','Dijet',1)
 
     out = ROOT.TFile.Open('rootfiles/THselection_%s_%s%s.root'%(args.setname,args.era,'_'+args.variation if args.variation != '' else ''),'RECREATE')
     out.cd()
     for t in ['deepTagMD','particleNet']:
-        selection.a.SetActiveNode(kinOnly)
         top_tagger = '%s_TvsQCD'%t
         higgs_tagger = '%s_HbbvsQCD'%t
+
+        # N-1
+        if not selection.a.isData and doStudies:
+            selection.a.SetActiveNode(nminus1Node)
+            nminusGroup = selection.GetNminus1Group(t)
+            nminusNodes = selection.a.Nminus1(nminusGroup)
+            for n in nminusNodes.keys():
+                if n.startswith('m'):
+                    bins = [25,50,300]
+                    if n.startswith('mH'): var = 'SubleadHiggs_msoftdrop_corr'
+                    else: var = 'LeadTop_msoftdrop_corr'
+                elif n == 'full': continue
+                else:
+                    bins = [20,0,1]
+                    if n.endswith('H_cut'): var = 'SubleadHiggs_%s_HbbvsQCD'%t
+                    else: var = 'LeadTop_%s_TvsQCD'%t
+                print ('N-1: Plotting %s for node %s'%(var,n))
+                kinPlots.Add(n+'_nminus1',nminusNodes[n].DataFrame.Histo1D((n+'_nminus1',n+'_nminus1',bins[0],bins[1],bins[2]),var,'weight__nominal'))
+
         # Signal region
-        # selection.DefineTopIdx(tagger=top_tagger,invert=False)
+        selection.a.SetActiveNode(kinOnly)
         selection.ApplyTopPick(tagger=top_tagger,invert=False)
         passfailSR = selection.ApplyHiggsTag(tagger=higgs_tagger)
 
         # Control region
         selection.a.SetActiveNode(kinOnly)
-        # selection.DefineTopIdx(tagger=top_tagger,invert=True)
         selection.ApplyTopPick(tagger=top_tagger,invert=True)
         passfailCR = selection.ApplyHiggsTag(tagger=higgs_tagger)
 
@@ -65,12 +90,12 @@ def main(args):
                 mod_name = "%s_%s_%s"%(t,rkey,pfkey)
                 mod_title = "%s %s"%(rkey,pfkey)
                 selection.a.SetActiveNode(n)
-                selection.a.MakeWeightCols()
                 templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod_name,'MthvMh %s with %s'%(mod_title,t),40,60,260,28,800,2200),['Higgs_msoftdrop','mth'])
                 templates.Do('Write')
 
-    if doStudies: 
+    if doStudies:
         kinPlots.Do('Write')
+        selection.a.PrintNodeTree('NodeTree.pdf',verbose=True)
     if not selection.a.isData:
         scale = ROOT.TH1F('scale','xsec*lumi/genEventSumw',1,0,1)
         scale.SetBinContent(1,selection.GetXsecScale())

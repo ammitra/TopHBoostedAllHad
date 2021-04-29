@@ -1,4 +1,5 @@
 import ROOT
+from TIMBER.Analyzer import Correction, CutGroup, ModuleWorker, analyzer
 from TIMBER.Tools.Common import CompileCpp, OpenJSON
 from TIMBER.Tools.AutoPU import ApplyPU
 from helpers import SplitUp
@@ -41,6 +42,15 @@ class THClass:
         self.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt, Dijet_eta, Dijet_phi, Dijet_msoftdrop)')
         return self.a.GetActiveNode()
 
+    def GetNminus1Group(self,tagger):
+        # Use after ApplyTopPickViaMatch
+        cutgroup = CutGroup('taggingVars')
+        cutgroup.Add('mH_%s_cut'%tagger,'SubleadHiggs_msoftdrop_corr > 100 && SubleadHiggs_msoftdrop_corr < 140')
+        cutgroup.Add('mt_%s_cut'%tagger,'LeadTop_msoftdrop_corr > 105 && LeadTop_msoftdrop_corr < 210')
+        cutgroup.Add('%s_H_cut'%tagger,'SubleadHiggs_%s_HbbvsQCD > 0.6'%tagger)
+        cutgroup.Add('%s_top_cut'%tagger,'LeadTop_%s_TvsQCD > 0.6'%tagger)
+        return cutgroup
+
     def DefineTopIdx(self,tagger='deepTagMD_TvsQCD',invert=False):
         invertStr = 'Not' if invert else ''
         objIdxs = 'ObjIdxs_%s%s'%(invertStr,tagger)
@@ -61,7 +71,9 @@ class THClass:
     
     def ApplyTopPickViaMatch(self):
         objIdxs = 'ObjIdxs_GenMatch'
-        if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
+        if 'GenPart_vect' not in self.a.GetColumnNames():
+            self.a.Define('GenPart_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass)')
+        if objIdxs not in self.a.GetColumnNames():
             self.a.Define(objIdxs,'PickTopGenMatch(Dijet_vect, GenPart_vect, GenPart_pdgId)')
             self.a.Define('tIdx','%s[0]'%objIdxs)
             self.a.Define('hIdx','%s[1]'%objIdxs)
