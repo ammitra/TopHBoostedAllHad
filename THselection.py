@@ -90,7 +90,7 @@ def main(args):
                 mod_name = "%s_%s_%s"%(t,rkey,pfkey)
                 mod_title = "%s %s"%(rkey,pfkey)
                 selection.a.SetActiveNode(n)
-                templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod_name,'MthvMh %s with %s'%(mod_title,t),40,60,260,28,800,2200),['Higgs_msoftdrop','mth'])
+                templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod_name,'MthvMh %s with %s'%(mod_title,t),40,60,260,28,800,2200),['Higgs_msoftdrop_corr','mth'])
                 templates.Do('Write')
 
     if doStudies:
