@@ -110,7 +110,7 @@ class THClass:
                         }
                     )
             self.a = JMEvalsOnly(self.a, 'Dijet', str(2000+self.year), self.setname)
-            self.a.MakeWeightCols()
+            self.a.MakeWeightCols(extraNominal='genWeight')
         
         else:
             if not self.a.isData:
@@ -124,6 +124,14 @@ class THClass:
                     self.a.AddCorrection(Correction('TptReweight',corrtype='weight'))
                 
         return self.a.GetActiveNode()
+
+    def GetXsecScale(self):
+        config = OpenJSON('THconfig.json')
+        lumi = config['lumi%s'%self.year]
+        xsec = config['XSECS'][self.setname]
+        if self.a.genEventSumw == 0:
+            raise ValueError('%s %s: genEventSumw is 0'%(self.setname, self.year))
+        return lumi*xsec/self.a.genEventSumw
 
     def WrapUp(self,nodes):
         outfile = ROOT.TFile.Open(self.a.fileName.replace('.txt','.root'),'RECREATE')
