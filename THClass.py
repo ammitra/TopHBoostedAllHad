@@ -163,7 +163,7 @@ class THClass:
             'Dijet_eta','Dijet_msoftdrop','Dijet_pt','Dijet_phi',
             'Dijet_deepTagMD_HbbvsQCD', 'Dijet_deepTagMD_ZHbbvsQCD',
             'Dijet_deepTagMD_TvsQCD', 'Dijet_particleNet_HbbvsQCD',
-            'Dijet_particleNet_TvsQCD', 'Dijet_particleNetMD_.*' 'Dijet_rawFactor', 'Dijet_tau*',
+            'Dijet_particleNet_TvsQCD', 'Dijet_particleNetMD.*', 'Dijet_rawFactor', 'Dijet_tau*',
             'Dijet_jetId', 'nFatJet', 'Dijet_JES_nom',
             'HLT_PFHT.*', 'HLT_PFJet.*', 'HLT_AK8.*',
             'event', 'eventWeight', 'luminosityBlock', 'run'
