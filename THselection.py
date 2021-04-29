@@ -124,7 +124,7 @@ if __name__ == '__main__':
                         action='store', required=True,
                         help='Year of set (16, 17, 18).')
     parser.add_argument('-v', type=str, dest='variation',
-                        action='store', default='',
+                        action='store', default='None',
                         help='JES_up, JES_down, JMR_up,...')
     args = parser.parse_args()
     args.threads = 1
