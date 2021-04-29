@@ -24,8 +24,8 @@ def main(args):
         selection.a.Define('Dijet_msoftdrop_corr','Dijet_msoftdrop')
 
     selection.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt_corr, Dijet_eta, Dijet_phi, Dijet_msoftdrop_corr)')
-    kinOnly = selection.ApplyStandardCorrections(snapshot=False)
-    selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
+    selection.ApplyStandardCorrections(snapshot=False)
+    kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
 
     if doStudies:
         selection.a.Define('pt0','Dijet_pt_corr[0]')
