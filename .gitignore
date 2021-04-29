@@ -9,3 +9,7 @@ condor/*.txt
 THsnapshot*.root
 CondorHelper.py
 dijet_nano/*.txt
+THpileup.root
+rootfiles/
+plots
+raw_nano/*.txt
