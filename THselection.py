@@ -6,22 +6,34 @@ ROOT.gROOT.SetBatch(True)
 
 from THClass import THClass
 
+def JMEvariationStr(variation):
+    base_calibs = ['Dijet_JES_nom','Dijet_JER_nom', 'Dijet_JMS_nom', 'Dijet_JMR_nom']
+    variationType = variation.split('_')[0]
+    pt_calib_vect = '{'
+    mass_calib_vect = '{'
+    for c in base_calibs:
+        mass_calib_vect+='%s,'%('Dijet_'+variation if variationType in c else c)
+        if 'JE' in c:
+            pt_calib_vect+='%s,'%('Dijet_'+variation if variationType in c else c)
+    pt_calib_vect = pt_calib_vect[:-1]+'}'
+    mass_calib_vect = mass_calib_vect[:-1]+'}'
+    return pt_calib_vect, mass_calib_vect
+
 def main(args):
     ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),int(args.era),1,1)
     # JME variations
     doStudies = False
-    if args.variation.startswith('JE'):
-        selection.a.Define('Dijet_pt_corr','hardware::HadamardProduct(Dijet_pt,Dijet_%s)'%args.variation)
-        selection.a.Define('Dijet_msoftdrop_corr','hardware::HadamardProduct(Dijet_msoftdrop,Dijet_%s)'%args.variation)
-    elif args.variation.startswith('JM'):
-        selection.a.Define('Dijet_pt_corr','Dijet_pt')
-        selection.a.Define('Dijet_msoftdrop_corr','hardware::HadamardProduct(Dijet_msoftdrop,Dijet_%s)'%args.variation)
+    if not selection.a.isData:
+        if args.variation == 'None':
+            doStudies = True
+        pt_calibs, mass_calibs = JMEvariationStr(args.variation)
+        selection.a.Define('Dijet_pt_corr','hardware::MultiHadamardProduct(Dijet_pt,%s)'%pt_calibs)
+        selection.a.Define('Dijet_msoftdrop_corr','hardware::MultiHadamardProduct(Dijet_msoftdrop,%s)'%mass_calibs)
     else:
-        doStudies = True
-        selection.a.Define('Dijet_pt_corr','Dijet_pt')
-        selection.a.Define('Dijet_msoftdrop_corr','Dijet_msoftdrop')
+        selection.a.Define('Dijet_pt_corr','hardware::HadamardProduct(Dijet_pt,Dijet_JES_nom)')
+        selection.a.Define('Dijet_msoftdrop_corr','hardware::HadamardProduct(Dijet_msoftdrop,Dijet_JES_nom)')
 
     selection.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt_corr, Dijet_eta, Dijet_phi, Dijet_msoftdrop_corr)')
     selection.ApplyStandardCorrections(snapshot=False)
