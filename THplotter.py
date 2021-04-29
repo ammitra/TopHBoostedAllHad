@@ -22,6 +22,8 @@ def GetHistDict(histname, all_files):
         proc, year = GetProcYearFromROOT(f)
         tfile = ROOT.TFile.Open(f)
         hist = tfile.Get(histname)
+        if hist == None:
+            raise ValueError('Histogram %s does not exist in %s.'%(histname,f))
         hist.SetDirectory(0)
         if 'Tprime' in proc:
             all_hists['sig'][proc] = hist
@@ -39,13 +41,12 @@ def CombineCommonSets(groupname):
     if groupname not in ["QCD","ttbar"]: raise ValueError('Can only combine QCD or ttbar')
     config = OpenJSON('THconfig.json')
     for y in ['16','17','18']:
-        outfile = ROOT.TFile.Open('rootfiles/THselection_QCD_%s.root'%y,'RECREATE')
-        lumi = config['lumi'+y]
-        xsecs = {setname:xsec for (setname,xsec) in config['XSECS'].items() if 'QCD' in setname}
-        tfiles = {setname:ROOT.TFile.Open('rootfiles/THselection_%s_%s.root'%(setname,y)) for setname in xsecs.keys()}
+        outfile = ROOT.TFile.Open('rootfiles/THselection_%s_%s.root'%(groupname,y),'RECREATE')
+        setnames = [setname for setname in config['XSECS'].keys() if 'QCD' in setname]
+        tfiles = {setname:ROOT.TFile.Open('rootfiles/THselection_%s_%s.root'%(setname,y)) for setname in setnames}
         histnames = [k.GetName() for k in list(tfiles.values())[0].GetListOfKeys()]
         hists = {setname:{histname:tfile.Get(histname) for histname in histnames} for (setname,tfile) in tfiles.items()}
-        outhists = StitchQCD(hists,{setname:(xsec*lumi) for (setname,xsec) in xsecs.items()})
+        outhists = StitchQCD(hists)
         outfile.cd()
         outhists.Do('Write')
         outfile.Close()
@@ -77,23 +78,52 @@ def multicore(doJME=True):
     pool.map(main,process_args)
 
 def plot(histname,fancyname):
-    files = [f for f in glob('rootfiles/THselection_*_16.root') if (('_QCD_' in f) and ('_Data_' in f) and ('_ttbar_' in f) and ('_TprimeB-' in f))]
+    files = [f for f in glob('rootfiles/THselection_*_Run2.root') if (('_QCD_' in f) or ('_ttbar_' in f) or ('_TprimeB-1200' in f))]
     hists = GetHistDict(histname,files)
 
-    CompareShapes('plots/test_2016.pdf','16',fancyname,
+    CompareShapes('plots/%s_Run2.pdf'%histname,1,fancyname,
                    bkgs=hists['bkg'],
                    signals=hists['sig'],
                    names={},
-                   colors={'QCD':ROOT.kYellow,'ttbar':ROOT.kRed},
-                   scale=True, stackBkg=False, 
+                   colors={'QCD':ROOT.kYellow,'ttbar':ROOT.kRed,'TprimeB-1200':ROOT.kBlack},
+                   scale=True, stackBkg=True, 
                    doSoverB=False)
 
 if __name__ == '__main__':
-    # multicore(False)
-    CombineCommonSets('QCD')
-    CombineCommonSets('ttbar')
-    MakeRun2('Data')
-    for m in range(800,1900,100):
-        MakeRun2('TprimeB-%s'%m)
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--recycle', dest='recycle',
+                        action='store_true', default=False,
+                        help='Recycle existing files and just plot.')
+    args = parser.parse_args()
+    if not args.recycle:
+        multicore(False)
+        CombineCommonSets('QCD')
+        CombineCommonSets('ttbar')
+        MakeRun2('Data')
+        for m in range(800,1900,100):
+            MakeRun2('TprimeB-%s'%m)
 
-    plot('HT','H_T')
+    histNames = {
+        'pt0':'Lead jet p_{T} (GeV)',
+        'pt1':'Sublead jet p_{T} (GeV)',
+        'HT':'Scalar sum dijet p_{T} (GeV)',
+        'deltaEta': '|#Delta #eta|',
+        'deltaY': '|#Delta y|',
+        'mt_deepTagMD': 'Top jet mass (with DeepAK8 tag)',
+        'mt_particleNet': 'Top jet mass (with ParticleNet tag)',
+        'mH_deepTagMD': 'Higgs jet mass (with DeepAK8 tag)',
+        'mH_particleNet': 'Higgs jet mass (with ParticleNet tag)',
+        't_deepTagMD':'DeepAK8 top tag score',
+        'H_deepTagMD':'DeepAK8 Higgs tag score',
+        't_particleNet':'ParticleNet top tag score',
+        'H_particleNet':'ParticleNet Higgs tag score',
+    }
+    tempFile = ROOT.TFile.Open('rootfiles/THselection_TprimeB-1300_18.root','READ')
+    allValidationHists = [k.GetName() for k in tempFile.GetListOfKeys() if (not k.GetName().startswith('Mthv') and 'Idx' not in k.GetName())]
+    for h in allValidationHists:
+        print ('Plotting: %s'%h)
+        if h in histNames.keys():
+            plot(h,histNames[h])
+        else:
+            plot(h,h)
