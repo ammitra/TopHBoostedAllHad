@@ -36,6 +36,7 @@ def main(args):
         selection.a.Define('Dijet_msoftdrop_corr','hardware::HadamardProduct(Dijet_msoftdrop,Dijet_JES_nom)')
 
     selection.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt_corr, Dijet_eta, Dijet_phi, Dijet_msoftdrop_corr)')
+    selection.a.Define('Dijet_particleNetMD_HbbvsQCD','Dijet_particleNetMD_Xbb/(Dijet_particleNetMD_Xbb+Dijet_particleNetMD_QCD)')
     selection.ApplyStandardCorrections(snapshot=False)
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
 
@@ -63,11 +64,11 @@ def main(args):
         selection.a.ObjectFromCollection('LeadTop','Dijet',0)
         nminus1Node = selection.a.ObjectFromCollection('SubleadHiggs','Dijet',1)
 
-    out = ROOT.TFile.Open('rootfiles/THselection_%s_%s%s.root'%(args.setname,args.era,'_'+args.variation if args.variation != '' else ''),'RECREATE')
+    out = ROOT.TFile.Open('rootfiles/THselection_%s_%s%s.root'%(args.setname,args.era,'_'+args.variation if args.variation != 'None' else ''),'RECREATE')
     out.cd()
-    for t in ['deepTagMD','particleNet']:
+    for t in ['deepTag','particleNet']:
         top_tagger = '%s_TvsQCD'%t
-        higgs_tagger = '%s_HbbvsQCD'%t
+        higgs_tagger = '%sMD_HbbvsQCD'%t
 
         # N-1
         if not selection.a.isData and doStudies:
@@ -82,8 +83,8 @@ def main(args):
                 elif n == 'full': continue
                 else:
                     bins = [20,0,1]
-                    if n.endswith('H_cut'): var = 'SubleadHiggs_%s_HbbvsQCD'%t
-                    else: var = 'LeadTop_%s_TvsQCD'%t
+                    if n.endswith('H_cut'): var = 'SubleadHiggs_%s'%higgs_tagger
+                    else: var = 'LeadTop_%s'%top_tagger
                 print ('N-1: Plotting %s for node %s'%(var,n))
                 kinPlots.Add(n+'_nminus1',nminusNodes[n].DataFrame.Histo1D((n+'_nminus1',n+'_nminus1',bins[0],bins[1],bins[2]),var,'weight__nominal'))
 

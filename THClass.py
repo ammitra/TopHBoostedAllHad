@@ -47,7 +47,7 @@ class THClass:
         cutgroup = CutGroup('taggingVars')
         cutgroup.Add('mH_%s_cut'%tagger,'SubleadHiggs_msoftdrop_corr > 100 && SubleadHiggs_msoftdrop_corr < 140')
         cutgroup.Add('mt_%s_cut'%tagger,'LeadTop_msoftdrop_corr > 105 && LeadTop_msoftdrop_corr < 210')
-        cutgroup.Add('%s_H_cut'%tagger,'SubleadHiggs_%s_HbbvsQCD > 0.6'%tagger)
+        cutgroup.Add('%s_H_cut'%tagger,'SubleadHiggs_%sMD_HbbvsQCD > 0.6'%tagger)
         cutgroup.Add('%s_top_cut'%tagger,'LeadTop_%s_TvsQCD > 0.6'%tagger)
         return cutgroup
 
@@ -127,13 +127,13 @@ class THClass:
         
         else:
             if not self.a.isData:
-                self.a.AddCorrection(Correction('pileup',corrtype='weight'))
+                self.a.AddCorrection(Correction('Pileup',corrtype='weight'))
                 self.a.AddCorrection(Correction('Pdfweight',corrtype='uncert'))
                 if self.year == 16 or self.year == 17:
                     self.a.AddCorrection(Correction('Prefire',corrtype='weight'))
                 elif self.year == 18:
                     self.a.AddCorrection(Correction('HEM_drop',corrtype='corr'))
-                if 'ttbar' in self.a.fileName:
+                if 'ttbar' in self.setname:
                     self.a.AddCorrection(Correction('TptReweight',corrtype='weight'))
                 
         return self.a.GetActiveNode()
