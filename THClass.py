@@ -71,10 +71,10 @@ class THClass:
     
     def ApplyTopPickViaMatch(self):
         objIdxs = 'ObjIdxs_GenMatch'
-        if 'GenPart_vect' not in self.a.GetColumnNames():
-            self.a.Define('GenPart_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass)')
+        if 'GenParticle_vect' not in self.a.GetColumnNames():
+            self.a.Define('GenParticle_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass)')
         if objIdxs not in self.a.GetColumnNames():
-            self.a.Define(objIdxs,'PickTopGenMatch(Dijet_vect, GenPart_vect, GenPart_pdgId)')
+            self.a.Define(objIdxs,'PickTopGenMatch(Dijet_vect, GenParticle_vect, GenPart_pdgId)')
             self.a.Define('tIdx','%s[0]'%objIdxs)
             self.a.Define('hIdx','%s[1]'%objIdxs)
         self.a.Cut('GoodMatches','tIdx > -1 && hIdx > -1')
@@ -113,12 +113,13 @@ class THClass:
                     )
 
                 if 'ttbar' in self.setname:
-                    self.a.Define('GenPart_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass)')
+                    self.a.Define('GenParticle_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass)')
                     self.a.AddCorrection(
                         Correction('TptReweight','TIMBER/Framework/include/TopPt_weight.h',corrtype='weight'),
                         evalArgs={
                             "jet0":"Dijet_vect[0]",
-                            "jet1":"Dijet_vect[1]"
+                            "jet1":"Dijet_vect[1]",
+                            'GenPart_vect':'GenParticle_vect'
                         }
                     )
             self.a = JMEvalsOnly(self.a, 'Dijet', str(2000+self.year), self.setname)
