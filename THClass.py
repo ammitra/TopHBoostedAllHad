@@ -47,7 +47,7 @@ class THClass:
         cutgroup = CutGroup('taggingVars')
         cutgroup.Add('mH_%s_cut'%tagger,'SubleadHiggs_msoftdrop_corr > 100 && SubleadHiggs_msoftdrop_corr < 140')
         cutgroup.Add('mt_%s_cut'%tagger,'LeadTop_msoftdrop_corr > 105 && LeadTop_msoftdrop_corr < 210')
-        cutgroup.Add('%s_H_cut'%tagger,'SubleadHiggs_%s_HbbvsQCD > 0.6'%tagger)
+        cutgroup.Add('%s_H_cut'%tagger,'SubleadHiggs_%sMD_HbbvsQCD > 0.6'%tagger)
         cutgroup.Add('%s_top_cut'%tagger,'LeadTop_%s_TvsQCD > 0.6'%tagger)
         return cutgroup
 
