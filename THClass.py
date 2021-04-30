@@ -51,14 +51,14 @@ class THClass:
         cutgroup.Add('%s_top_cut'%tagger,'LeadTop_%s_TvsQCD > 0.6'%tagger)
         return cutgroup
 
-    def DefineTopIdx(self,tagger='deepTagMD_TvsQCD',invert=False):
+    def DefineTopIdx(self,tagger='deepTag_TvsQCD',invert=False):
         invertStr = 'Not' if invert else ''
         objIdxs = 'ObjIdxs_%s%s'%(invertStr,tagger)
         self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corr, Dijet_%s, {0, 1}, %s)'%(tagger,'true' if invert else 'false'))
         self.a.Define('tIdx','%s[0]'%objIdxs)
         self.a.Define('hIdx','%s[1]'%objIdxs)
 
-    def ApplyTopPick(self,tagger='deepTagMD_TvsQCD',invert=False):
+    def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False):
         objIdxs = 'ObjIdxs_%s%s'%('Not' if invert else '',tagger)
         if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
             self.DefineTopIdx(tagger,invert)
