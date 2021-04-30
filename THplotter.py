@@ -38,18 +38,36 @@ def CombineCommonSets(groupname):
 
     @param groupname (str, optional): "QCD" or "ttbar".
     '''
-    if groupname not in ["QCD","ttbar"]: raise ValueError('Can only combine QCD or ttbar')
+    if groupname not in ["QCD","ttbar"]:
+        raise ValueError('Can only combine QCD or ttbar')
     config = OpenJSON('THconfig.json')
     for y in ['16','17','18']:
-        outfile = ROOT.TFile.Open('rootfiles/THselection_%s_%s.root'%(groupname,y),'RECREATE')
-        setnames = [setname for setname in config['XSECS'].keys() if 'QCD' in setname]
-        tfiles = {setname:ROOT.TFile.Open('rootfiles/THselection_%s_%s.root'%(setname,y)) for setname in setnames}
-        histnames = [k.GetName() for k in list(tfiles.values())[0].GetListOfKeys()]
-        hists = {setname:{histname:tfile.Get(histname) for histname in histnames} for (setname,tfile) in tfiles.items()}
-        outhists = StitchQCD(hists)
-        outfile.cd()
-        outhists.Do('Write')
-        outfile.Close()
+        baseStr = 'rootfiles/THselection_{0}_{1}{2}.root'
+        if groupname == 'ttbar':
+            for v in ['','JES','JER','JMS','JMR']:
+                if v == '':
+                    ExecuteCmd('hadd -f %s %s %s'%(
+                        baseStr.format('ttbar',y,''),
+                        baseStr.format('ttbar-allhad',y,''),
+                        baseStr.format('ttbar-semilep',y,''))
+                    )
+                else:
+                    for v2 in ['up','down']:
+                        v3 = '_%s_%s'%(v,v2)
+                        ExecuteCmd('hadd -f %s %s %s'%(
+                            baseStr.format('ttbar',y,v3),
+                            baseStr.format('ttbar-allhad',y,v3),
+                            baseStr.format('ttbar-semilep',y,v3))
+                        )
+        elif groupname == 'QCD':
+            ExecuteCmd('hadd -f %s %s %s %s %s'%(
+                baseStr.format('QCD',y,''),
+                baseStr.format('QCDHT700',y,''),
+                baseStr.format('QCDHT1000',y,''),
+                baseStr.format('QCDHT1500',y,''),
+                baseStr.format('QCDHT2000',y,''))
+            )
+
     MakeRun2(groupname)    
 
 def MakeRun2(setname):
@@ -66,13 +84,13 @@ def multicore(doJME=True):
         setname, era = GetProcYearFromTxt(f)
         
         if 'Data' not in setname and 'QCD' not in setname:
-            process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation=''))
+            process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='None'))
             if doJME:
                 for jme in ['JES','JER','JMS','JMR']:
                     for v in ['up','down']:
                         process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='%s_%s'%(jme,v)))
         else:
-            process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation=''))
+            process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='None'))
     # for p in process_args:
     #     print (p)
     pool.map(main,process_args)
@@ -101,6 +119,8 @@ if __name__ == '__main__':
         CombineCommonSets('QCD')
         CombineCommonSets('ttbar')
         MakeRun2('Data')
+        MakeRun2('QCD')
+        MakeRun2('ttbar')
         for m in range(800,1900,100):
             MakeRun2('TprimeB-%s'%m)
 
