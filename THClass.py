@@ -181,6 +181,8 @@ class THClass:
                 columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])
             elif self.year == 18:
                 columns.append('HEM_drop__nom')
+            if 'ttbar' in self.setname:
+                columns.extend(['TptReweight__nom','TptReweight__up','TptReweight__down'])
 
         self.a.SetActiveNode(node)
         self.a.Snapshot(columns,'THsnapshot_%s_%s_%sof%s.root'%(self.setname,self.year,self.ijob,self.njobs),'Events')
