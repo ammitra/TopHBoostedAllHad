@@ -21,9 +21,9 @@ class THClass:
         self.njobs = njobs
         # self.dijetIdxs = [0,1]
         self.trigs = {
-            16:[],
-            17:[],
-            18:[]
+            16:['HLT_PFHT800','HLT_PFHT900'],
+            17:['HLT_PFHT1050','HLT_AK8PFJet500'],
+            18:['HLT_AK8PFJet400_TrimMass30','HLT_AK8PFHT850_TrimMass50','HLT_PFHT1050']
         }
         if 'Data' in inputfile:
             self.a.isData = True
@@ -35,9 +35,10 @@ class THClass:
     # def GetJetIdxTuple(self):
     #     return (self.dijetIdxs[0],self.dijetIdxs[1])
 
-    def ApplyFlagsAndTrigs(self):
+    def ApplyFlags(self):
         self.a.Cut('flags',self.a.GetFlagString())
-        # if self.a.isData: self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[self.year]))
+    def ApplyTrigs(self):
+        if self.a.isData: self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[self.year]))
 
     def ApplyKinematics(self):
         self.a.Cut('njets','nFatJet > 2')
@@ -193,3 +194,34 @@ class THClass:
         self.a.SetActiveNode(node)
         self.a.Snapshot(columns,'THsnapshot_%s_%s_%sof%s.root'%(self.setname,self.year,self.ijob,self.njobs),'Events')
         self.a.SetActiveNode(startNode)
+    
+    def OpenForSelection(self,variation='None'):
+        doStudies = False
+        if not self.a.isData:
+            if variation == 'None':
+                doStudies = True
+            pt_calibs, mass_calibs = JMEvariationStr(variation)
+            self.a.Define('Dijet_pt_corr','hardware::MultiHadamardProduct(Dijet_pt,%s)'%pt_calibs)
+            self.a.Define('Dijet_msoftdrop_corr','hardware::MultiHadamardProduct(Dijet_msoftdrop,%s)'%mass_calibs)
+        else:
+            self.a.Define('Dijet_pt_corr','hardware::HadamardProduct(Dijet_pt,Dijet_JES_nom)')
+            self.a.Define('Dijet_msoftdrop_corr','hardware::HadamardProduct(Dijet_msoftdrop,Dijet_JES_nom)')
+
+        self.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt_corr, Dijet_eta, Dijet_phi, Dijet_msoftdrop_corr)')
+        self.a.Define('Dijet_particleNetMD_HbbvsQCD','Dijet_particleNetMD_Xbb/(Dijet_particleNetMD_Xbb+Dijet_particleNetMD_QCD)')
+        self.ApplyStandardCorrections(snapshot=False)
+        
+        return doStudies
+
+def JMEvariationStr(variation):
+    base_calibs = ['Dijet_JES_nom','Dijet_JER_nom', 'Dijet_JMS_nom', 'Dijet_JMR_nom']
+    variationType = variation.split('_')[0]
+    pt_calib_vect = '{'
+    mass_calib_vect = '{'
+    for c in base_calibs:
+        mass_calib_vect+='%s,'%('Dijet_'+variation if variationType in c else c)
+        if 'JE' in c:
+            pt_calib_vect+='%s,'%('Dijet_'+variation if variationType in c else c)
+    pt_calib_vect = pt_calib_vect[:-1]+'}'
+    mass_calib_vect = mass_calib_vect[:-1]+'}'
+    return pt_calib_vect, mass_calib_vect

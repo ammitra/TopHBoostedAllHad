@@ -118,7 +118,62 @@ and jobs still running (and if they are in the Hold state, what the reason is).
 
 \* A "task" is the basket that "jobs" fall into - one `CondorHelper.py` call creates one "task" with several "jobs".
 
-## 5. Final selections and studies
+## 5. Making the trigger efficiencies
+The choice of triggers to use per year was made using the TrigTester.py utility in TIMBER.
+First the data snapshots were hadd-ed to backfill any empty trigger entries from sub-year eras.
+```
+hadd THsnapshot_Data_<year>.root THsnapshot_Data*_<year>_*.root 
+```
+
+The utility was then used with,
+```
+python ../TIMBER/TIMBER/Utilities/TrigTester.py -i ../dijet_nano_files/THsnapshot_Data_16.root -o Data16Trig
+python ../TIMBER/TIMBER/Utilities/TrigTester.py -i ../dijet_nano_files/THsnapshot_Data_16.root -o Data16Trig_1 --not "HLT_PFHT800||HLT_PFHT900"
+
+python ../TIMBER/TIMBER/Utilities/TrigTester.py -i ../dijet_nano_files/THsnapshot_Data_17.root -o Data17Trig
+python ../TIMBER/TIMBER/Utilities/TrigTester.py -i ../dijet_nano_files/THsnapshot_Data_17.root -o Data17Trig_1 --not "HLT_PFHT1050"
+python ../TIMBER/TIMBER/Utilities/TrigTester.py -i ../dijet_nano_files/THsnapshot_Data_17.root -o Data17Trig_2 --not "HLT_PFHT1050||HLT_AK8PFJet500"
+
+python ../TIMBER/TIMBER/Utilities/TrigTester.py -i ../dijet_nano_files/THsnapshot_Data_18.root -o Data18Trig 
+python ../TIMBER/TIMBER/Utilities/TrigTester.py -i ../dijet_nano_files/THsnapshot_Data_18.root -o Data18Trig_1 --not "HLT_AK8PFJet400_TrimMass30"
+python ../TIMBER/TIMBER/Utilities/TrigTester.py -i ../dijet_nano_files/THsnapshot_Data_18.root -o Data18Trig_2 --not "HLT_AK8PFJet400_TrimMass30||HLT_AK8PFHT850_TrimMass50"
+```
+
+The script produces text output as well as a plot (example below) to show which triggers lead
+to the greatest acceptance of events in the provided selection (dijet in this case). The successive
+iterations per-year with the addition of the `--not` arguement are done to study what "next" trigger
+should be added if the `--not` triggers are vetoed. If one were to choose their nth trigger (where n>1)
+based on the initial plot, they may choose one that is mostly degenerate with the 1st. By vetoing the first,
+one can see which triggers are most efficient at picking up events that do `--not` make the selection
+of the first trigger.
+
+For this analysis, we have chosen:
+```python
+self.trigs = {
+    16:['HLT_PFHT800','HLT_PFHT900'],
+    17:['HLT_PFHT1050','HLT_AK8PFJet500'],
+    18:['HLT_AK8PFJet400_TrimMass30','HLT_AK8PFHT850_TrimMass50','HLT_PFHT1050']
+}
+```
+
+To calculate the trigger efficiencies with Clopper-Pearson errors, one can simply run
+```
+python THtrigger2D.py
+```
+
+The script outputs one ROOT file per year. Inside are the 2D histograms (which do NOT store the errors) and the 
+TEfficiency loaded by TIMBER later on. Plots are also made in the `plots/` directory.
+
+Five variations are created per-year. 
+1. Dijet-only selection ("Pretag")
+2. DeepAK8 top tag
+3. DeepAK8 top anti-tag (for validation region)
+4. ParticleNet top tag
+5. ParticleNet top anti-tag (for validation region)
+
+We select the pretag version since it is the smoothest and all variations are in agreement with one another.
+
+## 6. Final selections and studies
 Once you are sure the snapshots are finished and available and their locations have been accessed,
 the basic selection can be performed with `python THselection.py -s <setname> -y <year>`. This script
 will take in the corresponding txt file in `dijet_nano/*.txt` and perform the basic signal region and "fail" region
