@@ -7,9 +7,15 @@ from JMEvalsOnly import JMEvalsOnly
 
 class THClass:
     def __init__(self,inputfile,year,ijob,njobs):
-        infiles = SplitUp(inputfile, njobs)[ijob-1]
+        if inputfile.endswith('.txt'): 
+            infiles = SplitUp(inputfile, njobs)[ijob-1]
+        else:
+            infiles = inputfile
         self.a = analyzer(infiles)
-        self.setname = inputfile.split('/')[-1].split('_')[0]
+        if inputfile.endswith('.txt'):
+            self.setname = inputfile.split('/')[-1].split('_')[0]
+        else:
+            self.setname = inputfile.split('/')[-1].split('_')[1]
         self.year = year
         self.ijob = ijob
         self.njobs = njobs
@@ -19,7 +25,7 @@ class THClass:
             17:[],
             18:[]
         }
-        if 'Data' in self.setname:
+        if 'Data' in inputfile:
             self.a.isData = True
         else:
             self.a.isData = False
