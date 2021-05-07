@@ -23,22 +23,22 @@ RVec<int> PickDijets(RVec<float> pt, RVec<float> eta, RVec<float> phi, RVec<floa
     return {jet0Idx,jet1Idx};
 }
 
-std::vector<int> PickTop(RVec<float> mass, RVec<float> tagScore, RVec<int> idxs, bool invertScore=false) {
+std::vector<int> PickTop(RVec<float> mass, RVec<float> tagScore, RVec<int> idxs, std::pair<float,float> massCut, float scoreCut, bool invertScore=false) {
     if (idxs.size()>2) {
         std::cout << "PickTop -- WARNING: You have input more than two indices. Only two accepted. Assuming first two indices.";
     }
     std::vector<int> out(2);
-    float WP = 0.632;
+    float WP = scoreCut;
 
     int idx0 = idxs[0];
     int idx1 = idxs[1];
     bool isTop0, isTop1;
     if (!invertScore) {
-        isTop0 = (mass[idx0] > 105) && (mass[idx0] < 210) && (tagScore[idx0] > WP);
-        isTop1 = (mass[idx1] > 105) && (mass[idx1] < 210) && (tagScore[idx1] > WP);
+        isTop0 = (mass[idx0] > massCut.first) && (mass[idx0] < massCut.second) && (tagScore[idx0] > WP);
+        isTop1 = (mass[idx1] > massCut.first) && (mass[idx1] < massCut.second) && (tagScore[idx1] > WP);
     } else {
-        isTop0 = (mass[idx0] > 105) && (mass[idx0] < 210) && (tagScore[idx0] < WP);
-        isTop1 = (mass[idx1] > 105) && (mass[idx1] < 210) && (tagScore[idx1] < WP);
+        isTop0 = (mass[idx0] > massCut.first) && (mass[idx0] < massCut.second) && (tagScore[idx0] < WP);
+        isTop1 = (mass[idx1] > massCut.first) && (mass[idx1] < massCut.second) && (tagScore[idx1] < WP);
     }
     
     if (isTop0 && isTop1) {

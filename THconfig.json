@@ -20,5 +20,15 @@
         "TprimeB-1600": 1.0,
         "TprimeB-1700": 1.0,
         "TprimeB-1800": 1.0
+    },
+    "CUTS":{
+        "pt":350,
+        "eta":2.4,
+        "mh":[100,140],
+        "mt":[105,210],
+        "deepTagMD_HbbvsQCD": 0.9,
+        "particleNetMD_HbbvsQCD": 0.9,
+        "deepTag_TvsQCD": 0.9,
+        "particleNet_TvsQCD": 0.9
     }
 }

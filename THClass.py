@@ -19,6 +19,8 @@ class THClass:
         self.year = year
         self.ijob = ijob
         self.njobs = njobs
+        self.config = OpenJSON('THconfig.json')
+        self.cuts = self.config['CUTS']
         # self.dijetIdxs = [0,1]
         self.trigs = {
             16:['HLT_PFHT800','HLT_PFHT900'],
