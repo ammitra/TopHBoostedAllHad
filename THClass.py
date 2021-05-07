@@ -31,73 +31,20 @@ class THClass:
             self.a.isData = True
         else:
             self.a.isData = False
-    # def SetJetIdxs(self,idx0,idx1):
-    #     self.dijetIdxs = [idx0,idx1]
-    
-    # def GetJetIdxTuple(self):
-    #     return (self.dijetIdxs[0],self.dijetIdxs[1])
 
-    def ApplyFlags(self):
+    ####################
+    # Snapshot related #
+    ####################
+    def ApplyKinematicsSnap(self): # For snapshotting only
         self.a.Cut('flags',self.a.GetFlagString())
-    def ApplyTrigs(self):
-        if self.a.isData: self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[self.year]))
-
-    def ApplyKinematics(self):
         self.a.Cut('njets','nFatJet > 2')
-        self.a.Cut('pT', 'FatJet_pt[0] > 350 && FatJet_pt[1] > 350')
+        self.a.Cut('pT', 'FatJet_pt[0] > {0} && FatJet_pt[1] > {0}'.format(self.cuts['pt']))
         self.a.Define('DijetIdxs','PickDijets(FatJet_pt, FatJet_eta, FatJet_phi, FatJet_msoftdrop)')
         self.a.Cut('dijetsExist','DijetIdxs[0] > -1 && DijetIdxs[1] > -1')
         self.a.SubCollection('Dijet','FatJet','DijetIdxs',useTake=True)
         self.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt, Dijet_eta, Dijet_phi, Dijet_msoftdrop)')
         return self.a.GetActiveNode()
 
-    def GetNminus1Group(self,tagger):
-        # Use after ApplyTopPickViaMatch
-        cutgroup = CutGroup('taggingVars')
-        cutgroup.Add('mH_%s_cut'%tagger,'SubleadHiggs_msoftdrop_corr > 100 && SubleadHiggs_msoftdrop_corr < 140')
-        cutgroup.Add('mt_%s_cut'%tagger,'LeadTop_msoftdrop_corr > 105 && LeadTop_msoftdrop_corr < 210')
-        cutgroup.Add('%s_H_cut'%tagger,'SubleadHiggs_%sMD_HbbvsQCD > 0.6'%tagger)
-        cutgroup.Add('%s_top_cut'%tagger,'LeadTop_%s_TvsQCD > 0.6'%tagger)
-        return cutgroup
-
-    def DefineTopIdx(self,tagger='deepTag_TvsQCD',invert=False):
-        invertStr = 'Not' if invert else ''
-        objIdxs = 'ObjIdxs_%s%s'%(invertStr,tagger)
-        self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corr, Dijet_%s, {0, 1}, %s)'%(tagger,'true' if invert else 'false'))
-        self.a.Define('tIdx','%s[0]'%objIdxs)
-        self.a.Define('hIdx','%s[1]'%objIdxs)
-
-    def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False):
-        objIdxs = 'ObjIdxs_%s%s'%('Not' if invert else '',tagger)
-        if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
-            self.DefineTopIdx(tagger,invert)
-        self.a.Cut('HasTop','tIdx > -1')
-        self.a.ObjectFromCollection('Top','Dijet','tIdx')
-        self.a.ObjectFromCollection('Higgs','Dijet','hIdx')
-        # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
-        # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
-        return self.a.GetActiveNode()
-    
-    def ApplyTopPickViaMatch(self):
-        objIdxs = 'ObjIdxs_GenMatch'
-        if 'GenParticle_vect' not in self.a.GetColumnNames():
-            self.a.Define('GenParticle_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass)')
-        if objIdxs not in self.a.GetColumnNames():
-            self.a.Define(objIdxs,'PickTopGenMatch(Dijet_vect, GenParticle_vect, GenPart_pdgId)')
-            self.a.Define('tIdx','%s[0]'%objIdxs)
-            self.a.Define('hIdx','%s[1]'%objIdxs)
-        self.a.Cut('GoodMatches','tIdx > -1 && hIdx > -1')
-        self.a.ObjectFromCollection('Top','Dijet','tIdx')
-        self.a.ObjectFromCollection('Higgs','Dijet','hIdx')
-        # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
-        # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
-        return self.a.GetActiveNode()
-    
-    def ApplyHiggsTag(self,tagger='deepTagMD_HbbvsQCD'):
-        self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
-        passfail = self.a.Discriminate('HbbTag','Higgs_%s > 0.9'%tagger)
-        return passfail
-        
     def ApplyStandardCorrections(self,snapshot=False):
         if snapshot:
             if self.a.isData:
@@ -147,24 +94,6 @@ class THClass:
                 
         return self.a.GetActiveNode()
 
-    def GetXsecScale(self):
-        config = OpenJSON('THconfig.json')
-        lumi = config['lumi%s'%self.year]
-        xsec = config['XSECS'][self.setname]
-        if self.a.genEventSumw == 0:
-            raise ValueError('%s %s: genEventSumw is 0'%(self.setname, self.year))
-        return lumi*xsec/self.a.genEventSumw
-
-    def WrapUp(self,nodes):
-        outfile = ROOT.TFile.Open(self.a.fileName.replace('.txt','.root'),'RECREATE')
-        for n in nodes:
-            self.a.SetActiveNode(n)
-            templates = self.a.MakeTemplateHistos(ROOT.TH2F('MthvMh','MthvMh',40,60,260,28,800,2200),['Higgs_msoftdrop_corr','mth'])
-            outfile.cd()
-            templates.Do('Write')
-            # self.a.DrawTemplates(templates,'plots/')
-        outfile.Close()
-
     def Snapshot(self,node=None):
         startNode = self.a.GetActiveNode()
         if node == None: node = self.a.GetActiveNode()
@@ -196,34 +125,98 @@ class THClass:
         self.a.SetActiveNode(node)
         self.a.Snapshot(columns,'THsnapshot_%s_%s_%sof%s.root'%(self.setname,self.year,self.ijob,self.njobs),'Events')
         self.a.SetActiveNode(startNode)
-    
-    def OpenForSelection(self,variation='None'):
-        doStudies = False
-        if not self.a.isData:
-            if variation == 'None':
-                doStudies = True
-            pt_calibs, mass_calibs = JMEvariationStr(variation)
-            self.a.Define('Dijet_pt_corr','hardware::MultiHadamardProduct(Dijet_pt,%s)'%pt_calibs)
-            self.a.Define('Dijet_msoftdrop_corr','hardware::MultiHadamardProduct(Dijet_msoftdrop,%s)'%mass_calibs)
-        else:
-            self.a.Define('Dijet_pt_corr','hardware::HadamardProduct(Dijet_pt,Dijet_JES_nom)')
-            self.a.Define('Dijet_msoftdrop_corr','hardware::HadamardProduct(Dijet_msoftdrop,Dijet_JES_nom)')
 
-        self.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt_corr, Dijet_eta, Dijet_phi, Dijet_msoftdrop_corr)')
+    #####################
+    # Selection related #
+    #####################
+    def OpenForSelection(self,variation):
         self.a.Define('Dijet_particleNetMD_HbbvsQCD','Dijet_particleNetMD_Xbb/(Dijet_particleNetMD_Xbb+Dijet_particleNetMD_QCD)')
         self.ApplyStandardCorrections(snapshot=False)
-        
-        return doStudies
+        # JME variations
+        if not self.a.isData:
+            pt_calibs, top_mass_calibs = JMEvariationStr('Top',variation)     # the pt calibs are the same for
+            pt_calibs, higgs_mass_calibs = JMEvariationStr('Higgs',variation) # top and H
+            self.a.Define('Dijet_pt_corr','hardware::MultiHadamardProduct(Dijet_pt,%s)'%pt_calibs)
+            self.a.Define('Dijet_msoftdrop_corrT','hardware::MultiHadamardProduct(Dijet_msoftdrop,%s)'%top_mass_calibs)
+            self.a.Define('Dijet_msoftdrop_corrH','hardware::MultiHadamardProduct(Dijet_msoftdrop,%s)'%higgs_mass_calibs)
+        else:
+            self.a.Define('Dijet_pt_corr','hardware::MultiHadamardProduct(Dijet_pt,{Dijet_JES_nom})')
+            self.a.Define('Dijet_msoftdrop_corrT','hardware::MultiHadamardProduct(Dijet_msoftdrop,{Dijet_JES_nom})')
+            self.a.Define('Dijet_msoftdrop_corrH','hardware::MultiHadamardProduct(Dijet_msoftdrop,{Dijet_JES_nom})')
+        return self.a.GetActiveNode()
 
-def JMEvariationStr(variation):
+    def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False):
+        objIdxs = 'ObjIdxs_%s%s'%('Not' if invert else '',tagger)
+        if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
+            self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corrT, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, *self.cuts['mt'], self.cuts[tagger], 'true' if invert else 'false'))
+            self.a.Define('tIdx','%s[0]'%objIdxs)
+            self.a.Define('hIdx','%s[1]'%objIdxs)
+        self.a.Cut('HasTop','tIdx > -1')
+        self.a.ObjectFromCollection('Top','Dijet','tIdx',skip=['msoftdrop_corrH'])
+        self.a.ObjectFromCollection('Higgs','Dijet','hIdx',skip=['msoftdrop_corrT'])
+        self.a.Define('Top_vect','hardware::TLvector(Top_pt_corr, Top_eta, Top_phi, Top_msoftdrop_corrT)')
+        self.a.Define('Higgs_vect','hardware::TLvector(Higgs_pt_corr, Higgs_eta, Higgs_phi, Higgs_msoftdrop_corrH)')
+        self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
+        self.a.Define('m_avg','(Top_msoftdrop_corrT+Higgs_msoftdrop_corrH)/2')
+        # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
+        # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
+        return self.a.GetActiveNode()
+
+    def ApplyTrigs(self,corr=None):
+        if self.a.isData:
+            self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[self.year]))
+        else:
+            self.a.AddCorrection(corr, evalArgs={"xval":"m_avg","yval":"mth"})    
+        return self.a.GetActiveNode()            
+
+    def ApplyHiggsTag(self,tagger='deepTagMD_HbbvsQCD'):
+        passfail = self.a.Discriminate('HbbTag','Higgs_{0} > {1}'.format(tagger,self.cuts[tagger]))
+        return passfail
+        
+    ###############
+    # For studies #
+    ###############
+    def ApplyTopPickViaMatch(self):
+        objIdxs = 'ObjIdxs_GenMatch'
+        if 'GenParticle_vect' not in self.a.GetColumnNames():
+            self.a.Define('GenParticle_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass)')
+        if objIdxs not in self.a.GetColumnNames():
+            self.a.Define('jet_vects','hardware::TLvector(Dijet_pt, Dijet_eta, Dijet_phi, Dijet_msoftdrop)')
+            self.a.Define(objIdxs,'PickTopGenMatch(jet_vects, GenParticle_vect, GenPart_pdgId)') # ignore JME variations in this study
+            self.a.Define('tIdx','%s[0]'%objIdxs)
+            self.a.Define('hIdx','%s[1]'%objIdxs)
+        self.a.Cut('GoodMatches','tIdx > -1 && hIdx > -1')
+        self.a.ObjectFromCollection('Top','Dijet','tIdx')
+        self.a.ObjectFromCollection('Higgs','Dijet','hIdx')
+        return self.a.GetActiveNode()
+
+    def GetXsecScale(self):
+        lumi = self.config['lumi%s'%self.year]
+        xsec = self.config['XSECS'][self.setname]
+        if self.a.genEventSumw == 0:
+            raise ValueError('%s %s: genEventSumw is 0'%(self.setname, self.year))
+        return lumi*xsec/self.a.genEventSumw
+
+    def GetNminus1Group(self,tagger):
+        # Use after ApplyTopPickViaMatch
+        cutgroup = CutGroup('taggingVars')
+        cutgroup.Add('mH_%s_cut'%tagger,'SubleadHiggs_msoftdrop_corrH > {0} && SubleadHiggs_msoftdrop_corrH < {1}'.format(*self.cuts['mh']))
+        cutgroup.Add('mt_%s_cut'%tagger,'LeadTop_msoftdrop_corrT > {0} && LeadTop_msoftdrop_corrT < {1}'.format(*self.cuts['mt']))
+        cutgroup.Add('%s_H_cut'%tagger,'SubleadHiggs_{0}MD_HbbvsQCD > {1}'.format(tagger, self.cuts[tagger+'MD_HbbvsQCD']))
+        cutgroup.Add('%s_top_cut'%tagger,'LeadTop_{0}_TvsQCD > {1}'.format(tagger, self.cuts[tagger+'_TvsQCD']))
+        return cutgroup
+
+def JMEvariationStr(p,variation):
     base_calibs = ['Dijet_JES_nom','Dijet_JER_nom', 'Dijet_JMS_nom', 'Dijet_JMR_nom']
     variationType = variation.split('_')[0]
     pt_calib_vect = '{'
     mass_calib_vect = '{'
     for c in base_calibs:
-        mass_calib_vect+='%s,'%('Dijet_'+variation if variationType in c else c)
-        if 'JE' in c:
+        if 'JM' in c and p != 'Top':
+            mass_calib_vect+='%s,'%('Dijet_'+variation if variationType in c else c)
+        elif 'JE' in c:
             pt_calib_vect+='%s,'%('Dijet_'+variation if variationType in c else c)
+            mass_calib_vect+='%s,'%('Dijet_'+variation if variationType in c else c)
     pt_calib_vect = pt_calib_vect[:-1]+'}'
     mass_calib_vect = mass_calib_vect[:-1]+'}'
     return pt_calib_vect, mass_calib_vect
