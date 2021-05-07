@@ -1,5 +1,5 @@
 import sys, time, ROOT
-from typing import OrderedDict
+from collections import OrderedDict
 
 from TIMBER.Analyzer import HistGroup
 from TIMBER.Tools.Common import CompileCpp
@@ -12,38 +12,38 @@ def MakeEfficiency(year):
     # selection.a.Cut('morePt','ROOT::VecOps::All(Dijet_pt > 400)')
     hists = HistGroup('out')
 
-    noTag = selection.a.GetActiveNode()#Cut('pretrig','HLT_Mu50==1')
+    noTag = selection.a.Cut('pretrig','HLT_Mu50==1')
 
     # Baseline - no tagging
-    hists.Add('preTagDenominator',selection.a.DataFrame.Histo1D(('preTagDenominator','',18,800,2600),'mth'))
+    hists.Add('preTagDenominator',selection.a.DataFrame.Histo1D(('preTagDenominator','',22,800,3000),'mth'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator',selection.a.DataFrame.Histo1D(('preTagNumerator','',18,800,2600),'mth'))
+    hists.Add('preTagNumerator',selection.a.DataFrame.Histo1D(('preTagNumerator','',22,800,3000),'mth'))
 
     # DeepAK8 SR
     selection.a.SetActiveNode(noTag)
     selection.ApplyTopPick('deepTagMD_TvsQCD')
-    hists.Add('postTagDenominator_DAK8_SR',selection.a.DataFrame.Histo1D(('postTagDenominator_DAK8_SR','',18,800,2600),'mth'))
+    hists.Add('postTagDenominator_DAK8_SR',selection.a.DataFrame.Histo1D(('postTagDenominator_DAK8_SR','',22,800,3000),'mth'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_DAK8_SR',selection.a.DataFrame.Histo1D(('preTagNumerator_DAK8_SR','',18,800,2600),'mth'))
+    hists.Add('preTagNumerator_DAK8_SR',selection.a.DataFrame.Histo1D(('preTagNumerator_DAK8_SR','',22,800,3000),'mth'))
     # DeepAK8 CR
     selection.a.SetActiveNode(noTag)
     selection.ApplyTopPick('deepTagMD_TvsQCD',invert=True)
-    hists.Add('postTagDenominator_DAK8_CR',selection.a.DataFrame.Histo1D(('postTagDenominator_DAK8_CR','',18,800,2600),'mth'))
+    hists.Add('postTagDenominator_DAK8_CR',selection.a.DataFrame.Histo1D(('postTagDenominator_DAK8_CR','',22,800,3000),'mth'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_DAK8_CR',selection.a.DataFrame.Histo1D(('preTagNumerator_DAK8_CR','',18,800,2600),'mth'))
+    hists.Add('preTagNumerator_DAK8_CR',selection.a.DataFrame.Histo1D(('preTagNumerator_DAK8_CR','',22,800,3000),'mth'))
 
     # ParticleNet SR
     selection.a.SetActiveNode(noTag)
     selection.ApplyTopPick('particleNet_TvsQCD')
-    hists.Add('postTagDenominator_PN_SR',selection.a.DataFrame.Histo1D(('postTagDenominator_PN_SR','',18,800,2600),'mth'))
+    hists.Add('postTagDenominator_PN_SR',selection.a.DataFrame.Histo1D(('postTagDenominator_PN_SR','',22,800,3000),'mth'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_PN_SR',selection.a.DataFrame.Histo1D(('preTagNumerator_PN_SR','',18,800,2600),'mth'))
+    hists.Add('preTagNumerator_PN_SR',selection.a.DataFrame.Histo1D(('preTagNumerator_PN_SR','',22,800,3000),'mth'))
 
     selection.a.SetActiveNode(noTag)
     selection.ApplyTopPick('particleNet_TvsQCD',invert=True)
-    hists.Add('postTagDenominator_PN_CR',selection.a.DataFrame.Histo1D(('postTagDenominator_PN_CR','',18,800,2600),'mth'))
+    hists.Add('postTagDenominator_PN_CR',selection.a.DataFrame.Histo1D(('postTagDenominator_PN_CR','',22,800,3000),'mth'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_PN_CR',selection.a.DataFrame.Histo1D(('preTagNumerator_PN_CR','',18,800,2600),'mth'))
+    hists.Add('preTagNumerator_PN_CR',selection.a.DataFrame.Histo1D(('preTagNumerator_PN_CR','',22,800,3000),'mth'))
 
     # Make efficieincies
     effs = {
@@ -57,8 +57,13 @@ def MakeEfficiency(year):
     out = ROOT.TFile.Open('THtrigger_%s.root'%year,'RECREATE')
     out.cd()
     for name,eff in effs.items():
+        f = ROOT.TF1("eff_func","-[0]/10*exp([1]*x/1000)+1",800,2600)
+        f.SetParameter(0,1)
+        f.SetParameter(1,-2)
+        eff.Fit(f)
+        eff.Write()
         g = eff.CreateGraph()
-        g.SetName(name)
+        g.SetName(name+'_graph')
         g.SetTitle(name)
         g.SetMinimum(0.5)
         g.SetMaximum(1.01)
@@ -77,7 +82,7 @@ if __name__ == '__main__':
         18: ROOT.TFile.Open('THtrigger_18.root')
     }
 
-    hists = {hname.GetName():[files[y].Get(hname.GetName()) for y in [16,17,18]] for hname in files[16].GetListOfKeys()}
+    hists = {hname.GetName():[files[y].Get(hname.GetName()) for y in [16,17,18]] for hname in files[16].GetListOfKeys() if '_graph' in hname.GetName()}
     colors = [ROOT.kBlack, ROOT.kGreen+1, ROOT.kOrange-3]
     legendNames = ['2016','2017','2018']
     for hname in hists.keys():

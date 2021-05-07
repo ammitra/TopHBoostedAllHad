@@ -1,5 +1,5 @@
 import sys, time, ROOT
-from typing import OrderedDict
+from collections import OrderedDict
 
 from TIMBER.Analyzer import HistGroup
 from TIMBER.Tools.Common import CompileCpp
@@ -13,38 +13,38 @@ def MakeEfficiency(year):
     # selection.a.Cut('morePt','ROOT::VecOps::All(Dijet_pt > 400)')
     hists = HistGroup('out')
 
-    noTag = selection.a.GetActiveNode()#Cut('pretrig','HLT_Mu50==1')
+    noTag = selection.a.Cut('pretrig','HLT_Mu50==1')
 
     # Baseline - no tagging
-    hists.Add('preTagDenominator',selection.a.DataFrame.Histo2D(('preTagDenominator','',20,60,260,18,800,2600),'m_javg','mth'))
+    hists.Add('preTagDenominator',selection.a.DataFrame.Histo2D(('preTagDenominator','',40,60,260,44,800,3000),'m_javg','mth'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator',selection.a.DataFrame.Histo2D(('preTagNumerator','',20,60,260,18,800,2600),'m_javg','mth'))
+    hists.Add('preTagNumerator',selection.a.DataFrame.Histo2D(('preTagNumerator','',40,60,260,44,800,3000),'m_javg','mth'))
 
     # DeepAK8 SR
     selection.a.SetActiveNode(noTag)
     selection.ApplyTopPick('deepTagMD_TvsQCD')
-    hists.Add('postTagDenominator_DAK8_SR',selection.a.DataFrame.Histo2D(('postTagDenominator_DAK8_SR','',20,60,260,18,800,2600),'Higgs_msoftdrop_corr','mth'))
+    hists.Add('postTagDenominator_DAK8_SR',selection.a.DataFrame.Histo2D(('postTagDenominator_DAK8_SR','',40,60,260,44,800,3000),'Higgs_msoftdrop_corr','mth'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_DAK8_SR',selection.a.DataFrame.Histo2D(('preTagNumerator_DAK8_SR','',20,60,260,18,800,2600),'Higgs_msoftdrop_corr','mth'))
+    hists.Add('preTagNumerator_DAK8_SR',selection.a.DataFrame.Histo2D(('preTagNumerator_DAK8_SR','',40,60,260,44,800,3000),'Higgs_msoftdrop_corr','mth'))
     # DeepAK8 CR
     selection.a.SetActiveNode(noTag)
     selection.ApplyTopPick('deepTagMD_TvsQCD',invert=True)
-    hists.Add('postTagDenominator_DAK8_CR',selection.a.DataFrame.Histo2D(('postTagDenominator_DAK8_CR','',20,60,260,18,800,2600),'Higgs_msoftdrop_corr','mth'))
+    hists.Add('postTagDenominator_DAK8_CR',selection.a.DataFrame.Histo2D(('postTagDenominator_DAK8_CR','',40,60,260,44,800,3000),'Higgs_msoftdrop_corr','mth'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_DAK8_CR',selection.a.DataFrame.Histo2D(('preTagNumerator_DAK8_CR','',20,60,260,18,800,2600),'Higgs_msoftdrop_corr','mth'))
+    hists.Add('preTagNumerator_DAK8_CR',selection.a.DataFrame.Histo2D(('preTagNumerator_DAK8_CR','',40,60,260,44,800,3000),'Higgs_msoftdrop_corr','mth'))
 
     # ParticleNet SR
     selection.a.SetActiveNode(noTag)
     selection.ApplyTopPick('particleNet_TvsQCD')
-    hists.Add('postTagDenominator_PN_SR',selection.a.DataFrame.Histo2D(('postTagDenominator_PN_SR','',20,60,260,18,800,2600),'Higgs_msoftdrop_corr','mth'))
+    hists.Add('postTagDenominator_PN_SR',selection.a.DataFrame.Histo2D(('postTagDenominator_PN_SR','',40,60,260,44,800,3000),'Higgs_msoftdrop_corr','mth'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_PN_SR',selection.a.DataFrame.Histo2D(('preTagNumerator_PN_SR','',20,60,260,18,800,2600),'Higgs_msoftdrop_corr','mth'))
+    hists.Add('preTagNumerator_PN_SR',selection.a.DataFrame.Histo2D(('preTagNumerator_PN_SR','',40,60,260,44,800,3000),'Higgs_msoftdrop_corr','mth'))
 
     selection.a.SetActiveNode(noTag)
     selection.ApplyTopPick('particleNet_TvsQCD',invert=True)
-    hists.Add('postTagDenominator_PN_CR',selection.a.DataFrame.Histo2D(('postTagDenominator_PN_CR','',20,60,260,18,800,2600),'Higgs_msoftdrop_corr','mth'))
+    hists.Add('postTagDenominator_PN_CR',selection.a.DataFrame.Histo2D(('postTagDenominator_PN_CR','',40,60,260,44,800,3000),'Higgs_msoftdrop_corr','mth'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_PN_CR',selection.a.DataFrame.Histo2D(('preTagNumerator_PN_CR','',20,60,260,18,800,2600),'Higgs_msoftdrop_corr','mth'))
+    hists.Add('preTagNumerator_PN_CR',selection.a.DataFrame.Histo2D(('preTagNumerator_PN_CR','',40,60,260,44,800,3000),'Higgs_msoftdrop_corr','mth'))
 
     # Make efficieincies
     effs = {
@@ -55,17 +55,22 @@ def MakeEfficiency(year):
         "PN_CR": ROOT.TEfficiency(hists['preTagNumerator_PN_CR'], hists['postTagDenominator_PN_CR'])
     }
 
-    out = ROOT.TFile.Open('THtrigger_%s.root'%year,'RECREATE')
+    out = ROOT.TFile.Open('THtrigger2D_%s.root'%year,'RECREATE')
     out.cd()
     for name,eff in effs.items():
         g = eff.CreateHistogram()
-        g.SetName(name)
+        g.SetName(name+'_hist')
         g.SetTitle(name)
         g.GetXaxis().SetTitle('m_{H} (GeV)')
         g.GetYaxis().SetTitle('m_{tH} (GeV)')
         g.GetZaxis().SetTitle('Efficiency')
         g.SetMinimum(0.6)
         g.SetMaximum(1.0)
+        f = ROOT.TF2("eff_func","1-[0]/10*exp([1]*y/1000)*exp([2]*x/200)",60,260,800,2600)
+        f.SetParameter(0,1)
+        f.SetParameter(1,-2)
+        f.SetParameter(2,-2)
+        g.Fit(f)
         g.Write()
         eff.SetName(name)
         eff.Write()
@@ -83,7 +88,7 @@ if __name__ == '__main__':
         18: ROOT.TFile.Open('THtrigger_18.root')
     }
 
-    hists = {hname.GetName():[files[y].Get(hname.GetName()) for y in [16,17,18]] for hname in files[16].GetListOfKeys()}
+    hists = {hname.GetName():[files[y].Get(hname.GetName()) for y in [16,17,18]] for hname in files[16].GetListOfKeys() if '_hist' in hname.GetName()}
     colors = [ROOT.kBlack, ROOT.kGreen+1, ROOT.kOrange-3]
     legendNames = ['2016','2017','2018']
     for hname in hists.keys():
