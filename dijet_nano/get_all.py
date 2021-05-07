@@ -30,6 +30,8 @@ for y in org_files.keys():
 
     # consolidate data files
     subdatafiles = glob('dijet_nano/Data*_%s_snapshot.txt'%y)
+    ExecuteCmd('rm dijet_nano/Data_{0}_snapshot.txt'.format(y))
     ExecuteCmd('cat dijet_nano/Data*_{0}_snapshot.txt > dijet_nano/Data_{0}_snapshot.txt'.format(y))
     for s in subdatafiles:
-        ExecuteCmd('rm %s'%s)
+        if s != 'dijet_nano/Data_{0}_snapshot.txt'.format(y):
+            ExecuteCmd('rm %s'%s)
