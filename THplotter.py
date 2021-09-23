@@ -5,7 +5,7 @@ from THstudies import THstudies
 from TIMBER.Tools.Common import DictStructureCopy, CompileCpp, ExecuteCmd, OpenJSON, StitchQCD
 from TIMBER.Tools.Plot import CompareShapes
 from TIMBER.Analyzer import Correction
-import multiprocessing, ROOT
+import multiprocessing, ROOT, time
 
 def GetAllFiles():
     return [f for f in glob('dijet_nano/*_snapshot.txt') if f != '']
