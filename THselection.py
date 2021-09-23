@@ -43,13 +43,14 @@ def THselection(args):
                 mod_name = "%s_%s_%s"%(t,rkey,pfkey)
                 mod_title = "%s %s"%(rkey,pfkey)
                 selection.a.SetActiveNode(n)
-                templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod_name,'MthvMh %s with %s'%(mod_title,t),40,60,260,28,800,3000),['Higgs_msoftdrop_corrH','mth'])
+                templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod_name,'MthvMh %s with %s'%(mod_title,t),40,60,260,22,800,3000),['Higgs_msoftdrop_corrH','mth'])
                 templates.Do('Write')
 
     if not selection.a.isData:
         scale = ROOT.TH1F('scale','xsec*lumi/genEventSumw',1,0,1)
         scale.SetBinContent(1,selection.GetXsecScale())
         scale.Write()
+        selection.a.PrintNodeTree('NodeTree_selection.pdf',verbose=True)
     print ('%s sec'%(time.time()-start))
 
 if __name__ == '__main__':
