@@ -172,8 +172,15 @@ class THClass:
         return self.a.GetActiveNode()            
 
     def ApplyHiggsTag(self,tagger='deepTagMD_HbbvsQCD'):
-        passfail = self.a.Discriminate('HbbTag','Higgs_{0} > {1}'.format(tagger,self.cuts[tagger]))
-        return passfail
+        checkpoint = self.a.GetActiveNode()
+        passLooseFail = {}
+        passLooseFail["pass"] = self.a.Cut('HbbTag_pass','Higgs_{0} > {1}'.format(tagger,self.cuts[tagger]))
+        self.a.SetActiveNode(checkpoint)
+        passLooseFail["loose"] = self.a.Cut('HbbTag_loose','Higgs_{0} > 0.8 && Higgs_{0} < {1}'.format(tagger,self.cuts[tagger]))
+        self.a.SetActiveNode(checkpoint)
+        passLooseFail["fail"] = self.a.Cut('HbbTag_fail','Higgs_{0} < 0.8'.format(tagger,self.cuts[tagger]))
+        self.a.SetActiveNode(checkpoint)
+        return passLooseFail
         
     ###############
     # For studies #
