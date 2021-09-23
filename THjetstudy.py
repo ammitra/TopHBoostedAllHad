@@ -10,20 +10,18 @@ def main(args):
     ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),int(args.era),1,1)
-    selection.a.Define('Dijet_pt_corr','Dijet_pt')
-    selection.a.Define('Dijet_msoftdrop_corr','Dijet_msoftdrop')
-    kinOnly = selection.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt_corr, Dijet_eta, Dijet_phi, Dijet_msoftdrop_corr)')
+    kinOnly = selection.OpenForSelection('None')
     
     # Kinematic plots
     jetPlots = HistGroup('jetPlots')
     # Taggers after mass selection
-    selection.a.Define('TopMassBools','Dijet_msoftdrop_corr > 105 && Dijet_msoftdrop_corr < 210')
+    selection.a.Define('TopMassBools','Dijet_msoftdrop_corrT > 105 && Dijet_msoftdrop_corrT < 210')
     selection.a.Define('DAK8TopScoresInMassWindow', 'Dijet_deepTag_TvsQCD[TopMassBools]')
     selection.a.Define('PNTopScoresInMassWindow', 'Dijet_particleNet_TvsQCD[TopMassBools]')
     jetPlots.Add('DAK8TopScoresInMassWindow',selection.a.DataFrame.Histo1D(('DAK8TopScoresInMassWindow','DeepAK8 top score for jets in top mass window',50,0,1),'DAK8TopScoresInMassWindow'))
     jetPlots.Add('PNTopScoresInMassWindow',selection.a.DataFrame.Histo1D(('PNTopScoresInMassWindow','ParticleNet top score for jets in top mass window',50,0,1),'PNTopScoresInMassWindow'))
 
-    selection.a.Define('HiggsMassBools','Dijet_msoftdrop_corr > 100 && Dijet_msoftdrop_corr < 140')
+    selection.a.Define('HiggsMassBools','Dijet_msoftdrop_corrH > 100 && Dijet_msoftdrop_corrH < 140')
     selection.a.Define('DAK8HiggsScoresInMassWindow','Dijet_deepTagMD_HbbvsQCD[HiggsMassBools]')
     selection.a.Define('PNHiggsScoresInMassWindow','Dijet_particleNet_HbbvsQCD[HiggsMassBools]')
     jetPlots.Add('DAK8HiggsScoresInMassWindow',selection.a.DataFrame.Histo1D(('DAK8HiggsScoresInMassWindow','DeepAK8 Higgs score for jets in Higgs mass window',50,0,1),'DAK8HiggsScoresInMassWindow'))
@@ -32,27 +30,27 @@ def main(args):
     # Mass after tagger selection
     selection.a.Define('TopDAK8Bools','Dijet_deepTag_TvsQCD > 0.9')
     selection.a.Define('TopPNBools','Dijet_particleNet_TvsQCD > 0.9')
-    selection.a.Define('TopMassAfterDAK8Tag', 'Dijet_msoftdrop_corr[TopDAK8Bools]')
-    selection.a.Define('TopMassAfterPNTag', 'Dijet_msoftdrop_corr[TopPNBools]')
+    selection.a.Define('TopMassAfterDAK8Tag', 'Dijet_msoftdrop_corrT[TopDAK8Bools]')
+    selection.a.Define('TopMassAfterPNTag', 'Dijet_msoftdrop_corrT[TopPNBools]')
     jetPlots.Add('TopMassAfterDAK8Tag',selection.a.DataFrame.Histo1D(('TopMassAfterDAK8Tag','Jet mass after DAK8 top score > 0.9',25,50,300),'TopMassAfterDAK8Tag'))
     jetPlots.Add('TopMassAfterPNTag',selection.a.DataFrame.Histo1D(('TopMassAfterPNTag','Jet mass after PN top score > 0.9',25,50,300),'TopMassAfterPNTag'))
 
     selection.a.Define('HiggsDAK8Bools','Dijet_deepTagMD_HbbvsQCD > 0.9')
     selection.a.Define('HiggsPNBools','Dijet_particleNet_HbbvsQCD > 0.9')
-    selection.a.Define('HiggsMassAfterDAK8Tag', 'Dijet_msoftdrop_corr[HiggsDAK8Bools]')
-    selection.a.Define('HiggsMassAfterPNTag', 'Dijet_msoftdrop_corr[HiggsPNBools]')
+    selection.a.Define('HiggsMassAfterDAK8Tag', 'Dijet_msoftdrop_corrH[HiggsDAK8Bools]')
+    selection.a.Define('HiggsMassAfterPNTag', 'Dijet_msoftdrop_corrH[HiggsPNBools]')
     jetPlots.Add('HiggsMassAfterDAK8Tag',selection.a.DataFrame.Histo1D(('HiggsMassAfterDAK8Tag','Jet mass after DAK8 Higgs score > 0.9',25,50,300),'HiggsMassAfterDAK8Tag'))
     jetPlots.Add('HiggsMassAfterPNTag',selection.a.DataFrame.Histo1D(('HiggsMassAfterPNTag','Jet mass after PN Higgs score > 0.9',25,50,300),'HiggsMassAfterPNTag'))
 
     selection.a.Define('GenPart_vect','hardware::TLvector(GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass)')
 
-    out = ROOT.TFile.Open('rootfiles/THjetstudy_%s_%s%s.root'%(args.setname,args.era,'_'+args.variation if args.variation != '' else ''),'RECREATE')
+    out = ROOT.TFile.Open('rootfiles/THjetstudy_%s_%s.root'%(args.setname,args.era),'RECREATE')
     out.cd()
     presel = selection.a.GetActiveNode()
     # Assign jets on truth in parallel
     selection.a.SetActiveNode(presel)
     selection.ApplyTopPickViaMatch()
-    truthtag = selection.a.Define('MassDiff','Top_msoftdrop_corr - Higgs_msoftdrop_corr')
+    truthtag = selection.a.Define('MassDiff','Top_msoftdrop_corrT - Higgs_msoftdrop_corrH')
     nicenames = {"deepTag":"DAK8^{top}", "particleNet":"PN^{top}"}
     for t in ['deepTag','particleNet']:
         selection.a.SetActiveNode(presel)
@@ -61,7 +59,7 @@ def main(args):
         # Signal region
         selection.ApplyTopPick(tagger=top_tagger,invert=False)
 
-        selection.a.Define('MassDiff','Top_msoftdrop_corr - Higgs_msoftdrop_corr')
+        selection.a.Define('MassDiff','Top_msoftdrop_corrT - Higgs_msoftdrop_corrH')
         selection.a.Define('NNDiff','Top_{0} - Higgs_{0}'.format(top_tagger))
         jetPlots.Add('MassDiffvsNNDiff_%s'%t,
                         selection.a.DataFrame.Histo2D(
@@ -112,10 +110,19 @@ if __name__ == '__main__':
     parser.add_argument('-y', type=str, dest='era',
                         action='store', required=True,
                         help='Year of set (16, 17, 18).')
-    parser.add_argument('-v', type=str, dest='variation',
-                        action='store', default='None',
-                        help='JES_up, JES_down, JMR_up,...')
     args = parser.parse_args()
     args.threads = 4
     CompileCpp('THmodules.cc')
     main(args)
+
+    ROOT.gStyle.SetOptStat(False)
+    f = ROOT.TFile.Open('rootfiles/THjetstudy_%s_%s.root'%(args.setname,args.era))
+    hists = [k.GetName() for k in f.GetListOfKeys() if 'MassDiffvs' in k.GetName()]
+    c = ROOT.TCanvas('c','c',700,800)
+    c.Print('plots/diff2Dstudy.pdf[')
+    c.Clear()
+    for i,h in enumerate(hists):
+        f.Get(h).Draw('colz')
+        c.Print('plots/diff2Dstudy.pdf')
+        c.Clear()
+    c.Print('plots/diff2Dstudy.pdf]')
