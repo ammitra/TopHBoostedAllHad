@@ -181,5 +181,11 @@ if __name__ == '__main__':
             print ('Plotting: %s'%h)
             if h in histNames.keys():
                 plot(h,histNames[h])
+                plot(h,histNames[h],'16')
+                plot(h,histNames[h],'17')
+                plot(h,histNames[h],'18')
             else:
                 plot(h,h)
+                plot(h,h,'16')
+                plot(h,h,'17')
+                plot(h,h,'18')
