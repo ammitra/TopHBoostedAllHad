@@ -15,9 +15,16 @@ def THselection(args):
     selection.ApplyTrigs(args.trigEff)
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
 
-    out = ROOT.TFile.Open('rootfiles/THselection_%s_%s%s.root'%(args.setname,args.era,'_'+args.variation if args.variation != 'None' else ''),'RECREATE')
+    out = ROOT.TFile.Open('rootfiles/THselection_%s%s_%s%s.root'%(args.setname,
+                                                                  '' if args.topcut == '' else '_htag'+args.topcut.replace('.','p'),
+                                                                  args.era,
+                                                                  '' if args.variation == 'None' else '_'+args.variation),
+                          'RECREATE')
     out.cd()
     for t in ['deepTag','particleNet']:
+        if args.topcut != '':
+            selection.cuts[t+'MD_HbbvsQCD'] = float(args.topcut)
+
         top_tagger = '%s_TvsQCD'%t
         higgs_tagger = '%sMD_HbbvsQCD'%t
 
@@ -57,6 +64,9 @@ if __name__ == '__main__':
     parser.add_argument('-v', type=str, dest='variation',
                         action='store', default='None',
                         help='JES_up, JES_down, JMR_up,...')
+    parser.add_argument('--topcut', type=str, dest='topcut',
+                        action='store', default='',
+                        help='Overrides config entry if non-empty')
     args = parser.parse_args()
     args.threads = 1
     args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_%s.root'%args.era,'Pretag'], corrtype='weight')
