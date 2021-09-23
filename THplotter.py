@@ -71,11 +71,9 @@ def CombineCommonSets(groupname,doStudies=False,modstr=''):
                 baseStr.format('QCDHT2000',y,modstr,''))
             )
 
-    MakeRun2(groupname)    
-
-def MakeRun2(setname,doStudies=False):
+def MakeRun2(setname,doStudies=False,modstr=''):
     t = 'studies' if doStudies else 'selection'
-    ExecuteCmd('hadd -f rootfiles/TH{1}_{0}_Run2.root rootfiles/TH{1}_{0}_16.root rootfiles/TH{1}_{0}_17.root rootfiles/TH{1}_{0}_18.root'.format(setname,t))
+    ExecuteCmd('hadd -f rootfiles/TH{1}_{0}{2}_Run2.root rootfiles/TH{1}_{0}{2}_16.root rootfiles/TH{1}_{0}{2}_17.root rootfiles/TH{1}_{0}{2}_18.root'.format(setname,t,modstr))
 
 def multicore(doStudies=False):
     CompileCpp('THmodules.cc')
