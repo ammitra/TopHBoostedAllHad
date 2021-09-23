@@ -116,17 +116,22 @@ def multicore(infiles=[],doStudies=False,topcut=''):
 
     print ('Total multicore time: %s'%(time.time()-start))
 
-def plot(histname,fancyname):
-    files = [f for f in glob('rootfiles/THstudies_*_Run2.root') if (('_QCD_' in f) or ('_ttbar_' in f) or ('_TprimeB-1200' in f))]
+def plot(histname,fancyname,era='Run2'):
+    files = [f for f in glob('rootfiles/THstudies_*_%s.root'%era) if (('_QCD_' in f) or ('_ttbar_' in f) or ('_TprimeB-1000' in f))]
     hists = GetHistDict(histname,files)
 
-    CompareShapes('plots/%s_Run2.pdf'%histname,1,fancyname,
+    if histname.startswith('deep') or histname.startswith('particleNet'):
+        optimize = True
+    else:
+        optimize = False
+    CompareShapes('plots/%s_%s.pdf'%(histname,era),1,fancyname,
                    bkgs=hists['bkg'],
                    signals=hists['sig'],
                    names={},
-                   colors={'QCD':ROOT.kYellow,'ttbar':ROOT.kRed,'TprimeB-1200':ROOT.kBlack},
-                   scale=False, stackBkg=True, 
-                   doSoverB=True)
+                   colors={'QCD':ROOT.kOrange,'ttbar':ROOT.kRed,'TprimeB-1000':ROOT.kBlack},
+                   scale=True, stackBkg=True, 
+                   doSoverB=optimize,forceBackward=True if 'deepTag_H' in histname else False,
+                   logy=True)
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
