@@ -75,9 +75,10 @@ def MakeRun2(setname,doStudies=False,modstr=''):
     t = 'studies' if doStudies else 'selection'
     ExecuteCmd('hadd -f rootfiles/TH{1}_{0}{2}_Run2.root rootfiles/TH{1}_{0}{2}_16.root rootfiles/TH{1}_{0}{2}_17.root rootfiles/TH{1}_{0}{2}_18.root'.format(setname,t,modstr))
 
-def multicore(doStudies=False):
+def multicore(infiles=[],doStudies=False,topcut=''):
     CompileCpp('THmodules.cc')
-    files = GetAllFiles()
+    if infiles == []: files = GetAllFiles()
+    else: files = infiles
 
     teff = {
         "16": Correction("TriggerEff16",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_16.root','Pretag'], corrtype='weight'),
@@ -85,29 +86,35 @@ def multicore(doStudies=False):
         "18": Correction("TriggerEff18",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_18.root','Pretag'], corrtype='weight')
     }
 
-    pool = multiprocessing.Pool(processes=1 if doStudies else 8,maxtasksperchild=1)
-    nthreads = 8 if doStudies else 2
+    pool = multiprocessing.Pool(processes=4 if doStudies else 6,maxtasksperchild=1)
+    nthreads = 4 if doStudies else 2
     process_args = []
     for f in files:
         setname, era = GetProcYearFromTxt(f)
         
         if doStudies:
             if 'Data' not in setname:
-                process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='None',trigEff=teff[era]))
+                process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='None',trigEff=teff[era],topcut=topcut))
         else:
             if 'Data' not in setname and 'QCD' not in setname:
-                process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='None',trigEff=teff[era]))
+                process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='None',trigEff=teff[era],topcut=topcut))
                 if not doStudies:
                     for jme in ['JES','JER','JMS','JMR']:
                         for v in ['up','down']:
-                            process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era]))
+                            process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era],topcut=topcut))
             else:
-                process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='None',trigEff=teff[era]))
+                process_args.append(Namespace(threads=nthreads,setname=setname,era=era,variation='None',trigEff=teff[era],topcut=topcut))
 
+    start = time.time()
     if doStudies:
         pool.map(THstudies,process_args)
     else:
-        pool.map(THselection,process_args)
+        for a in process_args:
+            print ('PROCESSING: %s %s %s'%(a.setname, a.era, a.variation))
+            THselection(a)
+        # pool.map(THselection,process_args)
+
+    print ('Total multicore time: %s'%(time.time()-start))
 
 def plot(histname,fancyname):
     files = [f for f in glob('rootfiles/THstudies_*_Run2.root') if (('_QCD_' in f) or ('_ttbar_' in f) or ('_TprimeB-1200' in f))]
