@@ -35,7 +35,7 @@ def GetHistDict(histname, all_files):
             all_hists['bkg'][proc] = hist
     return all_hists
 
-def CombineCommonSets(groupname,doStudies=False):
+def CombineCommonSets(groupname,doStudies=False,modstr=''):
     '''Which stitch together either QCD or ttbar (ttbar-allhad+ttbar-semilep)
 
     @param groupname (str, optional): "QCD" or "ttbar".
@@ -44,30 +44,31 @@ def CombineCommonSets(groupname,doStudies=False):
         raise ValueError('Can only combine QCD or ttbar')
     config = OpenJSON('THconfig.json')
     for y in ['16','17','18']:
-        baseStr = 'rootfiles/TH%s_{0}_{1}{2}.root'%('studies' if doStudies else 'selection')
+        baseStr = 'rootfiles/TH%s_{0}{2}_{1}{3}.root'%('studies' if doStudies else 'selection')
         if groupname == 'ttbar':
-            for v in ['']:
+            to_loop = [''] if doStudies else ['','JES','JER','JMS','JMR']
+            for v in to_loop:
                 if v == '':
                     ExecuteCmd('hadd -f %s %s %s'%(
-                        baseStr.format('ttbar',y,''),
-                        baseStr.format('ttbar-allhad',y,''),
-                        baseStr.format('ttbar-semilep',y,''))
+                        baseStr.format('ttbar',y,modstr,''),
+                        baseStr.format('ttbar-allhad',y,modstr,''),
+                        baseStr.format('ttbar-semilep',y,modstr,''))
                     )
                 else:
                     for v2 in ['up','down']:
                         v3 = '_%s_%s'%(v,v2)
                         ExecuteCmd('hadd -f %s %s %s'%(
-                            baseStr.format('ttbar',y,v3),
-                            baseStr.format('ttbar-allhad',y,v3),
-                            baseStr.format('ttbar-semilep',y,v3))
+                            baseStr.format('ttbar',y,modstr,v3),
+                            baseStr.format('ttbar-allhad',y,modstr,v3),
+                            baseStr.format('ttbar-semilep',y,modstr,v3))
                         )
         elif groupname == 'QCD':
             ExecuteCmd('hadd -f %s %s %s %s %s'%(
-                baseStr.format('QCD',y,''),
-                baseStr.format('QCDHT700',y,''),
-                baseStr.format('QCDHT1000',y,''),
-                baseStr.format('QCDHT1500',y,''),
-                baseStr.format('QCDHT2000',y,''))
+                baseStr.format('QCD',y,modstr,''),
+                baseStr.format('QCDHT700',y,modstr,''),
+                baseStr.format('QCDHT1000',y,modstr,''),
+                baseStr.format('QCDHT1500',y,modstr,''),
+                baseStr.format('QCDHT2000',y,modstr,''))
             )
 
     MakeRun2(groupname)    
