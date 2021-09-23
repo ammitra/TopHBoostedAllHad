@@ -9,8 +9,10 @@ from THClass import THClass
 def THselection(args):
     ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
+
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),int(args.era),1,1)
     selection.OpenForSelection(args.variation)
+    selection.ApplyTrigs(args.trigEff)
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
 
     out = ROOT.TFile.Open('rootfiles/THselection_%s_%s%s.root'%(args.setname,args.era,'_'+args.variation if args.variation != 'None' else ''),'RECREATE')
@@ -22,13 +24,11 @@ def THselection(args):
         # Signal region
         selection.a.SetActiveNode(kinOnly)
         selection.ApplyTopPick(tagger=top_tagger,invert=False)
-        selection.ApplyTrigs(args.trigEff)
         passfailSR = selection.ApplyHiggsTag(tagger=higgs_tagger)
 
         # Control region
         selection.a.SetActiveNode(kinOnly)
         selection.ApplyTopPick(tagger=top_tagger,invert=True)
-        selection.ApplyTrigs(args.trigEff)
         passfailCR = selection.ApplyHiggsTag(tagger=higgs_tagger)
 
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():

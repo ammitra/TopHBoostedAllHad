@@ -132,6 +132,9 @@ class THClass:
     def OpenForSelection(self,variation):
         self.a.Define('Dijet_particleNetMD_HbbvsQCD','Dijet_particleNetMD_Xbb/(Dijet_particleNetMD_Xbb+Dijet_particleNetMD_QCD)')
         self.ApplyStandardCorrections(snapshot=False)
+        self.a.Define('Dijet_vect_trig','hardware::TLvector(Dijet_pt, Dijet_eta, Dijet_phi, Dijet_msoftdrop)')
+        self.a.Define('mth_trig','hardware::InvariantMass(Dijet_vect_trig)')
+        self.a.Define('m_javg','(Dijet_msoftdrop[0]+Dijet_msoftdrop[0])/2')
         # JME variations
         if not self.a.isData:
             pt_calibs, top_mass_calibs = JMEvariationStr('Top',variation)     # the pt calibs are the same for
@@ -157,7 +160,6 @@ class THClass:
         self.a.Define('Top_vect','hardware::TLvector(Top_pt_corr, Top_eta, Top_phi, Top_msoftdrop_corrT)')
         self.a.Define('Higgs_vect','hardware::TLvector(Higgs_pt_corr, Higgs_eta, Higgs_phi, Higgs_msoftdrop_corrH)')
         self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
-        self.a.Define('m_avg','(Top_msoftdrop_corrT+Higgs_msoftdrop_corrH)/2')
         # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
         # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
         return self.a.GetActiveNode()
@@ -166,7 +168,7 @@ class THClass:
         if self.a.isData:
             self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[self.year]))
         else:
-            self.a.AddCorrection(corr, evalArgs={"xval":"m_avg","yval":"mth"})    
+            self.a.AddCorrection(corr, evalArgs={"xval":"m_javg","yval":"mth_trig"})    
         return self.a.GetActiveNode()            
 
     def ApplyHiggsTag(self,tagger='deepTagMD_HbbvsQCD'):

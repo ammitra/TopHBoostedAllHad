@@ -7,43 +7,43 @@ from THClass import THClass
 
 def MakeEfficiency(year):
     selection = THClass('../dijet_nano_files/THsnapshot_Data_%s.root'%(year),year,1,1)
-    selection.OpenForSelection()
-    selection.a.Define('mth','hardware::InvariantMass(Dijet_vect)')
+    selection.OpenForSelection('None')
+    # selection.a.Define('mth_trig','hardware::InvariantMass(Dijet_vect)')
     # selection.a.Cut('morePt','ROOT::VecOps::All(Dijet_pt > 400)')
     hists = HistGroup('out')
 
-    noTag = selection.a.Cut('pretrig','HLT_Mu50==1')
+    noTag = selection.a.Cut('pretrig','HLT_PFJet320==1')
 
     # Baseline - no tagging
-    hists.Add('preTagDenominator',selection.a.DataFrame.Histo1D(('preTagDenominator','',22,800,3000),'mth'))
+    hists.Add('preTagDenominator',selection.a.DataFrame.Histo1D(('preTagDenominator','',22,800,3000),'mth_trig'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator',selection.a.DataFrame.Histo1D(('preTagNumerator','',22,800,3000),'mth'))
+    hists.Add('preTagNumerator',selection.a.DataFrame.Histo1D(('preTagNumerator','',22,800,3000),'mth_trig'))
 
     # DeepAK8 SR
     selection.a.SetActiveNode(noTag)
-    selection.ApplyTopPick('deepTagMD_TvsQCD')
-    hists.Add('postTagDenominator_DAK8_SR',selection.a.DataFrame.Histo1D(('postTagDenominator_DAK8_SR','',22,800,3000),'mth'))
+    selection.ApplyTopPick('deepTag_TvsQCD')
+    hists.Add('postTagDenominator_DAK8_SR',selection.a.DataFrame.Histo1D(('postTagDenominator_DAK8_SR','',22,800,3000),'mth_trig'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_DAK8_SR',selection.a.DataFrame.Histo1D(('preTagNumerator_DAK8_SR','',22,800,3000),'mth'))
+    hists.Add('preTagNumerator_DAK8_SR',selection.a.DataFrame.Histo1D(('preTagNumerator_DAK8_SR','',22,800,3000),'mth_trig'))
     # DeepAK8 CR
     selection.a.SetActiveNode(noTag)
-    selection.ApplyTopPick('deepTagMD_TvsQCD',invert=True)
-    hists.Add('postTagDenominator_DAK8_CR',selection.a.DataFrame.Histo1D(('postTagDenominator_DAK8_CR','',22,800,3000),'mth'))
+    selection.ApplyTopPick('deepTag_TvsQCD',invert=True)
+    hists.Add('postTagDenominator_DAK8_CR',selection.a.DataFrame.Histo1D(('postTagDenominator_DAK8_CR','',22,800,3000),'mth_trig'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_DAK8_CR',selection.a.DataFrame.Histo1D(('preTagNumerator_DAK8_CR','',22,800,3000),'mth'))
+    hists.Add('preTagNumerator_DAK8_CR',selection.a.DataFrame.Histo1D(('preTagNumerator_DAK8_CR','',22,800,3000),'mth_trig'))
 
     # ParticleNet SR
     selection.a.SetActiveNode(noTag)
     selection.ApplyTopPick('particleNet_TvsQCD')
-    hists.Add('postTagDenominator_PN_SR',selection.a.DataFrame.Histo1D(('postTagDenominator_PN_SR','',22,800,3000),'mth'))
+    hists.Add('postTagDenominator_PN_SR',selection.a.DataFrame.Histo1D(('postTagDenominator_PN_SR','',22,800,3000),'mth_trig'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_PN_SR',selection.a.DataFrame.Histo1D(('preTagNumerator_PN_SR','',22,800,3000),'mth'))
+    hists.Add('preTagNumerator_PN_SR',selection.a.DataFrame.Histo1D(('preTagNumerator_PN_SR','',22,800,3000),'mth_trig'))
 
     selection.a.SetActiveNode(noTag)
     selection.ApplyTopPick('particleNet_TvsQCD',invert=True)
-    hists.Add('postTagDenominator_PN_CR',selection.a.DataFrame.Histo1D(('postTagDenominator_PN_CR','',22,800,3000),'mth'))
+    hists.Add('postTagDenominator_PN_CR',selection.a.DataFrame.Histo1D(('postTagDenominator_PN_CR','',22,800,3000),'mth_trig'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator_PN_CR',selection.a.DataFrame.Histo1D(('preTagNumerator_PN_CR','',22,800,3000),'mth'))
+    hists.Add('preTagNumerator_PN_CR',selection.a.DataFrame.Histo1D(('preTagNumerator_PN_CR','',22,800,3000),'mth_trig'))
 
     # Make efficieincies
     effs = {
@@ -90,6 +90,9 @@ if __name__ == '__main__':
         leg = ROOT.TLegend(0.7,0.5,0.88,0.7)
         for i,h in enumerate(hists[hname]):
             h.SetLineColor(colors[i])
+            h.SetTitle('')
+            h.GetXaxis().SetTitle('m_{jj}')
+            h.GetYaxis().SetTitle('Efficiency')
             if i == 0:
                 h.Draw('AP')
             else:
