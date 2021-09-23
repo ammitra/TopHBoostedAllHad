@@ -145,17 +145,18 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     if not args.recycle:
-        multicore(args.studies)
-        CombineCommonSets('QCD',args.studies)
-        CombineCommonSets('ttbar',args.studies)
-        
-        if args.studies:
-            MakeRun2('QCD',args.studies)
-            MakeRun2('ttbar',args.studies)
-            for m in range(800,1900,100):
-                MakeRun2('TprimeB-%s'%m,args.studies)
-        else:
-            MakeRun2('Data',args.studies)
+        multicore(doStudies=args.studies)
+    
+    CombineCommonSets('QCD',args.studies)
+    CombineCommonSets('ttbar',args.studies)
+    
+    if args.studies:
+        MakeRun2('QCD',args.studies)
+        MakeRun2('ttbar',args.studies)
+        for m in range(800,1900,100):
+            MakeRun2('TprimeB-%s'%m,args.studies)
+    else:
+        MakeRun2('Data',args.studies)
 
     if args.studies:
         histNames = {
