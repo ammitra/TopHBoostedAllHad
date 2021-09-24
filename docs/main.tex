@@ -2,15 +2,25 @@
 \author{Lucas Corcodilos}
 \date{\today}
 
-\documentclass[10pt]{article}
-\usepackage[margin=0.5in]{geometry}
+\documentclass[10pt,oneside]{article}
+\usepackage[margin=0.75in]{geometry}
 \usepackage{graphicx}
 \usepackage{url}
 \usepackage{float}
+\usepackage{makecell}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
 \restylefloat{table}
 
 \begin{document}
 \maketitle
+\tableofcontents
 \section{Analysis strategy and selection}
 
 Dijet search for boosted $X \to tH$. The benchmark, $X$, is a VLQ $T'$ produced
@@ -37,12 +47,26 @@ the analysis is expected to be small (ie. quark will be along beamline).
         \multicolumn{1}{|c|}{Higgs tag pass} & \multicolumn{1}{|c|}{Higgs tag fail} & \multicolumn{1}{|c|}{Higgs tag pass} & \multicolumn{1}{|c|}{Higgs tag fail} \\
         \hline
     \end{tabular} 
+    \caption{Analysis selection for four selection regions. The definitions of the ``top tag'' and ``Higgs tag'' can be
+    found in \ref{table:tags}.}
     \label{table:selection}
-    \caption{Analysis selection for four selection regions. A ``top tag'' refers to a selection of 
-    a tagger score at least 0.632 and $105 < m_{\mathrm{jet}} < 210$ GeV, where the tagger could be DeepAK8
-    or ParticleNet (see Section~\ref{sec:jets}). A ``Higgs tag'' refers to a tagger score selection of
-    at least 0.9, where the tagger could be DeepAK8 or ParticleNet.}       
 \end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c c c c}
+         & DeepAK8 & Particle Net & Mass \\
+        \hline
+        Top quark & 0.94 & 0.94 & [105,210] GeV \\
+        Higgs boson & \makecell{0.96\\(mass-decorrelated)} & \makecell{0.98\\(mass-decorrelated)} & - \\
+    \end{tabular} 
+    \caption{Selections for top and Higgs jet tagging. The analysis considers using either DeepAK8 or ParticleNet so
+    the working points for both are provided. Note that the Higgs tag uses the mass-decorrelated version of each tagger
+    and does not use a jet mass selection because of the nature of the background estimate. The choice of NN-scores
+    is based off of $S/\sqrt{B}$ optimization of the four different variables with N-1 cuts, as shown in Figs.\ref{figs:jetDAK8} and \ref{figs:jetPN}.}
+    \label{table:tags}
+\end{table}
+
 
 \section{Initial studies on jet tagging}
 \label{sec:jets}
@@ -92,7 +116,7 @@ The distributions for both taggers and the four scenarios are shown in Figs.
 \ref{figs:DeepAK8_diff_2D} and \ref{figs:PN_diff_2D} where a 2016 $T' \to tH$ signal with
 a $T'$ mass of 1200 GeV is examined.
 
-\begin{figure}
+\begin{figure}[H]
     \centering
     \includegraphics[page=1,width=0.24\textwidth]{../plots/diff2Dstudy.pdf}
     \includegraphics[page=2,width=0.24\textwidth]{../plots/diff2Dstudy.pdf}
@@ -102,7 +126,7 @@ a $T'$ mass of 1200 GeV is examined.
     \label{figs:DeepAK8_diff_2D}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
     \centering
     \includegraphics[page=5,width=0.24\textwidth]{../plots/diff2Dstudy.pdf}
     \includegraphics[page=6,width=0.24\textwidth]{../plots/diff2Dstudy.pdf}
@@ -112,30 +136,31 @@ a $T'$ mass of 1200 GeV is examined.
     \label{figs:PN_diff_2D}
 \end{figure}
 
+
 \section{Kinematic distributions}
 
-We further investigate kinematic variables which may be useful in increasing
-the signal to background ratio in the analysis. Figures \ref{figs:pt} and 
-\label{figs:etaY} compare simulation for all of Run 2.
+% We further investigate kinematic variables which may be useful in increasing
+% the signal to background ratio in the analysis. Figures \ref{figs:pt} and 
+% \ref{figs:etaY} compare simulation for all of Run 2.
 
-\begin{figure}
+\begin{figure}[H]
     \includegraphics[width=0.32\textwidth]{../plots/pt0_Run2.pdf}
     \includegraphics[width=0.32\textwidth]{../plots/pt1_Run2.pdf}
     \includegraphics[width=0.32\textwidth]{../plots/HT_Run2.pdf}
-    \label{figs:pt}
     \caption{The $p_T$ of the leading (left) and subleading (middle) jet in the event and the scalar sum of the two (right).
     The total background is represented as a stack of QCD (yellow) and ttbar (red) MC and the total is normalized to
     unity. The signal (black line) is separately normalized to unity.}
+    \label{figs:pt}
 \end{figure}
 
-\begin{figure}
-    \includegraphics[width=0.49\textwidth]{../plots/deltaEta_Run2.pdf}
-    \includegraphics[width=0.49\textwidth]{../plots/deltaY_Run2.pdf}
-    \label{figs:etaY}
-    \caption{The $|\Delta \eta|$ between the two candidate jets in the event. The total background
-    is represented as a stack of QCD (yellow) and ttbar (red) MC and the total is normalized to
-    unity. The signal (black line) is separately normalized to unity.}
-\end{figure}
+% \begin{figure}[H]
+%     \includegraphics[width=0.49\textwidth]{../plots/deltaEta_Run2.pdf}
+%     \includegraphics[width=0.49\textwidth]{../plots/deltaY_Run2.pdf}
+%     \caption{The $|\Delta \eta|$ between the two candidate jets in the event. The total background
+%     is represented as a stack of QCD (yellow) and ttbar (red) MC and the total is normalized to
+%     unity. The signal (black line) is separately normalized to unity.}
+%     \label{figs:etaY}
+% \end{figure}
 
 
 \section{Jet tagging variables}
@@ -157,47 +182,298 @@ in Figure \ref{figs:jetMassDAK8}.
 Figures \ref{figs:jetMassDAK8}, \ref{figs:jetMassPN}, \ref{figs:jetDAK8}, and \ref{figs:jetPN}
 compare simulation for all of Run 2.
 
-\begin{figure}
-    \includegraphics[width=0.49\textwidth]{../plots/mH_deepTagMD_cut_nminus1_Run2.pdf}
-    \includegraphics[width=0.49\textwidth]{../plots/mt_deepTagMD_cut_nminus1_Run2.pdf}
-    \label{figs:jetMassDAK8}
+\begin{figure}[H]
+    \includegraphics[width=0.49\textwidth]{../plots/optimization/mH_deepTag_cut_nminus1_Run2.pdf}
+    \includegraphics[width=0.49\textwidth]{../plots/optimization/mt_deepTag_cut_nminus1_Run2.pdf}
     \caption{Shape comparison of the jet mass distributions for the Higgs (left) and top (right) jets
     when using the mass decorrelated DeepAK8 tagger. The total background
     is represented as a stack of QCD (yellow) and ttbar (red) MC and the total is normalized to
-    unity. The signal (black line) is separately normalized to unity.}
+    the expected number of background events. The signal (black line) is separately normalized to the expected
+    number of signal events assuming the cross section is 1pb.}
+    \label{figs:jetMassDAK8}
 \end{figure}
 
-\begin{figure}
-    \includegraphics[width=0.49\textwidth]{../plots/mH_particleNet_cut_nminus1_Run2.pdf}
-    \includegraphics[width=0.49\textwidth]{../plots/mt_particleNet_cut_nminus1_Run2.pdf}
-    \label{figs:jetMassPN}
+\begin{figure}[H]
+    \includegraphics[width=0.49\textwidth]{../plots/optimization/mH_particleNet_cut_nminus1_Run2.pdf}
+    \includegraphics[width=0.49\textwidth]{../plots/optimization/mt_particleNet_cut_nminus1_Run2.pdf}
     \caption{Shape comparison of the jet mass distributions for the Higgs (left) and top (right) jets
     when using the ParticleNet tagger (not mass decorrelated). The total background
     is represented as a stack of QCD (yellow) and ttbar (red) MC and the total is normalized to
-    unity. The signal (black line) is separately normalized to unity.}
+    the expected number of background events. The signal (black line) is separately normalized to the expected
+    number of signal events assuming the cross section is 1pb.}
+    \label{figs:jetMassPN}
 \end{figure}
 
-\begin{figure}
-    \includegraphics[width=0.49\textwidth]{../plots/deepTagMD_H_cut_nminus1_Run2.pdf}
-    \includegraphics[width=0.49\textwidth]{../plots/deepTagMD_top_cut_nminus1_Run2.pdf}
-    \label{figs:jetDAK8}
+\begin{figure}[H]
+    \includegraphics[width=0.49\textwidth]{../plots/optimization/deepTag_H_cut_nminus1_Run2.pdf}
+    \includegraphics[width=0.49\textwidth]{../plots/optimization/deepTag_top_cut_nminus1_Run2.pdf}
     \caption{Shape comparison of the DeepAK8 score distributions for the Higgs (left) and top (right) jets
     when using the mass decorrelated DeepAK8 tagger. The total background
     is represented as a stack of QCD (yellow) and ttbar (red) MC and the total is normalized to
-    unity. The signal (black line) is separately normalized to unity.}
+    the expected number of background events. The signal (black line) is separately normalized to the expected
+    number of signal events assuming the cross section is 1pb.}
+    \label{figs:jetDAK8}
 \end{figure}
 
-\begin{figure}
-    \includegraphics[width=0.49\textwidth]{../plots/particleNet_H_cut_nminus1_Run2.pdf}
-    \includegraphics[width=0.49\textwidth]{../plots/particleNet_top_cut_nminus1_Run2.pdf}
-    \label{figs:jetPN}
+\begin{figure}[H]
+    \includegraphics[width=0.49\textwidth]{../plots/optimization/particleNet_H_cut_nminus1_Run2.pdf}
+    \includegraphics[width=0.49\textwidth]{../plots/optimization/particleNet_top_cut_nminus1_Run2.pdf}
     \caption{Shape comparison of the ParticleNet score distributions for the Higgs (left) and top (right) jets
     when using the mass decorrelated ParticleNet tagger. The total background
     is represented as a stack of QCD (yellow) and ttbar (red) MC and the total is normalized to
-    unity. The signal (black line) is separately normalized to unity.}
+    the expected number of background events. The signal (black line) is separately normalized to the expected
+    number of signal events assuming the cross section is 1pb.}
+    \label{figs:jetPN}
+\end{figure}
+
+\section{Background estimation method}
+
+This analysis uses the 2D Alphabet method to build a 2D binned likelihood model that simultanously fits
+ttbar from MC templates while fitting QCD using a data-driven method. The data-driven method uses
+events in a QCD control region defined by inverting the tagging score selection on the Higgs jet.
+A two-dimensional polynomial called the pass-fail ratio ($R_{P/F}$) is used as the transfer function between this control region and the signal
+region. Additionally, there is no cut placed on the Higgs jet mass and instead, the Higgs jet mass sidebands
+are used to constrain the backgrounds as well as interpolate the value of the background through the Higgs
+mass signal region while blinded.
+
+This method has been used successfully in B2G-19-003 and B2G-20-004. However, those two analyses used the 
+QCD MC to assist the fit. Specifically, the $R_{P/F}^{MC}$ is calculated in simulation smoothed by a Kernel Density Estimate (KDE)
+and the fitted polynomial becomes the $R_{ratio}$. Then, $R_{P/F} = R_{P/F}^{MC} * R_{ratio}$. By doing this, the fitted function
+is only responsible for fitting the difference between MC and data which is often a less complex shape, reducing the number of necessary
+parameters and stabalizing the model.
+
+The $R_{ratio}$ variation of 2D Alphabet is noted because this analysis \textit{does not} use it 
+with the primary reason being a lack of QCD MC statistics. Figure~\ref{figs:QCDSR} shows the 
+QCD yield predicted by QCD simulation after the different HT-binned samples have been combined (via proper
+normalization to respective cross sections) and the three eras of 2016, 2017, and 2018 summed. The fluctuations from simulation statistics 
+are large enough that even a smoothing algorithm would have a difficult time reconstructing a smooth distribution
+that could still lead to meaningful information for the background model.
+
+\begin{figure}
+    \centering
+    \includegraphics[page=1,width=0.40\textwidth]{../plots/QCD_shapes.pdf}
+    \includegraphics[page=3,width=0.40\textwidth]{../plots/QCD_shapes.pdf}
+    \caption{QCD MC simulation yields in ``pass'' selection for DeepAK8 (left) and ParticleNet (right). In the lower-right
+    of each subfigured is the integrated yield (after stitching samples and normalizing to Run 2 luminosity). The legends
+    in the upper-right show the total number of simulated events.}
+    \label{figs:QCDSR}
+\end{figure}
+
+Finally, a similar issue is faced with the $t\bar{t}$ simulation. The number of raw events in the signal region
+is larger than that of the QCD simulation but the distributions fluctuate enough that there were fit stability issues.
+This was studied with different $R_{P/F}$ parameterizations and coarser binning schemes but results were unstable.
+In particular, HESSE was unable to determine fit uncertainties because of ``on boundary'' parameters. This was true
+across the various $R_{P/F}$ and binning attempts.
+
+To remedy the situation, the $t\bar{t}$ selections were reperformed with a looser selection on the Hbb tagging score
+(to 0.8 for DeepAK8 and ParticleNet) and the resulting distributions scaled to the integrated yield when using the optimized
+tagger selection. The loose working point of 0.8 was chosen based on 
+Figs.~\ref{figs:jetDAK8} and~\ref{figs:jetPN} which show that the $t\bar{t}$ simulation statistics can be roughly doubled
+by increasing the selection window. Since the loosening of the Hbb score effectively migrates $t\bar{t}$ events from
+our ``fail'' region to the ``pass'' region, the possibility of biasing the shape in the ``pass'' to look more like the
+distribution in the ``fail'' is possible. However, the comparisons in Figs.~\ref{figs:ttbarScaleCompDAK8} and~\ref{figs:ttbarScaleCompPN}
+of the $t\bar{t}$ in the case of the raw selection (left) and the above ``loose-and-scale'' algorithm (right) show that the ``fail''
+distributions are very similar and the ``pass'' distribution does not appear to be biased to look more like the ``fail''.
+
+To substantiate that the resulting fit is healthier with the ``loose-and-scale'' method, Figs.~\ref{figs:ttbarScaleNuisCompDAK8}
+and~\ref{figs:ttbarScaleNuisCompPN} compare the nuisance parameter pulls for the DeepAK8 and ParticleNet scenarios, respectively.
+
+Additionally, Figs.~\ref{figs:jetDAK8} and~\ref{figs:jetPN} show that loosening the Hbb score is more
+effective than loosening the top tagging score since most of the $t\bar{t}$ already lives in the signal selection of
+these top score distributions. Loosening the top tagging score to 0.8 was attempted and the above understanding was confirmed
+with little change to the final simulation statistics being observed.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{../plots/fit_results/dataTH1200Blind_ttraw_DAK8_v2_0x0/SR/plots/fit_b/ttbar_18_projx_fitb.pdf}
+    \includegraphics[width=0.4\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x0/SR/plots/fit_b/ttbar_scaled_18_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions of the 2018 $t\bar{t}$ simulation for the blinded background-only fit using the DeepAK8 tagger and a 0x0 $R_{P/F}$.
+    The black points and vertical bars represent the post-fit value and uncertainty. The red histogram and shaded region represent the pre-fit value and uncertainty.}
+    \label{figs:ttbarScaleCompDAK8}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\textwidth]{../plots/fit_results/dataTH1200Blind_ttraw_DAK8_v2_0x0/nuisance_pulls.pdf}
+    \includegraphics[width=0.48\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x0/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the DeepAK8 based selection using a 0x0 $R_{P/F}$ for the raw $t\bar{t}$ MC (left) and 
+    $t\bar{t}$ MC with a looser selection and scaled down (right).}
+    \label{figs:ttbarScaleNuisCompDAK8}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{../plots/fit_results/dataTH1200Blind_ttraw_PN_v2_0x0/SR/plots/fit_b/ttbar_18_projx_fitb.pdf}
+    \includegraphics[width=0.4\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/SR/plots/fit_b/ttbar_scaled_18_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions of the 2018 $t\bar{t}$ simulation for the blinded background-only fit using the ParticleNet tagger and a 0x0 $R_{P/F}$.
+    The black points and vertical bars represent the post-fit value and uncertainty. The red histogram and shaded region represent the pre-fit value and uncertainty.}
+    \label{figs:ttbarScaleCompPN}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\textwidth]{../plots/fit_results/dataTH1200Blind_ttraw_PN_v2_0x0/nuisance_pulls.pdf}
+    \includegraphics[width=0.48\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the DeepAK8 based selection using a 0x0 $R_{P/F}$ for the raw $t\bar{t}$ MC (left) and 
+    $t\bar{t}$ MC with a looser selection and scaled down (right).}
+    \label{figs:ttbarScaleNuisCompPN}
 \end{figure}
 
 \section{Blinded fits to data}
+
+\subsection{DeepAK8 selections}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x0/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 0x0 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mh}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x0/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 0x0 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mth}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x0/SR/plots/fit_b/ttbar_scaled_16_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions of just the 2016 $t\bar{t}$ component of the blinded background-only fit using the DeepAK8 tagger and a 0x0 $R_{P/F}$.
+    The red histogram with shaded area represent the pre-fit distribution and uncertainty while the black points represent the equivalent
+    post-fit distribution and uncertainty.}
+    \label{figs:DAK8_mth_tt16}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x0/SR/plots/fit_b/ttbar_scaled_17_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions of just the 2017 $t\bar{t}$ component of the blinded background-only fit using the DeepAK8 tagger and a 0x0 $R_{P/F}$.
+    The red histogram with shaded area represent the pre-fit distribution and uncertainty while the black points represent the equivalent
+    post-fit distribution and uncertainty.}
+    \label{figs:DAK8_mth_tt17}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x0/SR/plots/fit_b/ttbar_scaled_18_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions of just the 2018 $t\bar{t}$ component of the blinded background-only fit using the DeepAK8 tagger and a 0x0 $R_{P/F}$.
+    The red histogram with shaded area represent the pre-fit distribution and uncertainty while the black points represent the equivalent
+    post-fit distribution and uncertainty.}
+    \label{figs:DAK8_mth_tt18}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x0/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the DeepAK8 based selection using a 0x0 $R_{P/F}$.}
+    \label{figs:DAK8_nuis}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.49\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x0/gof_plot.pdf}
+    \caption{The Goodness of Fit for the blinded background-only fit of the DeepAK8 based selection using a 0x0 $R_{P/F}$.}
+    \label{figs:DAK8_gof}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x0/impacts.pdf}
+    \caption{The nuisance parameter impacts on the final measured value of the signal strength, $r$, for the blinded
+    background-only fit of the DeepAK8 based selection using a 0x0 $R_{P/F}$.}
+    \label{figs:DAK8_impacts}
+\end{figure}
+
+\subsection{ParticleNet selections}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 0x0 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mh}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 0x0 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mth}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/SR/plots/fit_b/ttbar_scaled_16_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions of just the 2016 $t\bar{t}$ component of the blinded background-only fit using the ParticleNet tagger and a 0x0 $R_{P/F}$.
+    The red histogram with shaded area represent the pre-fit distribution and uncertainty while the black points represent the equivalent
+    post-fit distribution and uncertainty.}
+    \label{figs:PN_mth_tt16}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/SR/plots/fit_b/ttbar_scaled_17_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions of just the 2017 $t\bar{t}$ component of the blinded background-only fit using the ParticleNet tagger and a 0x0 $R_{P/F}$.
+    The red histogram with shaded area represent the pre-fit distribution and uncertainty while the black points represent the equivalent
+    post-fit distribution and uncertainty.}
+    \label{figs:PN_mth_tt17}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/SR/plots/fit_b/ttbar_scaled_18_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions of just the 2018 $t\bar{t}$ component of the blinded background-only fit using the ParticleNet tagger and a 0x0 $R_{P/F}$.
+    The red histogram with shaded area represent the pre-fit distribution and uncertainty while the black points represent the equivalent
+    post-fit distribution and uncertainty.}
+    \label{figs:PN_mth_tt18}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the ParticleNet based selection using a 0x0 $R_{P/F}$.}
+    \label{figs:PN_nuis}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.49\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/gof_plot.pdf}
+    \caption{The Goodness of Fit for the blinded background-only fit of the ParticleNet based selection using a 0x0 $R_{P/F}$.}
+    \label{figs:PN_gof}
+\end{figure}
+\begin{figure}[H]
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/impacts.pdf}
+    \caption{The nuisance parameter impacts on the final measured value of the signal strength, $r$, for the blinded
+    background-only fit of the ParticleNet based selection using a 0x0 $R_{P/F}$.}
+    \label{figs:PN_impacts}
+\end{figure}
+
+\section{Blinded signal injection tests}
+
+Signal injection tests are performed where the pseudo-data is generated from the post-fit background-only
+model with $r$ signal added. The following tests are for a 1200 GeV $T' \to tH$ siganl.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection0_500_sigpull.png}
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection0p1_500_sigpull.png}
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection0p25_500_sigpull.png}\\
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection0p5_500_sigpull.png}
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection1_500_sigpull.png}
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection3_500_sigpull.png}
+    \caption{DeepAK8 signal injection tests. The pull on $r$ is plotted in order from left to right, top to bottom: $r=0$, $r=0.1$, $r=0.25$, $r=0.5$, $r=1$, $r=3$}
+    \label{figs:sigInjDAK8}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection0_500_sigpull.png}
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection0p1_500_sigpull.png}
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection0p25_500_sigpull.png}\\
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection0p5_500_sigpull.png}
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection1_500_sigpull.png}
+    \includegraphics[width=0.32\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x0/signalInjection3_500_sigpull.png}
+    \caption{ParticleNet signal injection tests. The pull on $r$ is plotted in order from left to right, top to bottom: $r=0$, $r=0.1$, $r=0.25$, $r=0.5$, $r=1$, $r=3$}
+    \label{figs:sigInjPN}
+\end{figure}
+
+\section{Blinded expected limits}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\textwidth]{../plots/fit_results/prelimits_combine_137p44fb_tprime_DAK8v2.pdf}
+    \includegraphics[width=0.48\textwidth]{../plots/fit_results/prelimits_combine_137p44fb_tprime_PNv2.pdf}
+    \caption{Blinded expected limits for $T' \to tH$ when using the DeepAK8 (left) and ParticleNet (right) taggers.}
+    \label{figs:blindedLimits}
+\end{figure}
 
 \section{Data and simulation samples}
 
@@ -295,5 +571,341 @@ compare simulation for all of Run 2.
         DataD & \path{/JetHT/Run2018D-UL2018_MiniAODv1_NanoAODv2-v1/NANOAOD} \\
     \end{tabular}
 \end{center}
+
+
+
+\section{Fit results with variations of the \texorpdfstring{$R_{P/F}$}{Rpf}}
+
+\subsection{\texorpdfstring{$R_{P/F}$}{Rpf} pol0 by pol1}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x1/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 0x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mh_0x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x1/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 0x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mth_0x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x1/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the DeepAK8 based selection using a 0x1 $R_{P/F}$.}
+    \label{figs:DAK8_nuis_0x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_0x1/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the DeepAK8 based selection using a 0x1 $R_{P/F}$.}
+    \label{figs:DAK8_rpf_0x1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x1/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 0x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mh_0x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x1/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 0x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mth_0x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x1/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the ParticleNet based selection using a 0x1 $R_{P/F}$.}
+    \label{figs:PN_nuis_0x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_0x1/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the ParticleNet based selection using a 0x1 $R_{P/F}$.}
+    \label{figs:PN_rpf_0x1}
+\end{figure}
+
+\subsection{\texorpdfstring{$R_{P/F}$}{Rpf} pol1 by pol0}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x0/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 1x0 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mh_1x0}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x0/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 1x0 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mth_1x0}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x0/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the DeepAK8 based selection using a 1x0 $R_{P/F}$.}
+    \label{figs:DAK8_nuis_1x0}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x0/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the DeepAK8 based selection using a 1x0 $R_{P/F}$.}
+    \label{figs:DAK8_rpf_1x0}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x0/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 1x0 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mh_1x0}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x0/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 1x0 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mth_1x0}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x0/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the ParticleNet based selection using a 1x0 $R_{P/F}$.}
+    \label{figs:PN_nuis_1x0}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x0/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the ParticleNet based selection using a 1x0 $R_{P/F}$.}
+    \label{figs:PN_rpf_1x0}
+\end{figure}
+
+\subsection{\texorpdfstring{$R_{P/F}$}{Rpf} pol1 by pol1}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x1/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 1x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mh_1x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x1/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 1x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mth_1x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x1/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the DeepAK8 based selection using a 1x1 $R_{P/F}$.}
+    \label{figs:DAK8_nuis_1x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x1/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the DeepAK8 based selection using a 1x1 $R_{P/F}$.}
+    \label{figs:DAK8_rpf_1x1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x1/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 1x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mh_1x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x1/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 1x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mth_1x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x1/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the ParticleNet based selection using a 1x1 $R_{P/F}$.}
+    \label{figs:PN_nuis_1x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x1/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the ParticleNet based selection using a 1x1 $R_{P/F}$.}
+    \label{figs:PN_rpf_1x1}
+\end{figure}
+
+\subsection{\texorpdfstring{$R_{P/F}$}{Rpf} pol2 by pol1}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_2x1/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 2x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mh_2x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_2x1/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 2x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mth_2x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_2x1/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the DeepAK8 based selection using a 2x1 $R_{P/F}$.}
+    \label{figs:DAK8_nuis_2x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_2x1/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the DeepAK8 based selection using a 2x1 $R_{P/F}$.}
+    \label{figs:DAK8_rpf_2x1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_2x1/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 2x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mh_2x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_2x1/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 2x1 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mth_2x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_2x1/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the ParticleNet based selection using a 2x1 $R_{P/F}$.}
+    \label{figs:PN_nuis_2x1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_2x1/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the ParticleNet based selection using a 2x1 $R_{P/F}$.}
+    \label{figs:PN_rpf_2x1}
+\end{figure}
+
+\subsection{\texorpdfstring{$R_{P/F}$}{Rpf} pol1 by pol2}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x2/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 1x2 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mh_1x2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x2/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 1x2 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mth_1x2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x2/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the DeepAK8 based selection using a 1x2 $R_{P/F}$.}
+    \label{figs:DAK8_nuis_1x2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_1x2/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the DeepAK8 based selection using a 1x2 $R_{P/F}$.}
+    \label{figs:DAK8_rpf_1x2}
+\end{figure}
+
+\textbf{PARTICLENET FIT DID NOT CONVERGE}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x2/SR/plots/fit_b/postfit_projx_fitb.pdf}
+%     \caption{The $m_H$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 1x2 $R_{P/F}$.
+%     A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+%     \label{figs:PN_mh_1x2}
+% \end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x2/SR/plots/fit_b/postfit_projy_fitb.pdf}
+%     \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 1x2 $R_{P/F}$.
+%     A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+%     \label{figs:PN_mth_1x2}
+% \end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_1x2/nuisance_pulls.pdf}
+%     \caption{The nuisance parameter pulls for the blinded fits of the ParticleNet based selection using a 1x2 $R_{P/F}$.}
+%     \label{figs:PN_nuis_1x2}
+% \end{figure}
+
+\subsection{\texorpdfstring{$R_{P/F}$}{Rpf} pol2 by pol2}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_2x2/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 2x2 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mh_2x2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_2x2/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the DeepAK8 tagger and a 2x2 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:DAK8_mth_2x2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_2x2/nuisance_pulls.pdf}
+    \caption{The nuisance parameter pulls for the blinded fits of the DeepAK8 based selection using a 2x2 $R_{P/F}$.}
+    \label{figs:DAK8_nuis_2x2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_DAK8_v2_2x2/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the DeepAK8 based selection using a 2x2 $R_{P/F}$.}
+    \label{figs:DAK8_rpf_2x2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_2x2/SR/plots/fit_b/postfit_projx_fitb.pdf}
+    \caption{The $m_H$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 2x2 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mh_2x2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_2x2/SR/plots/fit_b/postfit_projy_fitb.pdf}
+    \caption{The $m_{tH}$ mass distributions for the blinded background-only fit using the ParticleNet tagger and a 2x2 $R_{P/F}$.
+    A 1200 GeV T' signal is normalized to 0.1 pb and plotted with the backgrounds to show relative shapes and yields.}
+    \label{figs:PN_mth_2x2}
+\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_2x2/nuisance_pulls.pdf}
+%     \caption{The nuisance parameter pulls for the blinded fits of the ParticleNet based selection using a 2x2 $R_{P/F}$.}
+%     \label{figs:PN_nuis_2x2}
+% \end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../plots/fit_results/dataTH1200Blind_ttscaled_PN_v2_2x2/SR/plots/fit_b/postfit_rpf_surf.pdf}
+    \caption{The post-fit $R_{P/F}$ for the blinded fits of the ParticleNet based selection using a 2x2 $R_{P/F}$.}
+    \label{figs:PN_rpf_2x2}
+\end{figure}
 
 \end{document}
