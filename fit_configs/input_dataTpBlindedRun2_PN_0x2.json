@@ -1,0 +1,394 @@
+{
+    "GLOBAL": {
+        "HELP": "The 'global' item can be used to set global variables inside of this json configuration file. This is the only place where you can customize the keys of dictionaries. For example, you could store 'dir': 'path/to/my/files/' and then later use 'dir' instead of writing the same file path multiple times",
+        "path": "/uscms_data/d3/lcorcodi/BoostedTH/CMSSW_11_1_4/src/topHBoostedAllHad/rootfiles",
+        "baseName": "MthvMh_particleNet"
+    },
+    "OPTIONS": {
+        "name": "SR",
+        "tag": "dataTpBlinded",
+        "blindedFit": true,
+        "blindedPlots": true,
+        "plotUncerts": false,
+        "plotPrefitSigInFitB": true,
+        "fitGuesses": false,
+        "prerun": false,
+        "year": 2
+    },
+    "PROCESS": {
+        "data_obs": {
+            "FILE": "path/THselection_Data_Run2.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SYSTEMATICS": [],
+            "CODE": 1
+        },
+        "ttbar_scaled_16": {
+            "TITLE": "t#bar{t}",
+            "FILE": "path/THselection_ttbar_scaled_16.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SYSTEMATICS": [
+                "lumi",
+                "ttbar_xsec",
+                "Tpt-beta",
+                "Trigger16",
+                "Pileup16",
+                "pdf16",
+                "Prefire16",
+                "jer16",
+                "jes16",
+                "jmr16",
+                "jms16"
+            ],
+            "COLOR": 2,
+            "CODE": 2
+        },
+        "TprimeB-1200_16": {
+            "TITLE": "T' 1200 GeV",
+            "FILE": "path/THselection_TprimeB-1200_16.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SYSTEMATICS": [
+                "lumi",
+                "Trigger16",
+                "Pileup16",
+                "pdf16",
+                "Prefire16",
+                "jer16",
+                "jes16",
+                "jmr16",
+                "jms16"
+            ],
+            "CODE": 0
+        },
+        "ttbar_scaled_17": {
+            "TITLE": "t#bar{t}",
+            "FILE": "path/THselection_ttbar_scaled_17.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SYSTEMATICS": [
+                "lumi",
+                "ttbar_xsec",
+                "Tpt-beta",
+                "Trigger17",
+                "Pileup17",
+                "pdf17",
+                "Prefire17",
+                "jer17",
+                "jes17",
+                "jmr17",
+                "jms17"
+            ],
+            "COLOR": 2,
+            "CODE": 2
+        },
+        "TprimeB-1200_17": {
+            "TITLE": "T' 1200 GeV",
+            "FILE": "path/THselection_TprimeB-1200_17.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SYSTEMATICS": [
+                "lumi",
+                "Trigger17",
+                "Pileup17",
+                "pdf17",
+                "Prefire17",
+                "jer17",
+                "jes17",
+                "jmr17",
+                "jms17"
+            ],
+            "CODE": 0
+        },
+        "ttbar_scaled_18": {
+            "TITLE": "t#bar{t}",
+            "FILE": "path/THselection_ttbar_scaled_18.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SYSTEMATICS": [
+                "lumi",
+                "ttbar_xsec",
+                "Tpt-beta",
+                "Trigger18",
+                "Pileup18",
+                "pdf18",
+                "jer18",
+                "jes18",
+                "jmr18",
+                "jms18"
+            ],
+            "COLOR": 2,
+            "CODE": 2
+        },
+        "TprimeB-1200_18": {
+            "TITLE": "T' 1200 GeV",
+            "FILE": "path/THselection_TprimeB-1200_18.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SYSTEMATICS": [
+                "lumi",
+                "Trigger18",
+                "Pileup18",
+                "pdf18",
+                "jer18",
+                "jes18",
+                "jmr18",
+                "jms18"
+            ],
+            "CODE": 0
+        }
+    },
+    "SYSTEMATIC": {
+        "HELP": "All systematics should be configured here. The info for them will be pulled for each process that calls each systematic. These are classified by codes 0 (symmetric, lnN), 1 (asymmetric, lnN), 2 (shape and in same file as nominal), 3 (shape and NOT in same file as nominal)",
+        "lumi": {
+            "CODE": 0,
+            "VAL": 1.019
+        },
+        "ttbar_xsec": {
+            "CODE": 0,
+            "VAL": 1.2
+        },
+        "Tpt-beta": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__TptReweight_up",
+            "HISTFAIL_UP": "baseName_SR_fail__TptReweight_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__TptReweight_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__TptReweight_down",
+            "SCALE": 1.0
+        },
+        "Trigger16": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__TriggerEff16_up",
+            "HISTFAIL_UP": "baseName_SR_fail__TriggerEff16_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__TriggerEff16_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__TriggerEff16_down",
+            "SCALE": 1.0
+        },
+        "Trigger17": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__TriggerEff17_up",
+            "HISTFAIL_UP": "baseName_SR_fail__TriggerEff17_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__TriggerEff17_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__TriggerEff17_down",
+            "SCALE": 1.0
+        },
+        "Trigger18": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__TriggerEff18_up",
+            "HISTFAIL_UP": "baseName_SR_fail__TriggerEff18_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__TriggerEff18_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__TriggerEff18_down",
+            "SCALE": 1.0
+        },
+        "Pileup16": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__Pileup_up",
+            "HISTFAIL_UP": "baseName_SR_fail__Pileup_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__Pileup_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__Pileup_down",
+            "SCALE": 1.0
+        },
+        "Pileup17": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__Pileup_up",
+            "HISTFAIL_UP": "baseName_SR_fail__Pileup_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__Pileup_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__Pileup_down",
+            "SCALE": 1.0
+        },
+        "Pileup18": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__Pileup_up",
+            "HISTFAIL_UP": "baseName_SR_fail__Pileup_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__Pileup_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__Pileup_down",
+            "SCALE": 1.0
+        },
+        "pdf16": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__Pdfweight_up",
+            "HISTFAIL_UP": "baseName_SR_fail__Pdfweight_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__Pdfweight_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__Pdfweight_down",
+            "SCALE": 1.0
+        },
+        "pdf17": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__Pdfweight_up",
+            "HISTFAIL_UP": "baseName_SR_fail__Pdfweight_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__Pdfweight_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__Pdfweight_down",
+            "SCALE": 1.0
+        },
+        "pdf18": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__Pdfweight_up",
+            "HISTFAIL_UP": "baseName_SR_fail__Pdfweight_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__Pdfweight_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__Pdfweight_down",
+            "SCALE": 1.0
+        },
+        "Prefire16": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__Prefire_up",
+            "HISTFAIL_UP": "baseName_SR_fail__Prefire_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__Prefire_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__Prefire_down",
+            "SCALE": 1.0
+        },
+        "Prefire17": {
+            "CODE": 2,
+            "HISTPASS_UP": "baseName_SR_pass__Prefire_up",
+            "HISTFAIL_UP": "baseName_SR_fail__Prefire_up",
+            "HISTPASS_DOWN": "baseName_SR_pass__Prefire_down",
+            "HISTFAIL_DOWN": "baseName_SR_fail__Prefire_down",
+            "SCALE": 1.0
+        },
+        "jes16": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JES_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JES_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jes17": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JES_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JES_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jes18": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JES_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JES_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jer16": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JER_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JER_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jer17": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JER_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JER_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jer18": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JER_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JER_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jmr16": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JMR_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JMR_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jmr17": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JMR_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JMR_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jmr18": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JMR_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JMR_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jms16": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JMS_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JMS_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jms17": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JMS_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JMS_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        },
+        "jms18": {
+            "CODE": 3,
+            "FILE_UP_*": "path/THselection_*_JMS_up.root",
+            "FILE_DOWN_*": "path/THselection_*_JMS_down.root",
+            "HISTPASS": "baseName_SR_pass__nominal",
+            "HISTFAIL": "baseName_SR_fail__nominal",
+            "SCALE": 1.0
+        }
+    },
+    "BINNING": {
+        "HELP": "The binning of the x and y axes should be configured here",
+        "X": {
+            "NAME": "jetmass",
+            "TITLE": "m_{H} (GeV)",
+            "NBINS": 12,
+            "MIN": 60,
+            "MAX": 240,
+            "SIGSTART": 105,
+            "SIGEND": 150
+        },
+        "Y": {
+            "NAME": "resmass",
+            "TITLE": "m_{tH} (GeV)",
+            "BINS": [
+                800,
+                900,
+                1000,
+                1100,
+                1200,
+                1300,
+                1400,
+                1500,
+                1600,
+                1700,
+                1800,
+                1900,
+                2000,
+                2100,
+                2200
+            ]
+        }
+    },
+    "FIT": {
+        "HELP": "The fit parameters of the 2D polynomial should be configured here. Note that parameters must be named x#y$ where # is the order of the parameter in the x and $ is the order of the parameter in the y.",
+        "FORM": "max(0,0.1*(@0)*(1+@0*y**1+@1*y**2))",
+        "0": {
+            "NOMINAL": 0.1,
+            "MIN": -10.0,
+            "MAX": 10.0,
+            "ERROR": 0.05
+        },
+        "1": {
+            "NOMINAL": 0.1,
+            "MIN": -10.0,
+            "MAX": 10.0,
+            "ERROR": 0.05
+        }
+    }
+}
