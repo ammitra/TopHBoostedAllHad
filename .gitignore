@@ -10,6 +10,6 @@ THsnapshot*.root
 CondorHelper.py
 dijet_nano/*.txt
 THpileup.root
-rootfiles/
+rootfiles*
 plots
 raw_nano/*.txt
