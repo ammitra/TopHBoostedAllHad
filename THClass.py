@@ -151,7 +151,7 @@ class THClass:
     def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False):
         objIdxs = 'ObjIdxs_%s%s'%('Not' if invert else '',tagger)
         if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
-            self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corrT, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, *self.cuts['mt'], self.cuts[tagger], 'true' if invert else 'false'))
+            self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corrT, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, self.cuts['mt'][0], self.cuts['mt'][1], self.cuts[tagger], 'true' if invert else 'false'))
             self.a.Define('tIdx','%s[0]'%objIdxs)
             self.a.Define('hIdx','%s[1]'%objIdxs)
         self.a.Cut('HasTop','tIdx > -1')
