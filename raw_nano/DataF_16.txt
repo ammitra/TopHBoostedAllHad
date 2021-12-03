@@ -1,5 +1,0 @@
-root://cmsxrootd.fnal.gov//store/data/Run2016F/JetHT/NANOAOD/UL2016_MiniAODv1_NanoAODv2-v2/230000/12C35610-84C0-6640-BF85-5B269E4DFFC3.root
-root://cmsxrootd.fnal.gov//store/data/Run2016F/JetHT/NANOAOD/UL2016_MiniAODv1_NanoAODv2-v2/230000/051F82E9-355A-3E42-ACF7-7471B79E46C7.root
-root://cmsxrootd.fnal.gov//store/data/Run2016F/JetHT/NANOAOD/UL2016_MiniAODv1_NanoAODv2-v2/230000/EA046F1C-3D8A-9641-8FC9-9A39E6A8E8B3.root
-root://cmsxrootd.fnal.gov//store/data/Run2016F/JetHT/NANOAOD/UL2016_MiniAODv1_NanoAODv2-v2/230000/A59B4B7D-BFE9-F64B-80C0-86880E6A6EDE.root
-root://cmsxrootd.fnal.gov//store/data/Run2016F/JetHT/NANOAOD/UL2016_MiniAODv1_NanoAODv2-v2/230000/BD98FA85-EAD6-8140-868E-3457A8969F41.root
