@@ -1,7 +1,0 @@
-root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL16NanoAODv2/TprimeBToTH_M-1000_LH_TuneCP5_PSweights_13TeV-madgraph_pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/50000/7CA8AE14-8134-CB4D-B9EF-0BDB3293CE39.root
-root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL16NanoAODv2/TprimeBToTH_M-1000_LH_TuneCP5_PSweights_13TeV-madgraph_pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/50000/EF3E43AF-044F-6D41-9A71-38B3C8AD3D80.root
-root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL16NanoAODv2/TprimeBToTH_M-1000_LH_TuneCP5_PSweights_13TeV-madgraph_pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/280000/2DE53089-3412-D042-B2A6-3D019B12CE6E.root
-root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL16NanoAODv2/TprimeBToTH_M-1000_LH_TuneCP5_PSweights_13TeV-madgraph_pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/280000/91637B73-F5D5-DD4D-A248-18D59E0779C6.root
-root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL16NanoAODv2/TprimeBToTH_M-1000_LH_TuneCP5_PSweights_13TeV-madgraph_pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/40000/CCFD2D27-A46E-8C41-A232-EA4FA91DB1EF.root
-root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL16NanoAODv2/TprimeBToTH_M-1000_LH_TuneCP5_PSweights_13TeV-madgraph_pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/270000/810AFD22-0648-6748-9AF7-D7674ED9B551.root
-root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL16NanoAODv2/TprimeBToTH_M-1000_LH_TuneCP5_PSweights_13TeV-madgraph_pythia8/NANOAODSIM/106X_mcRun2_asymptotic_v15-v1/270000/52EDD7A5-1FA6-734B-A310-7259F0F86AA7.root
