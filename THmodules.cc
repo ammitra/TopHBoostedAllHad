@@ -40,6 +40,8 @@ std::vector<int> PickTop(RVec<float> mass, RVec<float> tagScore, RVec<int> idxs,
 	// if inverted, only accept jets meeting the loose score (>0.2) and not those meeting the tight cut (< WP)
         isTop0 = (tagScore[idx0] < WP) && (0.2 < tagScore[idx0]);
 	isTop1 = (tagScore[idx1] < WP) && (0.2 < tagScore[idx1]);
+        //isTop0 = (mass[idx0] > massCut.first) && (mass[idx0] < massCut.second) && (tagScore[idx0] < WP);
+        //isTop1 = (mass[idx1] > massCut.first) && (mass[idx1] < massCut.second) && (tagScore[idx1] < WP);
     }
     
     if (isTop0 && isTop1) {
