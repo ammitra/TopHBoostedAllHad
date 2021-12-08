@@ -33,12 +33,14 @@ def leadMass(args):
         top_tagger = '%s_TvsQCD'%t
 	
 	#   2) immediately after applying the standard top tag cut
+	print('----- m0_tight : {} -----'.format(top_tagger))
 	selection.a.SetActiveNode(baseNode)
 	selection.ApplyTopPick(tagger=top_tagger,invert=False)
 	selection.a.Define('m0_tight','Top_msoftdrop_corrT')
 	massPlots.Add('m0_tight',selection.a.DataFrame.Histo1D(('m0_tight','Lead jet mass after top pick',50,0,250),'m0_tight','weight__nominal'))
 
         #   3) immediately after applying the loose (but not tight) top tag cut
+	print('----- m0_loose : {} -----'.format(top_tagger))
 	selection.a.SetActiveNode(baseNode)
 	selection.ApplyTopPick(tagger=top_tagger,invert=True)
 	selection.a.Define('m0_loose','Top_msoftdrop_corrT')
