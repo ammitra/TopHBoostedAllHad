@@ -5,7 +5,7 @@ variations performed as well.
 @{
 '''
 
-from TIMBER.Tools.Common import GetJMETag
+from TIMBER.Tools.Common import GetJMETag, _year_to_thousands_str
 from TIMBER.Analyzer import Calibration
 
 def JMEvalsOnly(a, jetCollection, year, dataEra=''):
@@ -35,6 +35,7 @@ def JMEvalsOnly(a, jetCollection, year, dataEra=''):
     Returns:
         analyzer: Manipulated version of the input analyzer object.
     '''
+    year = _year_to_thousands_str(year)
     dataEraLetter = dataEra.lower().replace('data','').upper().replace('1','').replace('2','')
     if jetCollection == "FatJet" or jetCollection == 'Dijet':
         jetType = "AK8PFPuppi"
@@ -49,14 +50,14 @@ def JMEvalsOnly(a, jetCollection, year, dataEra=''):
     
     if not a.isData:
         jes = Calibration("%s_JES"%jetCollection,"TIMBER/Framework/include/JES_weight.h",
-                [GetJMETag("JES",str(year),"MC"),jetType,"",True], corrtype="Calibration")
+                [GetJMETag("JES",year,"MC"),jetType,"",True], corrtype="Calibration")
         jer = Calibration("%s_JER"%jetCollection,"TIMBER/Framework/include/JER_weight.h",
-                [GetJMETag("JER",str(year),"MC"),jetType], corrtype="Calibration")
+                [GetJMETag("JER",year,"MC"),jetType], corrtype="Calibration")
         if doMass:
             jms = Calibration("%s_JMS"%jetCollection,"TIMBER/Framework/include/JMS_weight.h",
-                    [int(year.replace('UL',''))], corrtype="Calibration")
+                    [int(year.replace('UL','').replace('APV',''))], corrtype="Calibration")
             jmr = Calibration("%s_JMR"%jetCollection,"TIMBER/Framework/include/JMR_weight.h",
-                    [int(year.replace('UL',''))], corrtype="Calibration")
+                    [int(year.replace('UL','').replace('APV',''))], corrtype="Calibration")
 
         # calibdict = {"%s_pt"%jetCollection:[jes,jer],"%s_mass"%jetCollection:[jes,jer,jms,jmr]}
         evalargs = {
@@ -67,7 +68,7 @@ def JMEvalsOnly(a, jetCollection, year, dataEra=''):
         }
     else:
         jes = Calibration("%s_JES"%jetCollection,"TIMBER/Framework/include/JES_weight.h",
-                [GetJMETag("JES",str(year),dataEraLetter),jetType,"",True], corrtype="Calibration")
+                [GetJMETag("JES",year,dataEraLetter),jetType,"",True], corrtype="Calibration")
         
         # calibdict = {"%s_pt"%jetCollection:[jes],"%s_mass"%jetCollection:[jes]}
         evalargs = {
@@ -76,4 +77,4 @@ def JMEvalsOnly(a, jetCollection, year, dataEra=''):
         
     a.CalibrateVars({},evalargs,'',variationsFlag=(not a.isData))
 
-    return a    
+    return a

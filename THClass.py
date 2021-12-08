@@ -3,7 +3,9 @@ from TIMBER.Analyzer import Correction, CutGroup, ModuleWorker, analyzer
 from TIMBER.Tools.Common import CompileCpp, OpenJSON
 from TIMBER.Tools.AutoPU import ApplyPU
 from helpers import SplitUp
-from JMEvalsOnly import JMEvalsOnly
+import TIMBER.Tools.AutoJME as AutoJME
+
+AutoJME.AK8collection = 'Dijet'
 
 class THClass:
     def __init__(self,inputfile,year,ijob,njobs):
@@ -78,7 +80,7 @@ class THClass:
                             'GenPart_vect':'GenParticle_vect'
                         }
                     )
-            self.a = JMEvalsOnly(self.a, 'Dijet', str(2000+self.year), self.setname)
+            self.a = AutoJME.AutoJME(self.a, 'Dijet', self.year, self.setname)
             self.a.MakeWeightCols(extraNominal='genWeight' if not self.a.isData else '')
         
         else:

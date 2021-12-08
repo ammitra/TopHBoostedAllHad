@@ -1,5 +1,5 @@
-import ROOT, glob
-from TIMBER.Analyzer import TIMBERPATH, analyzer, Correction
+import ROOT
+from TIMBER.Analyzer import analyzer
 from TIMBER.Tools.AutoPU import MakePU
 
 if __name__ == "__main__":
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     fullname = '%s_%s'%(args.setname,args.era)
     out = ROOT.TFile.Open('THpileup_%s.root'%(fullname),'RECREATE')
     a = analyzer('raw_nano/%s.txt'%(fullname))
-    hptr = MakePU(a, '20%sUL'%args.era, fullname+'.root')
+    hptr = MakePU(a, args.era, ULflag=True)
     hout = hptr.Clone()
     out.WriteTObject(hout, fullname)
     #h.Write()

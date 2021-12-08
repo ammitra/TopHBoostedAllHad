@@ -1,3 +1,0 @@
-root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/TprimeBToTH_M-900_LH_TuneCP5_PSweights_13TeV-madgraph_pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/280000/F400D08D-C63E-1D4B-A602-EBC02F10E933.root
-root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/TprimeBToTH_M-900_LH_TuneCP5_PSweights_13TeV-madgraph_pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/280000/4C7CF4D6-92AE-324B-B2E9-9A146E2AD4B6.root
-root://cmsxrootd.fnal.gov//store/mc/RunIISummer19UL18NanoAODv2/TprimeBToTH_M-900_LH_TuneCP5_PSweights_13TeV-madgraph_pythia8/NANOAODSIM/106X_upgrade2018_realistic_v15_L1v1-v1/40000/08ADC92D-9F7D-4648-B370-C5E4A1CA1ED3.root
