@@ -1,4 +1,4 @@
-import ROOT, time
+import ROOT, time, glob
 from TIMBER.Analyzer import HistGroup, Correction
 from TIMBER.Tools.Common import CompileCpp, ExecuteCmd
 from TIMBER.Tools.Plot import CompareShapes, EasyPlots
@@ -47,10 +47,76 @@ def leadMass(args):
 	massPlots.Add('m0_loose',selection.a.DataFrame.Histo1D(('m0_loose','Lead jet mass after loose cut',50,0,250),'m0_loose','weight__nominal'))
 
     massPlots.Do('Write')
+    out.Close()
     print('Processing time: {} sec'.format(time.time()-start))
 
+def GetAllFiles():
+    return [f for f in glob.glob('dijet_nano/*_snapshot.txt') if f != '']
+
+def GetProcYearFromTxt(filename):
+    '''
+    format:	dijet_nano/setname_era_snapshot.txt
+    '''
+    pieces = filename.split('/')[-1].split('.')[0].split('_')
+    proc = pieces[0]
+    year = pieces[1]
+    return proc, year
+
+def GetProcYearFromROOT(filename):
+    '''
+    format:	rootfiles/leadMassStudies_setname_era.root
+    '''
+    pieces = filename.split('/')[-1].split('.')[0].split('_')
+    proc = pieces[1]
+    year = pieces[2]
+    return proc, year
+
+def GetHistDict(histname, all_files):
+    all_hists = {'bkg':{}, 'sig':{}, 'data':None}
+    for f in all_files:
+	proc, year = GetProcYearFromROOT(f)
+	tfile = ROOT.TFile.Open(f)
+	hist = tfile.Get(histname)
+        if hist == None:
+            raise ValueError('Histogram %s does not exist in %s.'%(histname,f))
+        hist.SetDirectory(0)
+        if 'MX' in proc:
+            all_hists['sig'][proc] = hist
+        elif proc == 'Data':
+            all_hists['data'] = hist
+        else:
+            all_hists['bkg'][proc] = hist
+    return all_hists
+
+def CombineCommonSets(groupname):
+    '''
+    First stitch together QCD or ttbar (ttbar-allhad+ttbar-semilep):
+        leadMassStudies_QCD_{year}.root
+        leadMassStudies_ttbar_{year}.root
+    Then uses MakeRun2() to combine all years. Final output:  
+        leadMassStudies_QCD_Run2.root
+        leadMassStudies_ttbar_Run2.root
+    '''
+    for y in ['16','17','18']:
+	baseStr = 'rootfiles/leadMassStudies_{0}_{1}.root'
+	if groupname == 'ttbar':
+	    ExecuteCmd('hadd -f %s %s %s'%(
+		baseStr.format('ttbar',y),
+		baseStr.format('ttbar-allhad',y),
+		baseStr.format('ttbar-semilep',y))
+	    )
+	elif groupname == 'QCD':
+	    ExecuteCmd('hadd -f %s %s %s %s %s'%(
+		baseStr.format('QCD',y),
+		baseStr.format('QCDHT700',y),
+		baseStr.format('QCDHT1000',y),
+		baseStr.format('QCDHT1500',y),
+		baseStr.format('QCDHT2000',y))
+	    )
+
 if __name__ == "__main__":
-    from argparse import ArgumentParser
+    from argparse import Namespace, ArgumentParser
+
     parser = ArgumentParser()
     parser.add_argument('-s', type=str, dest='setname',
                         action='store', required=True,
@@ -64,16 +130,34 @@ if __name__ == "__main__":
     CompileCpp('THmodules.cc')
     leadMass(args)
 
+    '''
+    # produce the trigger effs for all years beforehand, pass them to Namespace after
+    teff16 = Correction("TriggerEff"+'16','TIMBER/Framework/include/EffLoader.h',['THtrigger2D_16.root','Pretag'], corrtype='weight')
+    teff17 = Correction("TriggerEff"+'17','TIMBER/Framework/include/EffLoader.h',['THtrigger2D_17.root','Pretag'], corrtype='weight')
+    teff18 = Correction("TriggerEff"+'18','TIMBER/Framework/include/EffLoader.h',['THtrigger2D_18.root','Pretag'], corrtype='weight')
 
-    
+    # cross check against existing files
+    existing = glob.glob('rootfiles/leadMassStudies*.root')
 
+    # generate arguments 
+    process_args = []
+    for f in GetAllFiles():
+	proc, year = GetProcYearFromTxt(f)
+	# check to see if it's been done
+	for g in existing:
+	    p,y = GetProcYearFromROOT(g)
+	    #print('{} - {}, {} - {}'.format(proc,p,year,y))
+	    if (p == proc) and (y == year):
+		print('------ {} {} already performed, skipping ------'.format(proc,year))
+	    else:
+		if year == '16':
+	    	    process_args.append(Namespace(threads=1,setname=proc,era=year,trigEff=teff16))
+		elif year == '17':
+	    	    process_args.append(Namespace(threads=1,setname=proc,era=year,trigEff=teff17))
+        	elif year == '18':
+	    	    process_args.append(Namespace(threads=1,setname=proc,era=year,trigEff=teff18))
 
-
-
-
-
-
-
-
-
-
+    CompileCpp('THmodules.cc')
+    for args in process_args:
+	leadMass(args)
+    '''
