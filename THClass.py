@@ -150,10 +150,15 @@ class THClass:
             self.a.Define('Dijet_msoftdrop_corrH','hardware::MultiHadamardProduct(Dijet_msoftdrop,{Dijet_JES_nom})')
         return self.a.GetActiveNode()
 
-    def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False):
+    def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False, CRv2=False):
         objIdxs = 'ObjIdxs_%s%s'%('Not' if invert else '',tagger)
         if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
-            self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corrT, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, self.cuts['mt'][0], self.cuts['mt'][1], self.cuts[tagger], 'true' if invert else 'false'))
+	    if (CRv2 == False):
+		# perform the CR_v1 top pick
+                self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corrT, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, self.cuts['mt'][0], self.cuts['mt'][1], self.cuts[tagger], 'true' if invert else 'false'))
+	    else:
+		# perform the CR_v2 top pick
+		self.a.Define(objIdxs,'PickTopCRv2(Dijet_msoftdrop_corrT, Dijet_%s, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, CRv2, self.cuts['mt'][0], self.cuts['mt'][1], self.cuts[tagger], 'true' if invert else 'false'))
             self.a.Define('tIdx','%s[0]'%objIdxs)
             self.a.Define('hIdx','%s[1]'%objIdxs)
         self.a.Cut('HasTop','tIdx > -1')
@@ -167,9 +172,9 @@ class THClass:
 	#self.a.Define('Top_vect','hardware::TLvector(Dummy1,Dummy2,Dummy3,Dummy4)')
 	# DEBUG
 	#print('\n'.join([self.a.DataFrame.GetColumnType(c)+' '+c for c in self.a.GetColumnNames() if c.startswith('Top_')]))
-        #self.a.Define('Top_vect','hardware::TLvector(Top_pt_corr, Top_eta, Top_phi, Top_msoftdrop_corrT)')
-        #self.a.Define('Higgs_vect','hardware::TLvector(Higgs_pt_corr, Higgs_eta, Higgs_phi, Higgs_msoftdrop_corrH)')
-        #self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
+        self.a.Define('Top_vect','hardware::TLvector(Top_pt_corr, Top_eta, Top_phi, Top_msoftdrop_corrT)')
+        self.a.Define('Higgs_vect','hardware::TLvector(Higgs_pt_corr, Higgs_eta, Higgs_phi, Higgs_msoftdrop_corrH)')
+        self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
         # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
         # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
         return self.a.GetActiveNode()
