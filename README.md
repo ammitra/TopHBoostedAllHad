@@ -1,3 +1,20 @@
+# about this branch
+This branch was meant to study the leading jet mass in three scenarios: (leading_jet_studies.py)
+
+* Immediately after snapshots
+
+* Immediately after the top tag
+
+* Immediately after a loose cut on the top score (>0.2)
+
+From these studies, two more investigations were done by redefining the CR for selection
+
+* CR_v0 - original CR defined in the master branch
+
+* CR_v1 - top candidate has the higher top score, but still between `[0.2, WP]` (see `THmodules.cc`)
+
+* CR_v2 - CR_v1 + additional Higgs veto, i.e. `HbbvsQCD_MD < 0.2` 
+
 # Analysis Strategy
 Dijet search for boosted X -> top+Higgs. The benchmark, X, is a VLQ T' produced
 in association with a bottom quark. The interaction with an associated top quark
