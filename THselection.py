@@ -30,12 +30,16 @@ def THselection(args):
 
         # Signal region
         selection.a.SetActiveNode(kinOnly)
-        selection.ApplyTopPick(tagger=top_tagger,invert=False)
+	# perform selection with CRv1 requirements
+        #selection.ApplyTopPick(tagger=top_tagger,invert=False)
+	# perform using CRv2 requirements
+	selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
         passfailSR = selection.ApplyHiggsTag(tagger=higgs_tagger)
 
         # Control region
         selection.a.SetActiveNode(kinOnly)
-        selection.ApplyTopPick(tagger=top_tagger,invert=True)
+        #selection.ApplyTopPick(tagger=top_tagger,invert=True)
+	selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)
         passfailCR = selection.ApplyHiggsTag(tagger=higgs_tagger)
 
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():
