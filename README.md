@@ -1,19 +1,11 @@
 # about this branch
-This branch was meant to study the leading jet mass in three scenarios: (leading_jet_studies.py)
+This branch is meant to investigate the post-APV changes to TIMBER, and specifically, checking how much W/Z+ jet activity there is in the samples.
 
-* Immediately after snapshots
-
-* Immediately after the top tag
-
-* Immediately after a loose cut on the top score (>0.2)
-
-From these studies, two more investigations were done by redefining the CR for selection
-
-* CR_v0 - original CR defined in the master branch
-
-* CR_v1 - top candidate has the higher top score, but still between `[0.2, WP]` (see `THmodules.cc`)
+We are using the CR defined by:
 
 * CR_v2 - CR_v1 + additional Higgs veto, i.e. `HbbvsQCD_MD < 0.2` 
+
+And running selection only on the W/Z+ jet MC (non APV at the moment)
 
 # Analysis Strategy
 Dijet search for boosted X -> top+Higgs. The benchmark, X, is a VLQ T' produced
