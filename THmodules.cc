@@ -65,6 +65,45 @@ std::vector<int> PickTop(RVec<float> mass, RVec<float> tagScore, RVec<int> idxs,
     return out;
 }
 
+std::vector<int> PickTopCRv2(RVec<float> mass, RVec<float> tagScore, RVec<float> HiggsScore, RVec<int> idxs, std::pair<float,float> massCut, float scoreCut, bool invertScore=false) {
+    if (idxs.size() > 2) {
+	std::cout << "PickTop -- WARNING: You have input more than two indices. Only two accepted. Assuming first two indices.";
+    }
+    std::vector<int> out(2);
+    float WP = scoreCut;
+    int idx0 = idxs[0];
+    int idx1 = idxs[1];
+    bool isTop0, isTop1;
+    if (!invertScore) {
+        isTop0 = (mass[idx0] > massCut.first) && (mass[idx0] < massCut.second) && (tagScore[idx0] > WP);
+        isTop1 = (mass[idx1] > massCut.first) && (mass[idx1] < massCut.second) && (tagScore[idx1] > WP);
+    } else {
+	// same as CR_v1, but also require the top candidate jet to have Higgs tag < loose WP
+	isTop0 = (tagScore[idx0] < WP) && (0.2 < tagScore[idx0]) && (HiggsScore[idx0] < 0.2);
+        isTop1 = (tagScore[idx1] < WP) && (0.2 < tagScore[idx1]) && (HiggsScore[idx1] < 0.2);
+    }
+    if (isTop0 && isTop1) {
+        if (tagScore[idx0] > tagScore[idx1]) {
+            out[0] = idx0;
+            out[1] = idx1;
+        } else {
+            out[0] = idx1;
+            out[1] = idx0;
+        }
+    } else if (isTop0) {
+        out[0] = idx0;
+        out[1] = idx1;
+    } else if (isTop1) {
+        out[0] = idx1;
+        out[1] = idx0;
+    } else {
+        out[0] = -1;
+        out[1] = -1;
+    }
+    return out;
+}
+
+
 bool MatchToGen(int pdgID, ROOT::Math::PtEtaPhiMVector jet,
                 RVec<ROOT::Math::PtEtaPhiMVector> GenPart_vect,
                 RVec<int> GenPart_pdgId) {
