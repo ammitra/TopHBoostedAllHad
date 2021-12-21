@@ -39,8 +39,8 @@ def CombineCommonSets(groupname,doStudies=False,modstr=''):
     '''Which stitch together either QCD or ttbar (ttbar-allhad+ttbar-semilep)
     @param groupname (str, optional): "QCD" or "ttbar".
     '''
-    if groupname not in ["QCD","ttbar"]:
-        raise ValueError('Can only combine QCD or ttbar')
+    if groupname not in ["QCD","ttbar","W","Z"]:
+        raise ValueError('Can only combine QCD or ttbar or W/Z')
     config = OpenJSON('THconfig.json')
     for y in ['16','17','18']:
         baseStr = 'rootfiles/TH%s_{0}{2}_{1}{3}.root'%('studies' if doStudies else 'selection')
@@ -69,7 +69,25 @@ def CombineCommonSets(groupname,doStudies=False,modstr=''):
                 baseStr.format('QCDHT1500',y,modstr,''),
                 baseStr.format('QCDHT2000',y,modstr,''))
             )
-
+	elif groupname == 'W' or 'Z':
+	    to_loop = [''] if doStudies else ['','JES','JER','JMS','JMR']
+	    for v in to_loop:
+		if v == '':
+		    ExecuteCmd('hadd -f %s %s %s %s'%(
+			baseStr.format('{}Jets'.format('W' if groupname == 'W' else 'Z'),y,modstr,''),
+			baseStr.format('{}JetsHT400'.format('W' if groupname == 'W' else 'Z'),y,modstr,''),
+			baseStr.format('{}JetsHT600'.format('W' if groupname == 'W' else 'Z'),y,modstr,''),
+			baseStr.format('{}JetsHT800'.format('W' if groupname == 'W' else 'Z'),y,modstr,''))
+		    )
+		else:
+		    for v2 in ['up','down']:
+			v3 = '_{}_{}'.format(v,v2)
+			ExecuteCmd('hadd -f %s %s %s %s'%(
+			    baseStr.format('{}Jets'.format('W' if groupname == 'W' else 'Z'),y,modstr,v3),
+			    baseStr.format('{}JetsHT400'.format('W' if groupname == 'W' else 'Z'),y,modstr,v3),
+			    baseStr.format('{}JetsHT600'.format('W' if groupname == 'W' else 'Z'),y,modstr,v3),
+			    baseStr.format('{}JetsHT800'.format('W' if groupname == 'W' else 'Z'),y,modstr,v3))
+			)
 
 def MakeRun2(setname,doStudies=False,modstr=''):
     t = 'studies' if doStudies else 'selection'
@@ -85,31 +103,20 @@ if __name__ == "__main__":
         "18": Correction("TriggerEff18",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_18.root','Pretag'], corrtype='weight')
     }
 
-    '''
-    process_args = []
-    for f in files:
-	setname, era = GetProcYearFromTxt(f)
-	
-	if 'Data' not in setname and 'QCD' not in setname:
-	    process_args.append(Namespace(threads=1,setname=setname, era=era, variation='None', trigEff=teff[era],topcut=''))
-	    for jme in ['JES','JER','JMS','JMR']:
-		for v in ['up','down']:
-                    process_args.append(Namespace(threads=1,setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era],topcut=''))
-	else:
-	    process_args.append(Namespace(threads=1,setname=setname,era=era,variation='None',trigEff=teff[era],topcut=''))
-    '''
-
     process_args = {}
     for f in files:
 	setname, era = GetProcYearFromTxt(f)
-	if 'Data' not in setname and 'QCD' not in setname:
+
+	# we're only interested in W/Z jets right now - ignore HT200 (lots of empty TTrees in those samples)
+	if 'Jets' not in setname or 'APV' in era or 'HT200' in setname:
+	    continue
+	else:
 	    process_args['{} {} None'.format(setname, era)] = Namespace(threads=1,setname=setname, era=era, variation='None', trigEff=teff[era],topcut='')
 	    for jme in ['JES','JER','JMS','JMR']:
-                for v in ['up','down']:
+		for v in ['up','down']:
 		    process_args['{} {} {}_{}'.format(setname,era,jme,v)] = Namespace(threads=1,setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era],topcut='')
-	else:
-	    process_args['{} {} None'.format(setname, era)] = Namespace(threads=1,setname=setname,era=era,variation='None',trigEff=teff[era],topcut='')
 
+    print(process_args)
 
     # Due to (seemingly) random segfaults when running this, we have to check whether or not the given setname/era/variation combo has already been performed
     SF = glob('rootfiles/*.root')       # will have format THselection_<setname>_<era>_<var>_<up/down>.root
@@ -137,6 +144,8 @@ if __name__ == "__main__":
 	    print('Total time: %s'%(time.time()-start))
 
     # housekeeping 
-    CombineCommonSets('QCD',False)
-    CombineCommonSets('ttbar',False)
-    MakeRun2('Data',False)
+    #CombineCommonSets('QCD',False)
+    #CombineCommonSets('ttbar',False)
+    #MakeRun2('Data',False)
+    CombineCommonSets('W',False)
+    CombineCommonSets('Z',False)
