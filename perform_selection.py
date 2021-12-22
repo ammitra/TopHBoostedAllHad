@@ -107,16 +107,19 @@ if __name__ == "__main__":
     for f in files:
 	setname, era = GetProcYearFromTxt(f)
 
+	print('{} : {}'.format(setname, era))
+
 	# ignore HT200 (lots of empty TTrees in those samples)
 	if 'HT200' in setname:
 	    continue
-	else:
-	    process_args['{} {} None'.format(setname, era)] = Namespace(setname=setname, era=era, variation='None', trigEff=teff[era],topcut='')
+	if 'Data' not in setname and 'QCD' not in setname:
+	    # have to consider that 16APV is not in the trigger eff dict "teff", so have to work around it (see trigEff option below)
+	    process_args['{} {} None'.format(setname, era)] = Namespace(setname=setname, era=era, variation='None', trigEff=teff[era if 'APV' not in era else '16'],topcut='')
 	    for jme in ['JES','JER','JMS','JMR']:
 		for v in ['up','down']:
-		    process_args['{} {} {}_{}'.format(setname,era,jme,v)] = Namespace(setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era],topcut='')
-
-    print(process_args)
+		    process_args['{} {} {}_{}'.format(setname,era,jme,v)] = Namespace(setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era if 'APV' not in era else '16'],topcut='')
+	else:
+	    process_args['{} {} None'.format(setname, era)] = Namespace(setname=setname, era=era, variation='None', trigEff=teff[era if 'APV' not in era else '16'],topcut='')
 
     # Due to (seemingly) random segfaults when running this, we have to check whether or not the given setname/era/variation combo has already been performed
     SF = glob('rootfiles/*.root')       # will have format THselection_<setname>_<era>_<var>_<up/down>.root
