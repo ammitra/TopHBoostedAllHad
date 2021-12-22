@@ -7,7 +7,7 @@ ROOT.gROOT.SetBatch(True)
 from THClass import THClass
 
 def THselection(args):
-    ROOT.ROOT.EnableImplicitMT(args.threads)
+    #ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
 
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),int(args.era),1,1)
@@ -73,7 +73,7 @@ if __name__ == '__main__':
                         action='store', default='',
                         help='Overrides config entry if non-empty')
     args = parser.parse_args()
-    args.threads = 1
+    #args.threads = 1
     args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_%s.root'%args.era,'Pretag'], corrtype='weight')
     CompileCpp('THmodules.cc')
     THselection(args)

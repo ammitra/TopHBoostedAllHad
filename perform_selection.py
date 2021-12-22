@@ -107,14 +107,14 @@ if __name__ == "__main__":
     for f in files:
 	setname, era = GetProcYearFromTxt(f)
 
-	# we're only interested in W/Z jets right now - ignore HT200 (lots of empty TTrees in those samples)
-	if 'Jets' not in setname or 'APV' in era or 'HT200' in setname:
+	# ignore HT200 (lots of empty TTrees in those samples)
+	if 'HT200' in setname:
 	    continue
 	else:
-	    process_args['{} {} None'.format(setname, era)] = Namespace(threads=1,setname=setname, era=era, variation='None', trigEff=teff[era],topcut='')
+	    process_args['{} {} None'.format(setname, era)] = Namespace(setname=setname, era=era, variation='None', trigEff=teff[era],topcut='')
 	    for jme in ['JES','JER','JMS','JMR']:
 		for v in ['up','down']:
-		    process_args['{} {} {}_{}'.format(setname,era,jme,v)] = Namespace(threads=1,setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era],topcut='')
+		    process_args['{} {} {}_{}'.format(setname,era,jme,v)] = Namespace(setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era],topcut='')
 
     print(process_args)
 
@@ -144,8 +144,8 @@ if __name__ == "__main__":
 	    print('Total time: %s'%(time.time()-start))
 
     # housekeeping 
-    #CombineCommonSets('QCD',False)
-    #CombineCommonSets('ttbar',False)
-    #MakeRun2('Data',False)
+    CombineCommonSets('QCD',False)
+    CombineCommonSets('ttbar',False)
+    MakeRun2('Data',False)
     CombineCommonSets('W',False)
     CombineCommonSets('Z',False)
