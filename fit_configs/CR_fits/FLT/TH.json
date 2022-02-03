@@ -1,0 +1,352 @@
+{
+    "NAME": "TPrimeToTH_TPhi",
+    "GLOBAL": {
+        "FILE": "THselection_$process.root",
+        "FILE_UP": "THselection_$process_$syst_up.root",
+        "FILE_DOWN": "THselection_$process_$syst_down.root",
+        "HIST": "MthvMh_particleNet_$region__nominal",
+        "HIST_UP": "MthvMh_particleNet_$region__$syst_up",
+        "HIST_DOWN": "MthvMh_particleNet_$region__$syst_down",
+        "path": "/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_11_1_4/src/PostAPV/TopHBoostedAllHad/rootfiles",
+	    "SIGNAME": ["TprimeB-1800-125"]	
+    },
+    "REGIONS": {
+        "CR_fail": {
+            "PROCESSES": ["ttbar_16","ttbar_16APV","ttbar_17","ttbar_18","WJets_16","WJets_16APV","WJets_17","WJets_18","ZJets_16","ZJets_16APV","ZJets_17","ZJets_18","SIGNAME_16APV","SIGNAME_16","SIGNAME_17","SIGNAME_18"],
+            "BINNING": "default"
+        },
+        "CR_loose": {
+            "PROCESSES": ["ttbar_16","ttbar_16APV","ttbar_17","ttbar_18","WJets_16","WJets_16APV","WJets_17","WJets_18","ZJets_16","ZJets_16APV","ZJets_17","ZJets_18","SIGNAME_16APV","SIGNAME_16","SIGNAME_17","SIGNAME_18"],
+            "BINNING": "default"
+        },
+        "CR_pass": {
+            "PROCESSES": ["ttbar_16","ttbar_16APV","ttbar_17","ttbar_18","WJets_16","WJets_16APV","WJets_17","WJets_18","ZJets_16","ZJets_16APV","ZJets_17","ZJets_18","SIGNAME_16APV","SIGNAME_16","SIGNAME_17","SIGNAME_18"],
+            "BINNING": "default"
+        }
+    },
+    "PROCESSES": {
+	"data_obs": {
+            "SYSTEMATICS":[],
+            "SCALE": 1.0,
+            "COLOR": 1,
+            "TYPE": "DATA",
+            "ALIAS": "Data_Run2",
+            "TITLE": "Data",
+            "LOC": "path/FILE:HIST"
+	},
+	"SIGNAME_16APV": {
+	    "SYSTEMATICS":["lumi","TriggerEff16","Pileup16","pdf16","jer16","jes16","jmr16","jms16"],
+            "SCALE": 1.0,
+            "COLOR": 1,
+            "TYPE": "SIGNAL",
+            "TITLE": "b+T 1800 GeV",
+            "LOC": "path/FILE:HIST"
+	},
+        "SIGNAME_16": {
+            "SYSTEMATICS":["lumi","TriggerEff16","Pileup16","pdf16","jer16","jes16","jmr16","jms16"],
+            "SCALE": 1.0,
+            "COLOR": 1,
+            "TYPE": "SIGNAL",
+            "TITLE": "b+T 1800 GeV",
+            "LOC": "path/FILE:HIST"
+        },
+        "SIGNAME_17": {
+            "SYSTEMATICS":["lumi","TriggerEff17","Pileup17","pdf17","jer17","jes17","jmr17","jms17"],
+            "SCALE": 1.0,
+            "COLOR": 1,
+            "TYPE": "SIGNAL",
+            "TITLE": "b+T 1800 GeV",
+            "LOC": "path/FILE:HIST"
+        },
+        "SIGNAME_18": {
+            "SYSTEMATICS":["lumi","TriggerEff18","Pileup18","pdf18","jer18","jes18","jmr18","jms18"],
+            "SCALE": 1.0,
+            "COLOR": 1,
+            "TYPE": "SIGNAL",
+            "TITLE": "b+T 1800 GeV",
+            "LOC": "path/FILE:HIST"
+        },
+        "ttbar_16APV": {
+            "SYSTEMATICS":["lumi","ttbar_xsec","TptReweight","TriggerEff16","Pileup16","pdf16","Prefire16","jer16","jes16","jmr16","jms16"],
+            "SCALE": 1.0,
+            "COLOR": 2,
+            "TYPE": "BKG",
+            "TITLE": "t#bar{t}",
+            "LOC": "path/FILE:HIST"
+        },
+        "ttbar_16": {
+            "SYSTEMATICS":["lumi","ttbar_xsec","TptReweight","TriggerEff16","Pileup16","pdf16","Prefire16","jer16","jes16","jmr16","jms16"],
+            "SCALE": 1.0,
+            "COLOR": 2,
+            "TYPE": "BKG",
+            "TITLE": "t#bar{t}",
+            "LOC": "path/FILE:HIST"
+        },
+        "ttbar_17": {
+            "SYSTEMATICS":["lumi","ttbar_xsec","TptReweight","TriggerEff17","Pileup17","pdf17","Prefire17","jer17","jes17","jmr17","jms17"],
+            "SCALE": 1.0,
+            "COLOR": 2,
+            "TYPE": "BKG",
+            "TITLE": "t#bar{t}",
+            "LOC": "path/FILE:HIST"
+        },
+        "ttbar_18": {
+            "SYSTEMATICS":["lumi","ttbar_xsec","TptReweight","TriggerEff18","Pileup18","pdf18","jer18","jes18","jmr18","jms18"],
+            "SCALE": 1.0,
+            "COLOR": 2,
+            "TYPE": "BKG",
+            "TITLE": "t#bar{t}",
+            "LOC": "path/FILE:HIST"
+        },
+        "ZJets_16APV": {
+            "SYSTEMATICS":["lumi","z_xsec","TriggerEff16","Pileup16","pdf16","jer16","jes16","jmr16","jms16"],
+            "SCALE": 1.0,
+            "COLOR": 3,
+            "TYPE": "BKG",
+            "TITLE": "Z+ Jets",
+            "LOC": "path/FILE:HIST"
+        },
+	"ZJets_16": {
+	    "SYSTEMATICS":["lumi","z_xsec","TriggerEff16","Pileup16","pdf16","jer16","jes16","jmr16","jms16"],
+	    "SCALE": 1.0,
+	    "COLOR": 3,
+	    "TYPE": "BKG",
+	    "TITLE": "Z+ Jets",
+	    "LOC": "path/FILE:HIST"
+	},
+        "ZJets_17": {
+            "SYSTEMATICS":["lumi","z_xsec","TriggerEff17","Pileup17","pdf17","jer17","jes17","jmr17","jms17"],
+            "SCALE": 1.0,
+            "COLOR": 3,
+            "TYPE": "BKG",
+            "TITLE": "Z+ Jets",
+            "LOC": "path/FILE:HIST"
+        },
+        "ZJets_18": {
+            "SYSTEMATICS":["lumi","z_xsec","TriggerEff18","Pileup18","pdf18","jer18","jes18","jmr18","jms18"],
+            "SCALE": 1.0,
+            "COLOR": 3,
+            "TYPE": "BKG",
+            "TITLE": "Z+ Jets",
+            "LOC": "path/FILE:HIST"
+        },
+        "WJets_16APV": {
+            "SYSTEMATICS":["lumi","w_xsec","TriggerEff16","Pileup16","pdf16","jer16","jes16","jmr16","jms16"],
+            "SCALE": 1.0,
+            "COLOR": 4,
+            "TYPE": "BKG",
+            "TITLE": "W+ Jets",
+            "LOC": "path/FILE:HIST"
+        },
+        "WJets_16": {
+            "SYSTEMATICS":["lumi","w_xsec","TriggerEff16","Pileup16","pdf16","jer16","jes16","jmr16","jms16"],
+            "SCALE": 1.0,
+            "COLOR": 4,
+            "TYPE": "BKG",
+            "TITLE": "W+ Jets",
+            "LOC": "path/FILE:HIST"
+        },
+        "WJets_17": {
+            "SYSTEMATICS":["lumi","w_xsec","TriggerEff17","Pileup17","pdf17","jer17","jes17","jmr17","jms17"],
+            "SCALE": 1.0,
+            "COLOR": 4,
+            "TYPE": "BKG",
+            "TITLE": "W+ Jets",
+            "LOC": "path/FILE:HIST"
+        },
+        "WJets_18": {
+            "SYSTEMATICS":["lumi","w_xsec","TriggerEff18","Pileup18","pdf18","jer18","jes18","jmr18","jms18"],
+            "SCALE": 1.0,
+            "COLOR": 4,
+            "TYPE": "BKG",
+            "TITLE": "W+ Jets",
+            "LOC": "path/FILE:HIST"
+        }
+    },
+    "SYSTEMATICS": {
+        "lumi": {
+            "CODE": 0,
+            "VAL": 1.019
+        },
+        "ttbar_xsec": {
+            "VAL": 1.2
+        },
+	"w_xsec": {
+	    "VAL": 1.2
+	},
+	"z_xsec": {
+	    "VAL": 1.2
+	},
+        "TptReweight": {
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "Prefire16": {
+            "ALIAS": "Prefire",
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "Prefire17": {
+            "ALIAS": "Prefire",
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "Pileup16": {
+            "ALIAS": "Pileup",
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "Pileup17": {
+            "ALIAS": "Pileup",
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "Pileup18": {
+            "ALIAS": "Pileup",
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "TriggerEff16": {
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "TriggerEff17": {
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "TriggerEff18": {
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "pdf16": {
+            "ALIAS": "Pdfweight",
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "pdf17": {
+            "ALIAS": "Pdfweight",
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "pdf18": {
+            "ALIAS": "Pdfweight",
+            "UP": "path/FILE:HIST_UP",
+            "DOWN": "path/FILE:HIST_DOWN",
+            "SIGMA": 1.0
+        },
+        "jmr16": {
+            "ALIAS": "JMR",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jmr17": {
+            "ALIAS": "JMR",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jmr18": {
+            "ALIAS": "JMR",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jms16": {
+            "ALIAS": "JMS",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jms17": {
+            "ALIAS": "JMS",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jms18": {
+            "ALIAS": "JMS",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jes16": {
+            "ALIAS": "JES",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jes17": {
+            "ALIAS": "JES",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jes18": {
+            "ALIAS": "JES",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jer16": {
+            "ALIAS": "JER",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jer17": {
+            "ALIAS": "JER",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        },
+        "jer18": {
+            "ALIAS": "JER",
+            "UP": "path/FILE_UP:HIST",
+            "DOWN": "path/FILE_DOWN:HIST",
+            "SIGMA": 1.0
+        }
+    },
+    "BINNING": {
+        "default": {
+            "X": {
+                "NAME": "jetmass",
+                "TITLE": "m_{H} (GeV)",
+                "MIN": 60,
+                "MAX": 240,
+                "NBINS": 12,
+                "SIGSTART": 105,
+                "SIGEND": 150
+            },
+            "Y": {
+                "NAME": "resmass",
+                "TITLE": "m_{tH} (GeV)",
+                "MIN": 800,
+                "MAX": 2200,
+                "NBINS": 14
+            }
+        }
+    },
+    "OPTIONS": {
+	"comment": "removed 'SR_pass' and 'SR_loose' from the blindedPlots and blindedFit options. Especially with the move to T'->tphi, we are just looking at the CR at first, so unblinding there might slightly aid the fit. ALSO: TURN OFF plotTemplateComparisons",
+        "blindedPlots": [],
+        "blindedFit": [],
+        "plotPrefitSigInFitB": true,
+        "plotUncerts": false,
+        "plotTitles":false,
+	"plotTemplateComparisons": false,
+        "year": 2
+    }
+
+}
