@@ -1,71 +1,17 @@
-from logging import root
 import re
 import ROOT
 import sys
 import os
 import random
-from TwoDAlphabet.twoDalphabet import TwoDAlphabet
-from TwoDAlphabet.alphawrap import BinnedDistribution, ParametricFunction
 from makeRPF import makeRPF
-from collections import OrderedDict
 
 # for constructing data-like toys in the SR from the RPF shapes generated in the CR FLT fit
 
+
 # global variables needed for makeRPF()
-'''
 fitDir = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/FLT/THfits_CR'
-rpfL = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/FLT/THfits_CR/TprimeB-1800-125-_area/rpf_params_Background_CR_rpfL_fitb.txt'
-rpfT = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/FLT/THfits_CR/TprimeB-1800-125-_area/rpf_params_Background_CR_rpfT_fitb.txt'
-makeRPF(fitDir,rpfT,'2x1')
-makeRPF(fitDir,rpfL,'1x0')
-'''
-
-def getYear(inFile):
-    '''
-    not really needed here, since we're not scaling bkgs by year
-    '''
-    if ('16' or 'APV' in inFile):
-        return '2016'
-    elif ('17' in inFile):
-        return '2017'
-    elif ('18' in inFile):
-        return '2018'
-    else:
-        print('Year not recognized for {}'.format(inFile))
-        sys.exit()
-
-def constructTT(inFiles, region, SRorCR='CR'):
-    '''
-    inFiles = [
-        "THselection_ttbar_16.root",
-        "THselection_ttbar_16APV.root",
-        "THselection_ttbar_17.root",
-        "THselection_ttbar_18.root"
-    ]
-
-    region [str] = "fail", "loose", "pass"
-    '''
-    assert(SRorCR=='CR')
-    tagger = 'particleNet'
-
-    ttbar = None
-    for inFile in inFiles:
-        year = getYear(inFile)
-        f = ROOT.TFile.Open(inFile)
-
-        # get the nominal ttbar histo and store it temporarily
-        ttbar_temp = f.Get("MthvMh_{}_{}_{}__nominal".format(tagger,SRorCR,region))
-        # populate ttbar file on the first go
-        if not ttbar:
-            ttbar = ttbar_temp.Clone('ttbar_{}'.format(region))
-            ttbar.Reset()
-            ttbar.SetDirectory(0)
-
-        ttbar.Add("ttbar_temp")
-        f.Close()
-
-    return ttbar
-
+rpfL_params = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/FLT/THfits_CR/TprimeB-1800-125-_area/rpf_params_Background_CR_rpfL_fitb.txt'
+rpfT_params = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/FLT/THfits_CR/TprimeB-1800-125-_area/rpf_params_Background_CR_rpfT_fitb.txt'
 
 def subtractBkg():
     '''
@@ -145,60 +91,125 @@ def subtractBkg():
     # return TH2D corresponding to QCD estimate in SR fail
     return bkg_SR_fail['Data_minus_background']
 
+def Multiply(h1, h2, name=''):
+    '''
+    h1, h2 = TH2Ds with different binning (nBins_h1 > nBins_h2)
+    namne [str] = name of output hist
+    Loops over bins in h1, get the corresponding value at that coordinate in h2.
+    Then, multiply the value at h2 coord by the bin value in h1
+    returns TH2D corresponding to h1 * h2
+    '''
+    print('Multiplying {} x {}'.format(h1.GetName(),h2.GetName()))
+    nh1 = (h1.GetNbinsX(),h1.GetNbinsY())
+    nh2 = (h2.GetNbinsX(),h2.GetNbinsY())
+    print('{} binning : {}\n{} binning : {}'.format(h1,nh1,h2,nh2))
+    finalHist = h1.Clone(name)
+    # loop over bins in h1
+    for i in range(0, h1.GetNbinsX()+1):
+        for j in range(0, h1.GetNbinsY()+1):
+            h1Val = h1.GetBinContent(i,j)
+            xVal = h1.GetXaxis().GetBinCenter(i)
+            yVal = h1.GetYaxis().GetBinCenter(j)
+            ih2 = h2.GetXaxis().FindBin(xVal)
+            jh2 = h2.GetYaxis().FindBin(yVal)
+            h2Val = h2.GetBinContent(ih2,jh2)
+            finalHist.SetBinContent(i,j,h1Val*h2Val)
+    finalHist.SetDirectory(0)
+    return finalHist
+
 def constructQCD():
     '''
     construct QCD estimate in SR loose and pass regions from data-bkg (QCD) in SR fail
     '''
+    # first, generate R_LF and R_TL ratios and get histograms (will also store in root file)
+    rpfL = makeRPF(fitDir,rpfL_params,'1x0')
+    rpfT = makeRPF(fitDir,rpfT_params,'2x1')
+
+    # next, perform background subtraction (will also generate data minus bkg root file)
+    QCD_SR_Fail = subtractBkg()
+
+    # book an output root file
+    outFile = ROOT.TFile.Open('QCD_SR_distributions.root','RECREATE')
+    outFile.cd()
+    # get QCD distribution in SR Loose and Tight, write them to output root file
+    qcdFail = QCD_SR_Fail.Clone('QCD_Fail')
+    qcdFail.SetDirectory(0)
+    qcdLoose = Multiply(qcdFail, rpfL, 'QCD_Loose')
+    qcdLoose.SetDirectory(0)
+    qcdL_tmp = qcdLoose.Clone('qcdL_temp')
+    qcdTight = Multiply(qcdL_tmp, rpfT, 'QCD_Tight')
+    qcdTight.SetDirectory(0)
+    # close file
+    outFile.Close()
+
+
+
+    '''
+    # get ratio info - can be changed for future analyses
+    rpfL_name = 'rpfL'  # file name same as histo name, might not always be the case tho
+    rpfL_file = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/{}.root'.format(rpfL_name)   # Loose-to-Fail ratio
+    rpfT_name = 'rpfT'
+    rpfT_file = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/{}.root'.format(rpfT_name)   # Tight-to-Loose ratio
+
     regions = {
-        'Loose':{}, 
-        'Tight':{}
+	    'Fail':{'rName':'dataMinusBkg_SR_fail_nominal','rFile':'bkgs_SR_fail.root','rHist':None},
+        'rpfL':{'rName':rpfL_name, 'rFile':rpfL_file, 'rHist':None},
+        'rpfT':{'rName':rpfT_name, 'rFile':rpfT_file, 'rHist':None}
         }
 
-    # get ratios - can be changed for future analyses
-    rpfL_name = 'rpfL'  # file name same as histo name, might not always be the case tho
-    rpfL = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/{}.root'.format(rpfL_name)   # Loose-to-Fail ratio
-    rpfT_name = 'rpfT'
-    rpfT = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/rpfT.root'   # Tight-to-Loose ratio
+    # get ratio shapes
+    for region in regions.keys():
+        print('Getting {} {}'.format(region, regions[region]['rName']))
+        f = ROOT.TFile.Open(regions[region]['rFile'])
+        regions[region]['rHist'] = f.Get(regions[region]['rName'])
+        regions[region]['rHist'].SetDirectory(0)
+        f.Close()
 
-    # construct
-    
+    # now, get QCD distribution in Loose region
+    qcdFail = regions['Fail']['rHist'].Clone('QCD_Fail')  # clone QCD in SR_fail
+    qcdLoose = Multiply(qcdFail, regions['rpfL']['rHist'], 'QCD_Loose') # multiply: loose = fail * rpfL
+    qcdLoose.SetDirectory(0)
+    regions.update({'Loose':{'rHist': qcdLoose}})
 
+    # QCD distribution in Tight region = Loose * rpfT
+    qcdL_temp = qcdLoose.Clone('qcd_loose_temp')
+    qcdTight = Multiply(qcdL_temp, regions['rpfT']['rHist'], 'QCD_Tight')
+    qcdTight.SetDirectory(0)
+    regions.update({'Tight':{'rHist': qcdTight}})
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def applyRatio(ratioHist, ratioFile):
+    # now, add them all to ROOT file for debug
+    outFile = ROOT.TFile.Open('QCD_SR_distributions.root','RECREATE')
+    outFile.cd()
+    for r in regions.keys():
+        if 'rpf' not in r:
+            regions[r]['rHist'].SetDirectory(0)
+            regions[r]['rHist'].Write()
+    outFile.Close()
     '''
-    ratioHist [TH2D] = 2D ratio histogram
-    ratioFile [str] = name of ratio file containing hist
-    '''
-    ratio = ratioHist.Clone(ratioHist.GetName())
-    f = ROOT.TFile.Open(ratioFile)
+    # return qcd estimate in all three regions, just in case you want to use this function later
+    return (qcdFail, qcdLoose, qcdTight)
 
-    for i in range(1, ratio.GetNBinsX()+1):
-        for j in range(1, ratio.GetNBinsY()+1):
-            ratioVal = ratio.GetBinContent(i,j)
-            xVal = "blah"
+def getCumulativePDF(h2_pdf, h2_name):
+    print('Creating cumulativeP PDF {}'.format(h2_name))
+    nx = h2_pdf.GetNbinsX()
+    ny = h2_pdf.GetNbinsY()
+    hPDF = ROOT.TH1F(h2_name,"",nx*ny,0,nx*ny)
+    cumulativeBin = 0
+    for i in range(1,nx+1):
+        for j in range(1,ny+1):
+            cumulativeBin += 1
+            pdf = h2_pdf.GetBinContent(i,j)+hPDF.GetBinContent(cumulativeBin-1)
+            hPDF.SetBinContent(cumulativeBin,pdf)
+    return hPDF
+
+def generatePDF():
+    '''
+    generates a PDF from ttbar/V+Jet simulation and QCD from ratios
+    returns: 2D PDF, its cumulative PDF and the nEvents from estimate
+    '''
+    return
+
+
+
+
+constructQCD()

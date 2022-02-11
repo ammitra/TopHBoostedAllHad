@@ -124,18 +124,12 @@ def makeRPF(fitDir, paramFile, poly):
 
     # create and fill RPF shape histogram
     out_hist = rpf_func.binning.CreateHist(rpfName,cat='')
-    for ix in range(1, out_hist.GetNbinsX()):
-        for iy in range(1, out_hist.GetNbinsY()):
+    for ix in range(1, out_hist.GetNbinsX()+1):
+        for iy in range(1, out_hist.GetNbinsY()+1):
             out_hist.SetBinContent(ix, iy, rpf_func.getBinVal(ix, iy))
 
     out_hist.SetDirectory(0)
     out_hist.Write()
     rpfFile.Close()
 
-'''
-fitDir = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/FLT/THfits_CR'
-rpfL = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/FLT/THfits_CR/TprimeB-1800-125-_area/rpf_params_Background_CR_rpfL_fitb.txt'
-rpfT = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_10_6_14/src/TH/FLT/THfits_CR/TprimeB-1800-125-_area/rpf_params_Background_CR_rpfT_fitb.txt'
-makeRPF(fitDir,rpfT,'2x1')
-makeRPF(fitDir,rpfL,'1x0')
-'''
+    return out_hist
