@@ -1,7 +1,10 @@
 from TwoDAlphabet.twoDalphabet import TwoDAlphabet
 from TwoDAlphabet.alphawrap import BinnedDistribution, ParametricFunction
+from TwoDAlphabet.helpers import open_json
+import json
 import ROOT
 from collections import OrderedDict
+import os
 
 def _generate_constraints(nparams):
     out = {}
@@ -67,10 +70,12 @@ def _getParams(line):
 
     return (name, float(param))
 
-def makeRPF(fitDir, paramFile, poly):
+def makeRPF(fitDir, tmpDir, paramFile, binnings, poly):
     '''
     fitDir [str] = '/path/to/2DAlphabet/workspace/dir/'
+    tmpDir [str] = name of temporary directory for 2DAlphabet workspace that gets made
     paramFile [str] = '/path/to/rpf_params_fitb.txt'
+    binnings [dict] = {'X':{MIN,MAX,NBINS},'Y':{MIN,MAX,NBINS}}
     poly [str] = RPF polynomial order, e.g. '2x2'
 
     * NOTE * assumes that the 2DAlphabet fit has already been performed 
@@ -80,15 +85,31 @@ def makeRPF(fitDir, paramFile, poly):
     RPF parameters from the 2DAlphabet-generated .txt file, then 
     constructs the ParametricFunction associated with those parameters.
     '''
-    twoD = TwoDAlphabet(fitDir, fitDir+'/runConfig.json', loadPrevious=True)
+    # hard-code the region detection as well. L = 'rpfL', T = 'rpfT'
+    rpfName = 'rpfL' if 'rpfL' in paramFile else 'rpfT'
+
+    # first, we need to ensure the Ratio shapes have the same binning as the TIMBER selection histograms
+    print('Performing rebinning of X and Y axis for ratio shapes:')
+    c = open_json(fitDir+'/runConfig.json')
+    for axis, vals in binnings.items():
+        for val in vals.keys():
+            print('Replacing {} {} : {} -> {}'.format(axis,val,c['BINNING']['default'][axis][val],binnings[axis][val]))
+            c['BINNING']['default'][axis][val] = binnings[axis][val]
+    # now, write this to a new json file.
+    with open('temp_config.json','w') as json_file:
+        json.dump(c, json_file, indent=4)
+
+    # now, use this new json file when making the Ratio shapes
+    # we have to create a new working directory, since the existing fit directories get the binning from binnings.p
+    # If we specify loadPrevious=True, then it will simply use the old binnings. If we use loadPrevious=False, it'll overwrite the old FLT fit dir which is undesirable
+    # so, we make a new 2DAlphabet workspace with the new binnings created in the previous step, and go from there.
+    workspaceDir = tmpDir+'_'+rpfName       # the workspace created with the new binnings
+    twoD = TwoDAlphabet(workspaceDir, 'temp_config.json', loadPrevious=False) 
     # for now we'll just hard-code this. We're looking in the CR, so we'll get the binning from 'CR_fail' region
     for f,l,p in [_get_other_region_names(r) for r in twoD.ledger.GetRegions() if 'fail' in r]:
         print('regions detected in workspace: {}, {}, {}\n'.format(f,l,p))
         binning_f, _ = twoD.GetBinningFor(f)
     fail_name = 'Background_{}'.format(f)
-
-    # hard-code the region detection as well. L = 'rpfL', T = 'rpfT'
-    rpfName = 'rpfL' if 'rpfL' in paramFile else 'rpfT'
     
     # construct the actual ParametricFunction
     rpf_func = ParametricFunction(
@@ -124,6 +145,8 @@ def makeRPF(fitDir, paramFile, poly):
 
     # create and fill RPF shape histogram
     out_hist = rpf_func.binning.CreateHist(rpfName,cat='')
+    print('{} NbinsX: {}'.format(rpfName,out_hist.GetNbinsX()))
+    print('{} NbinsY: {}'.format(rpfName,out_hist.GetNbinsY()))
     for ix in range(1, out_hist.GetNbinsX()+1):
         for iy in range(1, out_hist.GetNbinsY()+1):
             out_hist.SetBinContent(ix, iy, rpf_func.getBinVal(ix, iy))
