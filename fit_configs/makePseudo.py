@@ -30,7 +30,7 @@ def constructBkg(bkg, region, tagger='particleNet'):
 
     returns TH2D of total bavkground for all years in the given region
     '''
-    histName = 'MthvMh_{}_SR_{}__nominal'.format(tagger,region.lower())    # note that region is lowercase in TIMBER selection files: e.g. MthvMh_particleNet_SR_loose__nominal
+    histName = 'MthvMh_{}_SR_{}__nominal'.format(tagger,region.lower() if region=='Loose' else 'pass')    # note that region is lowercase in TIMBER selection files: e.g. MthvMh_particleNet_SR_loose__nominal
     rootfile_dir = '/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_11_1_4/src/PostAPV/TopHBoostedAllHad/rootfiles'
     # loop through all years
     print('Generating total {} in SR {}'.format(bkg,region))
@@ -304,8 +304,8 @@ def findPDFintersection(rand,cumulativePDF):
         pdfVal = cumulativePDF.GetBinContent(i)
         if (pdfVal > rand):
             return i
-        print("Intersection with PDF not found, something is wrong")
-        return -1
+    print("Intersection with PDF not found, something is wrong")
+    return -1
 
 def globalBinTo2D(pdf,globalBin):
     '''
@@ -326,7 +326,7 @@ def generateToy(pdf, cumulativePDF, nEvents, name):
     toy = pdf.Clone(name)
     toy.Reset()
     toy.SetDirectory(0)
-    for i in range(nEvents):
+    for i in range(int(nEvents)):
         rand = random.uniform(0,1)
         globalBin = findPDFintersection(rand,cumulativePDF)
         nx, ny = globalBinTo2D(pdf,globalBin)
@@ -335,14 +335,44 @@ def generateToy(pdf, cumulativePDF, nEvents, name):
         toy.SetBinContent(nx,ny,toy.GetBinContent(nx,ny)+1)
     return toy
 
+def getFailTemplate(rFile):
+    '''
+    Gets the actual data distribution in the SR fail region, so that it can be used for 2DAlphabet when generating the fits
+    rFile [str] = /path/to/TIMBER/selection/DataRun2/file
+    '''
+    f = ROOT.TFile.Open(rFile)
+    h = f.Get('MthvMh_particleNet_SR_fail__nominal')
+    h.SetDirectory(0)
+    f.Close()
+    return h	
+
 # -----------------------------------------------------------------
 # MAIN LOOP
 # -----------------------------------------------------------------
 if __name__ == "__main__":
-    regions = {
-        'Loose': {'pdf':None, 'cumulative_pdf':None, 'nEvents':None, 'toy':None},
+    out = {
+	'Loose': {'pdf':None, 'cumulative_pdf':None, 'nEvents':None, 'toy':None},
         'Tight': {'pdf':None, 'cumulative_pdf':None, 'nEvents':None, 'toy':None}
     }
-    for region, elements in regions.items():
-        for i in elements:
-            
+    for region in out.keys():
+        pdf, cumulativePDF, nEvents = generatePDF(region)
+	# we want the histogram to have the same name as the actual TIMBER data selection files, for ease of use when running 2DAlpabet.
+        toy = generateToy(pdf,cumulativePDF,nEvents,'MthvMh_particleNet_SR_{}__nominal'.format(region.lower() if region=='Loose' else 'pass'))
+        out[region]['pdf'] = pdf
+        out[region]['cumulative_pdf'] = cumulativePDF
+        out[region]['nEvents'] = nEvents
+        out[region]['toy'] = toy
+
+    # get the SR fail data distribution
+    SR_fail = getFailTemplate('/uscms/home/ammitra/nobackup/XHYbbWW_analysis/CMSSW_11_1_4/src/PostAPV/TopHBoostedAllHad/rootfiles/THselection_Data_Run2.root')
+
+    f = ROOT.TFile.Open('final_output.root','RECREATE')
+    f.cd()
+    for region, elements in out.items():
+        for element in elements:
+            if element == 'nEvents':
+                continue
+            out[region][element].SetDirectory(0)
+            out[region][element].Write()
+    SR_fail.Write()
+    f.Close()
