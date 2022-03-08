@@ -261,7 +261,8 @@ def generatePDF(region):
         # grab the QCD distribution for this region
         pdf = PDFs[region]['QCD'].Clone('pdf_{}'.format(region))
         pdf.SetDirectory(0)
-        nRegion = pdf.Integral(1,pdf.GetNbinsX()+1,1,pdf.GetNbinsY()+1)
+	# integrate ONLY over (1,nbins) - avoid under/overflow bins
+        nRegion = pdf.Integral(1,pdf.GetNbinsX(),1,pdf.GetNbinsY())
         PDFs[region]['nRegion'] = nRegion
         print('nEvents in {} from pdf: {}'.format(region,nRegion))
         print('Scaling PDF - {}'.format(region))
