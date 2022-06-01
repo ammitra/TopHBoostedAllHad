@@ -39,8 +39,10 @@ def CombineCommonSets(groupname,doStudies=False,modstr=''):
     '''Which stitch together either QCD or ttbar (ttbar-allhad+ttbar-semilep)
     @param groupname (str, optional): "QCD" or "ttbar".
     '''
+
     if groupname not in ["QCD","ttbar","W","Z"]:
         raise ValueError('Can only combine QCD or ttbar or W/Z')
+      
     config = OpenJSON('THconfig.json')
     for y in ['16','17','18']:
         baseStr = 'rootfiles/TH%s_{0}{2}_{1}{3}.root'%('studies' if doStudies else 'selection')
@@ -69,6 +71,7 @@ def CombineCommonSets(groupname,doStudies=False,modstr=''):
                 baseStr.format('QCDHT1500',y,modstr,''),
                 baseStr.format('QCDHT2000',y,modstr,''))
             )
+
 	elif groupname == 'W' or 'Z':
 	    to_loop = [''] if doStudies else ['','JES','JER','JMS','JMR']
 	    for v in to_loop:
@@ -89,6 +92,7 @@ def CombineCommonSets(groupname,doStudies=False,modstr=''):
 			    baseStr.format('{}JetsHT800'.format('W' if groupname == 'W' else 'Z'),y,modstr,v3))
 			)
 
+
 def MakeRun2(setname,doStudies=False,modstr=''):
     t = 'studies' if doStudies else 'selection'
     ExecuteCmd('hadd -f rootfiles/TH{1}_{0}{2}_Run2.root rootfiles/TH{1}_{0}{2}_16.root rootfiles/TH{1}_{0}{2}_17.root rootfiles/TH{1}_{0}{2}_18.root'.format(setname,t,modstr))
@@ -102,6 +106,7 @@ if __name__ == "__main__":
         "17": Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_17.root','Pretag'], corrtype='weight'),
         "18": Correction("TriggerEff18",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_18.root','Pretag'], corrtype='weight')
     }
+
 
     process_args = {}
     for f in files:
@@ -123,6 +128,7 @@ if __name__ == "__main__":
 		    process_args['{} {} {}_{}'.format(setname,era,jme,v)] = Namespace(setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era if 'APV' not in era else '16'],topcut='')
 	else:
 	    process_args['{} {} None'.format(setname, era)] = Namespace(setname=setname, era=era, variation='None', trigEff=teff[era if 'APV' not in era else '16'],topcut='')
+
 
     # Due to (seemingly) random segfaults when running this, we have to check whether or not the given setname/era/variation combo has already been performed
     SF = glob('rootfiles/*.root')       # will have format THselection_<setname>_<era>_<var>_<up/down>.root
@@ -153,5 +159,7 @@ if __name__ == "__main__":
     CombineCommonSets('QCD',False)
     CombineCommonSets('ttbar',False)
     MakeRun2('Data',False)
+
     CombineCommonSets('W',False)
     CombineCommonSets('Z',False)
+

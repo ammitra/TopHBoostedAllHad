@@ -156,12 +156,14 @@ class THClass:
     def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False, CRv2=False):
         objIdxs = 'ObjIdxs_%s%s'%('Not' if invert else '',tagger)
         if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
+
 	    if (CRv2 == False):
 		# perform the CR_v1 top pick
                 self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corrT, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, self.cuts['mt'][0], self.cuts['mt'][1], self.cuts[tagger], 'true' if invert else 'false'))
 	    else:
 		# perform the CR_v2 top pick
 		self.a.Define(objIdxs,'PickTopCRv2(Dijet_msoftdrop_corrT, Dijet_%s, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, CRv2, self.cuts['mt'][0], self.cuts['mt'][1], self.cuts[tagger], 'true' if invert else 'false'))
+
             self.a.Define('tIdx','%s[0]'%objIdxs)
             self.a.Define('hIdx','%s[1]'%objIdxs)
         self.a.Cut('HasTop','tIdx > -1')
