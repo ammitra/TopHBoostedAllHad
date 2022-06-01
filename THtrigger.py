@@ -6,7 +6,7 @@ from TIMBER.Tools.Common import CompileCpp
 from THClass import THClass
 
 def MakeEfficiency(year):
-    selection = THClass('../dijet_nano_files/THsnapshot_Data_%s.root'%(year),year,1,1)
+    selection = THClass('../../dijet_nano_files/THsnapshot_Data_%s.root'%(year),year,1,1)
     selection.OpenForSelection('None')
     # selection.a.Define('mth_trig','hardware::InvariantMass(Dijet_vect)')
     # selection.a.Cut('morePt','ROOT::VecOps::All(Dijet_pt > 400)')
