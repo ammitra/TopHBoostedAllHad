@@ -110,7 +110,10 @@ if __name__ == "__main__":
 	print('{} : {}'.format(setname, era))
 
 	# ignore HT200 (lots of empty TTrees in those samples)
-	if 'HT200' in setname:
+	# also HT400... for both W and Z
+	# also ignore THsnapshot_ZJetsHT400_16APV_* and 18* (empty Events TTree)
+	if 'HT200' in setname or 'HT400' in setname or (('ZJetsHT400' in setname) and ('16APV' in era or '18' in era)):
+	    print('Skipping {} {} - empty TTrees'.format(setname, era))
 	    continue
 	if 'Data' not in setname and 'QCD' not in setname:
 	    # have to consider that 16APV is not in the trigger eff dict "teff", so have to work around it (see trigEff option below)
