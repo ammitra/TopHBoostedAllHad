@@ -39,8 +39,10 @@ def CombineCommonSets(groupname,doStudies=False,modstr=''):
     '''Which stitch together either QCD or ttbar (ttbar-allhad+ttbar-semilep)
     @param groupname (str, optional): "QCD" or "ttbar".
     '''
-    if groupname not in ["QCD","ttbar"]:
-        raise ValueError('Can only combine QCD or ttbar')
+
+    if groupname not in ["QCD","ttbar","W","Z"]:
+        raise ValueError('Can only combine QCD or ttbar or W/Z')
+      
     config = OpenJSON('THconfig.json')
     for y in ['16','17','18']:
         baseStr = 'rootfiles/TH%s_{0}{2}_{1}{3}.root'%('studies' if doStudies else 'selection')
@@ -70,6 +72,26 @@ def CombineCommonSets(groupname,doStudies=False,modstr=''):
                 baseStr.format('QCDHT2000',y,modstr,''))
             )
 
+	elif groupname == 'W' or 'Z':
+	    to_loop = [''] if doStudies else ['','JES','JER','JMS','JMR']
+	    for v in to_loop:
+		if v == '':
+		    ExecuteCmd('hadd -f %s %s %s %s'%(
+			baseStr.format('{}Jets'.format('W' if groupname == 'W' else 'Z'),y,modstr,''),
+			baseStr.format('{}JetsHT400'.format('W' if groupname == 'W' else 'Z'),y,modstr,''),
+			baseStr.format('{}JetsHT600'.format('W' if groupname == 'W' else 'Z'),y,modstr,''),
+			baseStr.format('{}JetsHT800'.format('W' if groupname == 'W' else 'Z'),y,modstr,''))
+		    )
+		else:
+		    for v2 in ['up','down']:
+			v3 = '_{}_{}'.format(v,v2)
+			ExecuteCmd('hadd -f %s %s %s %s'%(
+			    baseStr.format('{}Jets'.format('W' if groupname == 'W' else 'Z'),y,modstr,v3),
+			    baseStr.format('{}JetsHT400'.format('W' if groupname == 'W' else 'Z'),y,modstr,v3),
+			    baseStr.format('{}JetsHT600'.format('W' if groupname == 'W' else 'Z'),y,modstr,v3),
+			    baseStr.format('{}JetsHT800'.format('W' if groupname == 'W' else 'Z'),y,modstr,v3))
+			)
+
 
 def MakeRun2(setname,doStudies=False,modstr=''):
     t = 'studies' if doStudies else 'selection'
@@ -85,30 +107,27 @@ if __name__ == "__main__":
         "18": Correction("TriggerEff18",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_18.root','Pretag'], corrtype='weight')
     }
 
-    '''
-    process_args = []
-    for f in files:
-	setname, era = GetProcYearFromTxt(f)
-	
-	if 'Data' not in setname and 'QCD' not in setname:
-	    process_args.append(Namespace(threads=1,setname=setname, era=era, variation='None', trigEff=teff[era],topcut=''))
-	    for jme in ['JES','JER','JMS','JMR']:
-		for v in ['up','down']:
-                    process_args.append(Namespace(threads=1,setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era],topcut=''))
-	else:
-	    process_args.append(Namespace(threads=1,setname=setname,era=era,variation='None',trigEff=teff[era],topcut=''))
-    '''
 
     process_args = {}
     for f in files:
 	setname, era = GetProcYearFromTxt(f)
+
+	print('{} : {}'.format(setname, era))
+
+	# ignore HT200 (lots of empty TTrees in those samples)
+	# also HT400... for both W and Z
+	# also ignore THsnapshot_ZJetsHT400_16APV_* and 18* (empty Events TTree)
+	if 'HT200' in setname or 'HT400' in setname or (('ZJetsHT400' in setname) and ('16APV' in era or '18' in era)):
+	    print('Skipping {} {} - empty TTrees'.format(setname, era))
+	    continue
 	if 'Data' not in setname and 'QCD' not in setname:
-	    process_args['{} {} None'.format(setname, era)] = Namespace(threads=1,setname=setname, era=era, variation='None', trigEff=teff[era],topcut='')
+	    # have to consider that 16APV is not in the trigger eff dict "teff", so have to work around it (see trigEff option below)
+	    process_args['{} {} None'.format(setname, era)] = Namespace(setname=setname, era=era, variation='None', trigEff=teff[era if 'APV' not in era else '16'],topcut='')
 	    for jme in ['JES','JER','JMS','JMR']:
-                for v in ['up','down']:
-		    process_args['{} {} {}_{}'.format(setname,era,jme,v)] = Namespace(threads=1,setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era],topcut='')
+		for v in ['up','down']:
+		    process_args['{} {} {}_{}'.format(setname,era,jme,v)] = Namespace(setname=setname,era=era,variation='%s_%s'%(jme,v),trigEff=teff[era if 'APV' not in era else '16'],topcut='')
 	else:
-	    process_args['{} {} None'.format(setname, era)] = Namespace(threads=1,setname=setname,era=era,variation='None',trigEff=teff[era],topcut='')
+	    process_args['{} {} None'.format(setname, era)] = Namespace(setname=setname, era=era, variation='None', trigEff=teff[era if 'APV' not in era else '16'],topcut='')
 
 
     # Due to (seemingly) random segfaults when running this, we have to check whether or not the given setname/era/variation combo has already been performed
@@ -140,3 +159,7 @@ if __name__ == "__main__":
     CombineCommonSets('QCD',False)
     CombineCommonSets('ttbar',False)
     MakeRun2('Data',False)
+
+    CombineCommonSets('W',False)
+    CombineCommonSets('Z',False)
+
