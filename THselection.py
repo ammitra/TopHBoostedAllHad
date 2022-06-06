@@ -10,12 +10,7 @@ def THselection(args):
     #ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
 
-<<<<<<< HEAD
-    # the snapshots will have all the relevant cutflow information saved under the friend TTree "cutFlow_snapshot"
-    selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),int(args.era),1,1)
-=======
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),int(args.era if 'APV' not in args.era else '16'),1,1)
->>>>>>> b2c26c124716c4ce241d7024c7835653304b5e9f
     selection.OpenForSelection(args.variation)
     selection.ApplyTrigs(args.trigEff)
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())

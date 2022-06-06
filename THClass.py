@@ -88,14 +88,7 @@ class THClass:
                     self.a.Cut('HEM','%s[0] > 0'%(HEM_worker.GetCall(evalArgs={"FatJet_eta":"Dijet_eta","FatJet_phi":"Dijet_phi"})))
 
             else:
-<<<<<<< HEAD
                 self.a = ApplyPU(self.a, 'THpileup.root', self.year, ULflag=True, histname='{}_{}'.format(self.setname,self.year))
-=======
-		# OLD
-                #self.a = ApplyPU(self.a,'20%sUL'%self.year, 'THpileup.root', '%s_%s'%(self.setname,self.year))
-	
-		self.a = ApplyPU(self.a, 'THpileup.root', self.year)
->>>>>>> b2c26c124716c4ce241d7024c7835653304b5e9f
                 self.a.AddCorrection(
                     Correction('Pdfweight','TIMBER/Framework/include/PDFweight_uncert.h',[self.a.lhaid],corrtype='uncert')
                 )
