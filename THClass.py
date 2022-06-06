@@ -34,15 +34,46 @@ class THClass:
         else:
             self.a.isData = False
 
+    def AddCutflowColumn(self, var, varName):
+	'''
+	for future reference:
+	https://root-forum.cern.ch/t/rdataframe-define-column-of-same-constant-value/34851
+	'''
+	print('Adding cutflow information...\n\t{}\t{}'.format(varName, var))
+	self.a.Define('{}'.format(varName),str(var))
+	
+
+    def getNweighted(self):
+	if not self.a.isData:
+	    return self.a.DataFrame.Sum("genWeight").GetValue()
+	else:
+	    return self.a.DataFrame.Count().GetValue()
+
     ####################
     # Snapshot related #
     ####################
     def ApplyKinematicsSnap(self): # For snapshotting only
+	# total number processed
+	self.NPROC = self.a.genEventSumw
+	self.AddCutflowColumn(self.NPROC, "NPROC")
+
         self.a.Cut('flags',self.a.GetFlagString())
+	self.NFLAGS = self.getNweighted()
+	self.AddCutflowColumn(self.NFLAGS, "NFLAGS")
+
         self.a.Cut('njets','nFatJet > 2')
+	self.NJETS = self.getNweighted()
+	self.AddCutflowColumn(self.NJETS, "NJETS")
+
         self.a.Cut('pT', 'FatJet_pt[0] > {0} && FatJet_pt[1] > {0}'.format(self.cuts['pt']))
+	self.NPT = self.getNweighted()
+	self.AddCutflowColumn(self.NPT, "NPT")
+
         self.a.Define('DijetIdxs','PickDijets(FatJet_pt, FatJet_eta, FatJet_phi, FatJet_msoftdrop)')
         self.a.Cut('dijetsExist','DijetIdxs[0] > -1 && DijetIdxs[1] > -1')
+	self.NKIN = self.getNweighted()
+	self.AddCutflowColumn(self.NKIN, "NKIN")
+
         self.a.SubCollection('Dijet','FatJet','DijetIdxs',useTake=True)
         self.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt, Dijet_eta, Dijet_phi, Dijet_msoftdrop)')
         return self.a.GetActiveNode()
@@ -57,7 +88,7 @@ class THClass:
                     self.a.Cut('HEM','%s[0] > 0'%(HEM_worker.GetCall(evalArgs={"FatJet_eta":"Dijet_eta","FatJet_phi":"Dijet_phi"})))
 
             else:
-                self.a = ApplyPU(self.a,'20%sUL'%self.year, 'THpileup.root', '%s_%s'%(self.setname,self.year))
+                self.a = ApplyPU(self.a, 'THpileup.root', self.year, ULflag=True, histname='{}_{}'.format(self.setname,self.year))
                 self.a.AddCorrection(
                     Correction('Pdfweight','TIMBER/Framework/include/PDFweight_uncert.h',[self.a.lhaid],corrtype='uncert')
                 )
@@ -107,7 +138,8 @@ class THClass:
             'Dijet_particleNet_TvsQCD', 'Dijet_particleNetMD.*', 'Dijet_rawFactor', 'Dijet_tau*',
             'Dijet_jetId', 'nFatJet', 'Dijet_JES_nom',
             'HLT_PFHT.*', 'HLT_PFJet.*', 'HLT_AK8.*', 'HLT_Mu50',
-            'event', 'eventWeight', 'luminosityBlock', 'run'
+            'event', 'eventWeight', 'luminosityBlock', 'run',
+	    'NPROC', 'NFLAGS', 'NJETS', 'NPT', 'NKIN'
         ]
 
         if not self.a.isData:
@@ -125,7 +157,7 @@ class THClass:
                 columns.extend(['TptReweight__nom','TptReweight__up','TptReweight__down'])
 
         self.a.SetActiveNode(node)
-        self.a.Snapshot(columns,'THsnapshot_%s_%s_%sof%s.root'%(self.setname,self.year,self.ijob,self.njobs),'Events')
+        self.a.Snapshot(columns,'THsnapshot_%s_%s_%sof%s.root'%(self.setname,self.year,self.ijob,self.njobs),'Events',openOption='RECREATE',saveRunChain=True)
         self.a.SetActiveNode(startNode)
 
     #####################
@@ -157,6 +189,15 @@ class THClass:
             self.a.Define('tIdx','%s[0]'%objIdxs)
             self.a.Define('hIdx','%s[1]'%objIdxs)
         self.a.Cut('HasTop','tIdx > -1')
+	
+	# now get the cutflow information after top tag
+	if not invert:
+	    self.nTop_CR = self.getNweighted()
+	    self.AddCutflowColumn(self.nTop_CR, "nTop_CR")
+	else:
+	    self.nTop_SR = self.getNweighted()
+	    self.AddCutflowColumn(self.nTop_SR, "nTop_SR")
+
         self.a.ObjectFromCollection('Top','Dijet','tIdx',skip=['msoftdrop_corrH'])
         self.a.ObjectFromCollection('Higgs','Dijet','hIdx',skip=['msoftdrop_corrT'])
         self.a.Define('Top_vect','hardware::TLvector(Top_pt_corr, Top_eta, Top_phi, Top_msoftdrop_corrT)')
@@ -173,14 +214,40 @@ class THClass:
             self.a.AddCorrection(corr, evalArgs={"xval":"m_javg","yval":"mth_trig"})    
         return self.a.GetActiveNode()            
 
-    def ApplyHiggsTag(self,tagger='deepTagMD_HbbvsQCD'):
+    def ApplyHiggsTag(self, SRorCR, tagger='deepTagMD_HbbvsQCD'):
+	'''
+	    SRorCR [str] = "SR" or "CR" - used to generate cutflow information after each Higgs tagger cut
+	'''
+	assert(SRorCR == 'SR' or SRorCR == 'CR')
         checkpoint = self.a.GetActiveNode()
         passLooseFail = {}
+	# Higgs Pass + cutflow info
         passLooseFail["pass"] = self.a.Cut('HbbTag_pass','Higgs_{0} > {1}'.format(tagger,self.cuts[tagger]))
+	if SRorCR == 'SR':
+	    self.higgsP_SR = self.getNweighted()
+	    self.AddCutflowColumn(self.higgsP_SR, "higgsP_SR")
+	else:
+	    self.higgsP_CR = self.getNweighted()
+	    self.AddCutflowColumn(self.higgsP_CR, "higgsP_CR")
+	# Higgs Loose + cutflow info
         self.a.SetActiveNode(checkpoint)
         passLooseFail["loose"] = self.a.Cut('HbbTag_loose','Higgs_{0} > 0.8 && Higgs_{0} < {1}'.format(tagger,self.cuts[tagger]))
+        if SRorCR == 'SR':
+            self.higgsL_SR = self.getNweighted()
+	    self.AddCutflowColumn(self.higgsL_SR, "higgsL_SR")
+        else:
+            self.higgsL_CR = self.getNweighted()
+	    self.AddCutflowColumn(self.higgsL_CR, "higgsL_CR")
+	# Higgs Fail + cutflow info
         self.a.SetActiveNode(checkpoint)
         passLooseFail["fail"] = self.a.Cut('HbbTag_fail','Higgs_{0} < 0.8'.format(tagger,self.cuts[tagger]))
+        if SRorCR == 'SR':
+            self.higgsF_SR = self.getNweighted()
+	    self.AddCutflowColumn(self.higgsF_SR, "higgsF_SR")
+        else:
+            self.higgsF_CR = self.getNweighted()
+	    self.AddCutflowColumn(self.higgsF_CR, "higgsF_CR")
+	# reset node state, return dict
         self.a.SetActiveNode(checkpoint)
         return passLooseFail
         

@@ -10,6 +10,7 @@ def THselection(args):
     ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
 
+    # the snapshots will have all the relevant cutflow information saved under the friend TTree "cutFlow_snapshot"
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),int(args.era),1,1)
     selection.OpenForSelection(args.variation)
     selection.ApplyTrigs(args.trigEff)
@@ -21,7 +22,8 @@ def THselection(args):
                                                                   '' if args.variation == 'None' else '_'+args.variation),
                           'RECREATE')
     out.cd()
-    for t in ['deepTag','particleNet']:
+    #for t in ['deepTag','particleNet']:
+    for t in ['particleNet']:
         if args.topcut != '':
             selection.cuts[t+'MD_HbbvsQCD'] = float(args.topcut)
 
