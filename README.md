@@ -1,3 +1,12 @@
+# about this branch
+This branch is meant to investigate the post-APV changes to TIMBER, and specifically, running selection on all new files.
+
+We are using the CR defined by:
+
+* CR_v2 - CR_v1 + additional Higgs veto, i.e. `HbbvsQCD_MD < 0.2` 
+
+And running selection only *all* new snapshots (including 2016APV, W/Z+jets, new signal samples, etc)
+
 # Analysis Strategy
 Dijet search for boosted X -> top+Higgs. The benchmark, X, is a VLQ T' produced
 in association with a bottom quark. The interaction with an associated top quark

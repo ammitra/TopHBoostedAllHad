@@ -7,11 +7,15 @@ ROOT.gROOT.SetBatch(True)
 from THClass import THClass
 
 def THselection(args):
-    ROOT.ROOT.EnableImplicitMT(args.threads)
+    #ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
 
+<<<<<<< HEAD
     # the snapshots will have all the relevant cutflow information saved under the friend TTree "cutFlow_snapshot"
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),int(args.era),1,1)
+=======
+    selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),int(args.era if 'APV' not in args.era else '16'),1,1)
+>>>>>>> b2c26c124716c4ce241d7024c7835653304b5e9f
     selection.OpenForSelection(args.variation)
     selection.ApplyTrigs(args.trigEff)
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
@@ -32,12 +36,16 @@ def THselection(args):
 
         # Signal region
         selection.a.SetActiveNode(kinOnly)
-        selection.ApplyTopPick(tagger=top_tagger,invert=False)
+	# perform selection with CRv1 requirements
+        #selection.ApplyTopPick(tagger=top_tagger,invert=False)
+	# perform using CRv2 requirements
+	selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
         passfailSR = selection.ApplyHiggsTag(tagger=higgs_tagger)
 
         # Control region
         selection.a.SetActiveNode(kinOnly)
-        selection.ApplyTopPick(tagger=top_tagger,invert=True)
+        #selection.ApplyTopPick(tagger=top_tagger,invert=True)
+	selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)
         passfailCR = selection.ApplyHiggsTag(tagger=higgs_tagger)
 
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():
@@ -71,7 +79,7 @@ if __name__ == '__main__':
                         action='store', default='',
                         help='Overrides config entry if non-empty')
     args = parser.parse_args()
-    args.threads = 1
+    #args.threads = 1
     args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_%s.root'%args.era,'Pretag'], corrtype='weight')
     CompileCpp('THmodules.cc')
     THselection(args)
