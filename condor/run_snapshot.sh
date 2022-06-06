@@ -10,7 +10,7 @@ rm *.root
 
 mkdir tardir; cp tarball.tgz tardir/; cd tardir/
 tar -xzf tarball.tgz; rm tarball.tgz
-cp -r * ../CMSSW_11_1_4/src/topHBoostedAllHad/; cd ../CMSSW_11_1_4/src/
+cp -r * ../CMSSW_11_1_4/src/TopHBoostedAllHad/; cd ../CMSSW_11_1_4/src/
 echo 'IN RELEASE'
 pwd
 ls
@@ -20,7 +20,7 @@ python -m virtualenv timber-env
 source timber-env/bin/activate
 cd TIMBER
 source setup.sh
-cd ../topHBoostedAllHad
+cd ../TopHBoostedAllHad
 
 echo python THsnapshot.py $*
 python THsnapshot.py $*
