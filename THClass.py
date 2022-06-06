@@ -54,7 +54,8 @@ class THClass:
     ####################
     def ApplyKinematicsSnap(self): # For snapshotting only
 	# total number processed
-	self.NPROC = self.a.genEventSumw
+	#self.NPROC = self.a.genEventSumw
+	self.NPROC = self.getNweighted()
 	self.AddCutflowColumn(self.NPROC, "NPROC")
 
         self.a.Cut('flags',self.a.GetFlagString())
