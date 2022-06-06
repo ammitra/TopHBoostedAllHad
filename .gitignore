@@ -7,6 +7,8 @@ docker_stderror
 *.tgz
 condor/*.txt
 THsnapshot*.root
+THselection*.root
+THtrigger*.root
 CondorHelper.py
 dijet_nano/*.txt
 THpileup.root
