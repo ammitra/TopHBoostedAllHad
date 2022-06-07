@@ -3,7 +3,7 @@ import subprocess, os
 
 from TIMBER.Tools.Common import ExecuteCmd
 redirector = 'root://cmseos.fnal.gov/'
-eos_path = '/store/user/ammitra/topHBoostedAllHad/snapshots/'
+eos_path = '/store/user/ammitra/topHBoostedAllHad/snapshot/'
 
 files = subprocess.check_output('eos root://cmseos.fnal.gov ls %s'%(eos_path), shell=True)
 org_files = {}
