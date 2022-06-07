@@ -25,5 +25,5 @@ cd ../TopHBoostedAllHad
 echo python THsnapshot.py $*
 python THsnapshot.py $*
 
-xrdcp -f THsnapshot_*.root root://cmseos.fnal.gov//store/user/ammitra/topHBoostedAllHad/snapshots/
+xrdcp -f THsnapshot_*.root root://cmseos.fnal.gov//store/user/ammitra/topHBoostedAllHad/snapshot/
 
