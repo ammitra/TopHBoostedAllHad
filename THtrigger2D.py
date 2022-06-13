@@ -6,7 +6,7 @@ from TIMBER.Tools.Common import CompileCpp
 from THClass import THClass
 
 def MakeEfficiency(year):
-    selection = THClass('../../dijet_nano_files/THsnapshot_Data_%s.root'%(year),year,1,1)
+    selection = THClass('dijet_nano/Data_{}_snapshot.txt'.format(year),year,1,1)
     selection.OpenForSelection('None')
     # selection.a.Define('mth_trig','hardware::InvariantMass(Dijet_vect)')
     # selection.a.Define('m_javg','(Dijet_msoftdrop[0]+Dijet_msoftdrop[0])/2')
