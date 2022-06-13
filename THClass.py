@@ -150,7 +150,7 @@ class THClass:
                             'Dijet_JMS_nom','Dijet_JMS_up','Dijet_JMS_down',
                             'Dijet_JMR_nom','Dijet_JMR_up','Dijet_JMR_down'])
             columns.extend(['Pileup__nom','Pileup__up','Pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
-            if self.year == 16 or self.year == 17:
+            if self.year == 16 or self.year == 17 or 'APV' in self.year:
                 columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])
             elif self.year == 18:
                 columns.append('HEM_drop__nom')
@@ -183,11 +183,11 @@ class THClass:
             self.a.Define('Dijet_msoftdrop_corrH','hardware::MultiHadamardProduct(Dijet_msoftdrop,{Dijet_JES_nom})')
         return self.a.GetActiveNode()
 
-    def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False, CRv2=False):
+    def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False, CRv2=None):
         objIdxs = 'ObjIdxs_%s%s'%('Not' if invert else '',tagger)
         if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
 
-	    if (CRv2 == False):
+	    if (CRv2 == None):
 		# perform the CR_v1 top pick
                 self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corrT, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, self.cuts['mt'][0], self.cuts['mt'][1], self.cuts[tagger], 'true' if invert else 'false'))
 	    else:
@@ -285,7 +285,7 @@ class THClass:
         return self.a.GetActiveNode()
 
     def GetXsecScale(self):
-        lumi = self.config['lumi%s'%self.year]
+        lumi = self.config['lumi{}'.format(self.year if 'APV' not in self.year else 16)]
         xsec = self.config['XSECS'][self.setname]
         if self.a.genEventSumw == 0:
             raise ValueError('%s %s: genEventSumw is 0'%(self.setname, self.year))
