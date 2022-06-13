@@ -24,7 +24,7 @@ args = parser.parse_args()
 start = time.time()
 
 CompileCpp('THmodules.cc')
-selection = THClass('raw_nano/%s_%s.txt'%(args.setname,args.era),int(args.era if 'APV' not in args.era else '16'),args.ijob,args.njobs)
+selection = THClass('raw_nano/%s_%s.txt'%(args.setname,args.era),args.era,args.ijob,args.njobs)
 selection.ApplyKinematicsSnap()
 out = selection.ApplyStandardCorrections(snapshot=True)
 selection.Snapshot(out)
