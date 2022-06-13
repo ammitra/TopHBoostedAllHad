@@ -15,7 +15,7 @@ def THselection(args):
     selection.ApplyTrigs(args.trigEff)
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
 
-    out = ROOT.TFile.Open('THselection_%s%s_%s%s.root'%(args.setname,
+    out = ROOT.TFile.Open('rootfiles/THselection_%s%s_%s%s.root'%(args.setname,
                                                                   '' if args.topcut == '' else '_htag'+args.topcut.replace('.','p'),
                                                                   args.era,
                                                                   '' if args.variation == 'None' else '_'+args.variation),

@@ -25,4 +25,5 @@ cd ../TopHBoostedAllHad
 echo python THselection.py $*
 python THselection.py $*
 
-xrdcp -f THselection_*.root root://cmseos.fnal.gov//store/user/ammitra/topHBoostedAllHad/selection/
+xrdcp -f rootfiles/THselection_*.root root://cmseos.fnal.gov//store/user/ammitra/topHBoostedAllHad/selection/
+
