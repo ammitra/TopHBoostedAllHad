@@ -10,6 +10,7 @@ def THselection(args):
     #ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
 
+    print('Opening dijet_nano/{}_{}_snapshot.txt'.format(args.setname,args.era))
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),args.era,1,1)
     selection.OpenForSelection(args.variation)
     selection.ApplyTrigs(args.trigEff)
@@ -29,18 +30,14 @@ def THselection(args):
         top_tagger = '%s_TvsQCD'%t
         higgs_tagger = '%sMD_HbbvsQCD'%t
 
-        # Control region
+        # Control region - INVERT TOP CUT
         selection.a.SetActiveNode(kinOnly)
-	# perform selection with CRv1 requirements
-        #selection.ApplyTopPick(tagger=top_tagger,invert=False)
-	# perform using CRv2 requirements
-	selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
+	selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)	
         passfailSR = selection.ApplyHiggsTag('CR', tagger=higgs_tagger)
 
-        # Signal region
+        # Signal region - KEEP TOP CUT
         selection.a.SetActiveNode(kinOnly)
-        #selection.ApplyTopPick(tagger=top_tagger,invert=True)
-	selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)
+	selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
         passfailCR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger)
 
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():

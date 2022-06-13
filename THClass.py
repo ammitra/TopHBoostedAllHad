@@ -93,7 +93,7 @@ class THClass:
                 self.a.AddCorrection(
                     Correction('Pdfweight','TIMBER/Framework/include/PDFweight_uncert.h',[self.a.lhaid],corrtype='uncert')
                 )
-                if self.year == 16 or self.year == 17:
+                if self.year == 16 or self.year == 17 or 'APV' in self.year:
                     self.a.AddCorrection(
                         Correction("Prefire","TIMBER/Framework/include/Prefire_weight.h",[self.year],corrtype='weight')
                     )
@@ -119,7 +119,7 @@ class THClass:
             if not self.a.isData:
                 self.a.AddCorrection(Correction('Pileup',corrtype='weight'))
                 self.a.AddCorrection(Correction('Pdfweight',corrtype='uncert'))
-                if self.year == 16 or self.year == 17:
+                if self.year == 16 or self.year == 17 or 'APV' in self.year:
                     self.a.AddCorrection(Correction('Prefire',corrtype='weight'))
                 elif self.year == 18:
                     self.a.AddCorrection(Correction('HEM_drop',corrtype='corr'))
@@ -199,7 +199,7 @@ class THClass:
         self.a.Cut('HasTop','tIdx > -1')
 	
 	# now get the cutflow information after top tag
-	if not invert:
+	if (invert == True):	# control region
 	    self.nTop_CR = self.getNweighted()
 	    self.AddCutflowColumn(self.nTop_CR, "nTop_CR")
 	else:
