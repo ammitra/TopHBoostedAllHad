@@ -1,5 +1,5 @@
 # about this branch
-This branch is meant to investigate the post-APV changes to TIMBER, and specifically, running selection on all new files.
+We are now considering $T^{\prime}\to t\phi$ and investigating the post-APV changes to TIMBER, specifically, running selection on all new files.
 
 We are using the CR defined by:
 
@@ -79,6 +79,13 @@ To create it on LPC, run
 ```
 eosmkdir /store/user/<username>/topHBoostedAllHad
 ```
+
+Then, create the `snapshot` and `selection` directories afterwards:
+```
+eosmkdir /store/user/<username>/topHBoostedAllHad/snapshot
+eosmkdir /store/user/<username>/topHBoostedAllHad/selection
+```
+
 #### Submission
 ------------
 To submit to condor, create a symbolic link to TIMBER's CondorHelper.py,
@@ -88,7 +95,7 @@ ln -s $TIMBERPATH/TIMBER/Utilities/Condor/CondorHelper.py
 
 Then run 
 ```
-python CondorHelper.py -r condor/run_snapshot.sh -a condor/snapshot_args.txt -i "THClass.py THsnapshot.py helpers.py"`
+python CondorHelper.py -r condor/run_snapshot.sh -a condor/snapshot_args.txt -i "THClass.py THsnapshot.py helpers.py"
 ```
 where `-i` argument is just an example of how to ship local scripts that you may have changed
 between now and when you last ran `condor/tar_env.sh`. You can add or remove the files here as you
@@ -204,7 +211,26 @@ Five variations are created per-year.
 
 We select the pretag version since it is the smoothest and all variations are in agreement with one another.
 
-## 6. Final selections and studies
+## 7. Running Selection
+Run the selection on condor, since the number of files is truly enormous. The script `perform_selection.py` will run all selections with all variations locally, but there is a strange bug which affects every ~20th selection job and causing a segfault during Higgs tagging. The script can be re-run and it will skip existing files. But instead, it's best to run on condor. 
+
+To do so, first create the `selection` directory on your EOS under `/store/user/<username>/topHBoostedAllHad/selection`. Then, proceed with the following steps:
+
+1. First, ensure that you've run `THtrigger2D.py` and the resulting ROOT files exist in the base directory
+2. Ensure that the snapshot file locations exist in the `dijet_nano/` directory via `python dijet_nano/get_all.py`
+3. Send a tarball of the current environment to EOS via `source condor/tar_env.sh`
+4. Run `source condor/selection_args.py` to generate the arguments for selection
+5. Send the jobs to condor via the command `python CondorHelper.py -r condor/run_selection.sh -a condor/selection_args.txt`
+6. Run the script `rootfiles/get_all.py` to gather all the rootfiles locally, and automatically combine common sets (V+Jets, ttbar, QCD, Data) for 2Dalphabet. 
+
+## 8. Gathering Cutflow Information
+
+To-do
+
+
+# DEPRECATED 
+
+##  Final selections and studies
 Once you are sure the snapshots are finished and available and their locations have been accessed,
 the basic selection can be performed with `python THselection.py -s <setname> -y <year>`. This script
 will take in the corresponding txt file in `dijet_nano/*.txt` and perform the basic signal region and "fail" region
