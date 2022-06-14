@@ -73,7 +73,7 @@ def THselection(args):
         scale = ROOT.TH1F('scale','xsec*lumi/genEventSumw',1,0,1)
         scale.SetBinContent(1,selection.GetXsecScale())
         scale.Write()
-        selection.a.PrintNodeTree('NodeTree_selection.pdf',verbose=True)
+        #selection.a.PrintNodeTree('NodeTree_selection.pdf',verbose=True)
 
     print ('%s sec'%(time.time()-start))
 
