@@ -22,7 +22,7 @@ class THClass:
 		f.Close()
 	    inputFiles = [i for i in infiles if i not in invalidFiles]
 	    if len(inputFiles) == 0:
-		raise Exception("None of the files given contain an Events TTree.")
+		print("\n\t WARNING: None of the files given contain an Events TTree.")
 	    self.a = analyzer(inputFiles)
         else:
             infiles = inputfile
