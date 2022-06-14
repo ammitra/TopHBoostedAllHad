@@ -93,7 +93,7 @@ class THClass:
                 self.a.AddCorrection(
                     Correction('Pdfweight','TIMBER/Framework/include/PDFweight_uncert.h',[self.a.lhaid],corrtype='uncert')
                 )
-                if self.year == 16 or self.year == 17 or 'APV' in self.year:
+                if self.year == 16 or self.year == 17:
                     self.a.AddCorrection(
                         Correction("Prefire","TIMBER/Framework/include/Prefire_weight.h",[self.year],corrtype='weight')
                     )
@@ -119,7 +119,7 @@ class THClass:
             if not self.a.isData:
                 self.a.AddCorrection(Correction('Pileup',corrtype='weight'))
                 self.a.AddCorrection(Correction('Pdfweight',corrtype='uncert'))
-                if self.year == 16 or self.year == 17 or 'APV' in self.year:
+                if self.year == 16 or self.year == 17:
                     self.a.AddCorrection(Correction('Prefire',corrtype='weight'))
                 elif self.year == 18:
                     self.a.AddCorrection(Correction('HEM_drop',corrtype='corr'))
@@ -150,7 +150,7 @@ class THClass:
                             'Dijet_JMS_nom','Dijet_JMS_up','Dijet_JMS_down',
                             'Dijet_JMR_nom','Dijet_JMR_up','Dijet_JMR_down'])
             columns.extend(['Pileup__nom','Pileup__up','Pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
-            if self.year == 16 or self.year == 17 or 'APV' in self.year:
+            if self.year == 16 or self.year == 17:
                 columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])
             elif self.year == 18:
                 columns.append('HEM_drop__nom')
