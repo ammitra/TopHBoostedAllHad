@@ -11,9 +11,23 @@ class THClass:
     def __init__(self,inputfile,year,ijob,njobs):
         if inputfile.endswith('.txt'): 
             infiles = SplitUp(inputfile, njobs)[ijob-1]
+	    # there is an issue with empty events TTrees, so make sure they don't make it through to the analyzer (mainly seen in V+Jets, esp at low HT)
+	    invalidFiles = []
+	    for iFile in infiles:
+		print('Adding {} to Analyzer'.format(iFile))
+		f = ROOT.TFile.Open(iFile)
+		if not f.Get('Events').GetEntry():
+		    print('\tWARNING: {} has an empty Events TTree - will not be added to analyzer'.format(iFile))
+		    invalidFiles.append(iFile)
+		f.Close()
+	    inputFiles = [i for i in infiles if i not in invalidFiles]
+	    if len(inputFiles) == 0:
+		raise Exception("None of the files given contain an Events TTree.")
+	    self.a = analyzer(inputFiles)
         else:
             infiles = inputfile
-        self.a = analyzer(infiles)
+            self.a = analyzer(infiles)
+
         if inputfile.endswith('.txt'):
             self.setname = inputfile.split('/')[-1].split('_')[0]
         else:
