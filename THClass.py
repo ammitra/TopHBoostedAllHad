@@ -16,6 +16,10 @@ class THClass:
 	    for iFile in infiles:
 		print('Adding {} to Analyzer'.format(iFile))
 		f = ROOT.TFile.Open(iFile)
+		if not f.Get('Events'):
+		    print('\tWARNING: {} has no Events TTree - will not be added to analyzer'.format(iFile))
+		    invalidFiles.append(iFile)
+		    continue
 		if not f.Get('Events').GetEntry():
 		    print('\tWARNING: {} has an empty Events TTree - will not be added to analyzer'.format(iFile))
 		    invalidFiles.append(iFile)
