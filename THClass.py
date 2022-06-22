@@ -206,15 +206,17 @@ class THClass:
         if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
 
 	    if (CRv2 == None):
-		# perform the CR_v1 top pick
+		# perform the CR_v1 top pick (DEPRECATED)
                 self.a.Define(objIdxs,'PickTop(Dijet_msoftdrop_corrT, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, self.cuts['mt'][0], self.cuts['mt'][1], self.cuts[tagger], 'true' if invert else 'false'))
 	    else:
-		# perform the CR_v2 top pick
+		# perform the CR_v2 top pick 
 		self.a.Define(objIdxs,'PickTopCRv2(Dijet_msoftdrop_corrT, Dijet_%s, Dijet_%s, {0, 1}, {%s,%s}, %s, %s)'%(tagger, CRv2, self.cuts['mt'][0], self.cuts['mt'][1], self.cuts[tagger], 'true' if invert else 'false'))
 
-            self.a.Define('tIdx','%s[0]'%objIdxs)
-            self.a.Define('hIdx','%s[1]'%objIdxs)
-        self.a.Cut('HasTop','tIdx > -1')
+	    # at this point, we'll have a column named ObjIdxs_(NOT)_particleNet_TvsQCD containing the indices of which of the two jets is the top and Higgs (top-0, Higgs-1)
+	    # or, if neither passed, it will look like {-1, -1}
+            self.a.Define('tIdx','%s[0]'%objIdxs)	# the first object in the resulting collection is the top
+            self.a.Define('hIdx','%s[1]'%objIdxs)	# the second is the Higgs
+        self.a.Cut('HasTop','tIdx > -1')		# now we cut on all jets that *have* a top candidate (PickTop() returns {-1, -1} if neither jet passes)
 	
 	# now get the cutflow information after top tag
 	if (invert == True):	# control region
@@ -224,6 +226,7 @@ class THClass:
 	    self.nTop_SR = self.getNweighted()
 	    self.AddCutflowColumn(self.nTop_SR, "nTop_SR")
 
+	# at this point, rename Dijet -> Top/Higgs based on its index determined above
         self.a.ObjectFromCollection('Top','Dijet','tIdx',skip=['msoftdrop_corrH'])
         self.a.ObjectFromCollection('Higgs','Dijet','hIdx',skip=['msoftdrop_corrT'])
 

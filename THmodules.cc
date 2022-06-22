@@ -74,15 +74,15 @@ std::vector<int> PickTopCRv2(RVec<float> mass, RVec<float> tagScore, RVec<float>
     int idx0 = idxs[0];
     int idx1 = idxs[1];
     bool isTop0, isTop1;
-    if (!invertScore) {
+    if (!invertScore) {	// signal region - apply mass window cut and top tag reqirement
         isTop0 = (mass[idx0] > massCut.first) && (mass[idx0] < massCut.second) && (tagScore[idx0] > WP);
         isTop1 = (mass[idx1] > massCut.first) && (mass[idx1] < massCut.second) && (tagScore[idx1] > WP);
-    } else {
+    } else {	// control region - anti-top tag and Higgs veto on the top jet
 	// same as CR_v1, but also require the top candidate jet to have Higgs tag < loose WP
 	isTop0 = (tagScore[idx0] < WP) && (0.2 < tagScore[idx0]) && (HiggsScore[idx0] < 0.2);
         isTop1 = (tagScore[idx1] < WP) && (0.2 < tagScore[idx1]) && (HiggsScore[idx1] < 0.2);
     }
-    if (isTop0 && isTop1) {
+    if (isTop0 && isTop1) {	// if both jets meet top (anti)tag, then choose the one with higher top score as top jet
         if (tagScore[idx0] > tagScore[idx1]) {
             out[0] = idx0;
             out[1] = idx1;
@@ -90,6 +90,7 @@ std::vector<int> PickTopCRv2(RVec<float> mass, RVec<float> tagScore, RVec<float>
             out[0] = idx1;
             out[1] = idx0;
         }
+    // otherwise, chose the one that passed tagging to be the top candidate
     } else if (isTop0) {
         out[0] = idx0;
         out[1] = idx1;
