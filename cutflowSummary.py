@@ -63,40 +63,70 @@ def generateCutflow(setName):
     return years
 
 
-# now make latex table
-labels = ["Sample","nProc","nFlags","nJets","p_{t}","nKin","CR_topCut","CR_F","CR_L","CR_P","SR_topCut","SR_F","SR_L","SR_P"]
+def printYields():
+    '''prints the yields for bkg and data in Latex form'''
+    labels = ["Sample","nProc","nFlags","nJets","p_{t}","nKin","CR_topCut","CR_F","CR_L","CR_P","SR_topCut","SR_F","SR_L","SR_P"]
+    sets = ["ttbar", "QCD", "WJets", "ZJets", "Data"]
 
-sets = ["ttbar", "QCD", "WJets", "ZJets", "Data"]
+    for s in sets:
+        res = generateCutflow(s)
+        print('\n------------------ {} -------------------'.format(s))
+        for year, dicts in res.items():
+	    print('----------------- {} -----------------'.format('20'+year))
+	    latexRow = s + " &"
+	    for var, val in dicts.items():
+	        if (val > 10000):
+		    latexRow += " {0:1.2e} &".format(val)
+	        else:
+		    latexRow += " {0:.3f} &".format(val)
+            print(" & ".join(labels)+" \\\\")
+            print(latexRow)
 
-for s in sets:
-    res = generateCutflow(s)
+def printEfficiencies():
+    '''prints the efficiencies for various T' samples.
+	First, for mT = 1800, mPhi = 75, 100, 125, 250, 500
+	Then, for mPhi = 125, mT = 1400, 1500, 1600, 1700, 1800  (SKIP 1700 - it's missing 2018)
+    '''
+    labels = ["Sample","nProc","nFlags","nJets","p_{t}","nKin","CR_topCut","CR_F","CR_L","CR_P","SR_topCut","SR_F","SR_L","SR_P"]
+    # first keep constant mT
+    prefix = 'TprimeB'
+    mT = 1800
+    phiMasses = [75, 100, 125, 250, 500]
+    for mPhi in phiMasses:
+	nProc = 0
+	res = generateCutflow('{}-{}-{}'.format(prefix, mT, mPhi))
+	print('\n------------------ {} -------------------'.format('{}-{}-{}'.format(prefix, mT, mPhi)))
+	for year, dicts in res.items():
+	    print('----------------- {} -----------------'.format('20'+year))
+	    latexRow = '{}-{}-{}'.format(prefix, mT, mPhi) + " &"
+	    for var, val in dicts.items():
+		if (var == 'NPROC'):
+		    nProc = val
+		    latexRow += " 1 &"
+		else:
+		    latexRow += " {0:.3f} &".format(float(val)/float(nProc))
+	    print(" & ".join(labels)+" \\\\")
+	    print(latexRow)
 
-    print('\n------------------ {} -------------------'.format(s))
-    for year, dicts in res.items():
-	print('----------------- {} -----------------'.format('20'+year))
-	latexRow = s + " &"
-	for var, val in dicts.items():
-	    if (val > 10000):
-		latexRow += " {0:1.2e} &".format(val)
-	    else:
-		latexRow += " {0:.3f} &".format(val)
-        print(" & ".join(labels)+" \\\\")
-        print(latexRow)
+    # now keep constant mPhi
+    mPhi = 125
+    Tmasses = [900,1300,1400,1500,1600]
+    for Tmass in Tmasses:
+	nProc = 0
+	res = generateCutflow('{}-{}-{}'.format(prefix, Tmass, mPhi))
+	print('\n------------------ {} -------------------'.format('{}-{}-{}'.format(prefix, Tmass, mPhi)))
+	for year, dicts in res.items():
+	    print('----------------- {} -----------------'.format('20'+year))
+	    latexRow = '{}-{}-{}'.format(prefix, Tmass, mPhi) + " &"
+	    for var, val in dicts.items():
+                if (var == 'NPROC'):
+                    nProc = val
+                    latexRow += " 1 &"
+                else:
+                    latexRow += " {0:.3f} &".format(float(val)/float(nProc))
+            print(" & ".join(labels)+" \\\\")
+            print(latexRow)
 
-'''
-if __name__ == "__main__":
-    from argparse import ArgumentParser
-    parser = ArgumentParser()
-    parser.add_argument('-s', type=str, dest='setname',
-			action='store', required=True,
-			help='ttbar, QCD, WJets, ZJets, Data')
+printEfficiencies()
 
-    args = parser.parse_args()
-    print('Performing cutflow for {}'.format(args.setname))
-    res = generateCutflow(args.setname)
-    print('------------------ {} -------------------'.format(args.setname))
-    for year, dicts in res.items():
-	print('----------------- {} -----------------'.format('20'+year))
-	for var, val in dicts.items():
-	    print('{} : {}'.format(var, val))
-'''
+
