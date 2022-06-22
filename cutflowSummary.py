@@ -10,6 +10,7 @@ import ROOT
 import glob, os
 from argparse import ArgumentParser
 from collections import OrderedDict
+import numpy as np
 
 def generateCutflow(setName):
     '''
@@ -27,15 +28,15 @@ def generateCutflow(setName):
 	    fList = open(snapFile)
 	    rFiles = [i.strip() for i in fList if i != '']
 	    for fName in rFiles:
-	        print('opening {}'.format(fName))
+	        #print('opening {}'.format(fName))
 	        f = ROOT.TFile.Open(fName, 'READ')
 	        # check for empty TTrees
 	        if not f.Get('Events'):
-		    print('Skipping file due to no Events TTree:\n\t{}'.format(fName))
+		    #print('Skipping file due to no Events TTree:\n\t{}'.format(fName))
 		    continue
 	        e = f.Get('Events')
 	        if not e.GetEntry():
-		    print('Skipping file due to empty Events TTree:\n\t{}'.format(fName))
+		    #print('Skipping file due to empty Events TTree:\n\t{}'.format(fName))
 		    continue
 		e.GetEntry()	# initialize all branches
 	        for cut, num in varDict.items():
@@ -62,12 +63,40 @@ def generateCutflow(setName):
     return years
 
 
+# now make latex table
+labels = ["Sample","nProc","nFlags","nJets","p_{t}","nKin","CR_topCut","CR_F","CR_L","CR_P","SR_topCut","SR_F","SR_L","SR_P"]
+
+sets = ["ttbar", "QCD", "WJets", "ZJets", "Data"]
+
+for s in sets:
+    res = generateCutflow(s)
+
+    print('\n------------------ {} -------------------'.format(s))
+    for year, dicts in res.items():
+	print('----------------- {} -----------------'.format('20'+year))
+	latexRow = s + " &"
+	for var, val in dicts.items():
+	    if (val > 10000):
+		latexRow += " {0:1.2e} &".format(val)
+	    else:
+		latexRow += " {0:.3f} &".format(val)
+        print(" & ".join(labels)+" \\\\")
+        print(latexRow)
 
 '''
-res = generateCutflow('ZJets')
+if __name__ == "__main__":
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('-s', type=str, dest='setname',
+			action='store', required=True,
+			help='ttbar, QCD, WJets, ZJets, Data')
 
-for year, dicts in res.items():
-    print('----------------- {} -----------------'.format('20'+year))
-    for var, val in dicts.items():
-	print('{} : {}'.format(var, val))
-'''    
+    args = parser.parse_args()
+    print('Performing cutflow for {}'.format(args.setname))
+    res = generateCutflow(args.setname)
+    print('------------------ {} -------------------'.format(args.setname))
+    for year, dicts in res.items():
+	print('----------------- {} -----------------'.format('20'+year))
+	for var, val in dicts.items():
+	    print('{} : {}'.format(var, val))
+'''
