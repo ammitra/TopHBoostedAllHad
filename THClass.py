@@ -36,7 +36,7 @@ class THClass:
             self.setname = inputfile.split('/')[-1].split('_')[0]
         else:
             self.setname = inputfile.split('/')[-1].split('_')[1]
-        self.year = year
+        self.year = str(year)	# most of the time this class will be instantiated from other scripts with CLI args, so just convert to string for internal use
         self.ijob = ijob
         self.njobs = njobs
         self.config = OpenJSON('THconfig.json')
@@ -80,6 +80,12 @@ class THClass:
 	self.NFLAGS = self.getNweighted()
 	self.AddCutflowColumn(self.NFLAGS, "NFLAGS")
 
+	# jetId cut: https://cms-pub-talk.web.cern.ch/t/jme-or/6547
+	# INFO: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#nanoAOD_Flags
+	self.a.Cut('jetId', 'Jet_jetID > 1')	# drop any events that passed *only* loose ID
+	self.NJETID = self.getNweighted()
+	self.AddCutflowColumn(self.NJETID, "NJETID")
+
         self.a.Cut('njets','nFatJet > 2')
 	self.NJETS = self.getNweighted()
 	self.AddCutflowColumn(self.NJETS, "NJETS")
@@ -102,7 +108,7 @@ class THClass:
             if self.a.isData:
                 lumiFilter = ModuleWorker('LumiFilter','TIMBER/Framework/include/LumiFilter.h',[int(self.year) if 'APV' not in self.year else 16])
                 self.a.Cut('lumiFilter',lumiFilter.GetCall(evalArgs={"lumi":"luminosityBlock"}))
-                if self.year == 18:
+                if self.year == '18':
                     HEM_worker = ModuleWorker('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname])
                     self.a.Cut('HEM','%s[0] > 0'%(HEM_worker.GetCall(evalArgs={"FatJet_eta":"Dijet_eta","FatJet_phi":"Dijet_phi"})))
 
@@ -111,11 +117,11 @@ class THClass:
                 self.a.AddCorrection(
                     Correction('Pdfweight','TIMBER/Framework/include/PDFweight_uncert.h',[self.a.lhaid],corrtype='uncert')
                 )
-                if self.year == 16 or self.year == 17:
+                if self.year == '16' or self.year == '17' or self.year == '16APV':
                     self.a.AddCorrection(
-                        Correction("Prefire","TIMBER/Framework/include/Prefire_weight.h",[self.year],corrtype='weight')
+                        Correction("Prefire","TIMBER/Framework/include/Prefire_weight.h",[int(self.year) if 'APV' not in self.year else 16],corrtype='weight')
                     )
-                elif self.year == 18:
+                elif self.year == '18':
                     self.a.AddCorrection(
                         Correction('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname],corrtype='corr')
                     )
@@ -137,9 +143,9 @@ class THClass:
             if not self.a.isData:
                 self.a.AddCorrection(Correction('Pileup',corrtype='weight'))
                 self.a.AddCorrection(Correction('Pdfweight',corrtype='uncert'))
-                if self.year == 16 or self.year == 17:
+                if self.year == '16' or self.year == '17' or self.year == '16APV':
                     self.a.AddCorrection(Correction('Prefire',corrtype='weight'))
-                elif self.year == 18:
+                elif self.year == '18':
                     self.a.AddCorrection(Correction('HEM_drop',corrtype='corr'))
                 if 'ttbar' in self.setname:
                     self.a.AddCorrection(Correction('TptReweight',corrtype='weight'))
@@ -168,9 +174,9 @@ class THClass:
                             'Dijet_JMS_nom','Dijet_JMS_up','Dijet_JMS_down',
                             'Dijet_JMR_nom','Dijet_JMR_up','Dijet_JMR_down'])
             columns.extend(['Pileup__nom','Pileup__up','Pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
-            if self.year == 16 or self.year == 17:
+            if self.year == '16' or self.year == '17' or self.year == '16APV':
                 columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])
-            elif self.year == 18:
+            elif self.year == '18':
                 columns.append('HEM_drop__nom')
             if 'ttbar' in self.setname:
                 columns.extend(['TptReweight__nom','TptReweight__up','TptReweight__down'])
@@ -246,7 +252,7 @@ class THClass:
 
     def ApplyTrigs(self,corr=None):
         if self.a.isData:
-            self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[int(self.year) if 'APV' not in self.year else 16]))
+            self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[self.year]))
         else:
             self.a.AddCorrection(corr, evalArgs={"xval":"m_javg","yval":"mth_trig"})    
         return self.a.GetActiveNode()            
