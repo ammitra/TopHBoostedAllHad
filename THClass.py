@@ -82,7 +82,7 @@ class THClass:
 
 	# jetId cut: https://cms-pub-talk.web.cern.ch/t/jme-or/6547
 	# INFO: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#nanoAOD_Flags
-	self.a.Cut('jetId', 'Jet_jetID > 1')	# drop any events that passed *only* loose ID
+	self.a.Cut('jetId', 'Jet_jetId > 1')	# drop any events that passed *only* loose ID
 	self.NJETID = self.getNweighted()
 	self.AddCutflowColumn(self.NJETID, "NJETID")
 
