@@ -80,15 +80,15 @@ class THClass:
 	self.NFLAGS = self.getNweighted()
 	self.AddCutflowColumn(self.NFLAGS, "NFLAGS")
 
-	# jetId cut: https://cms-pub-talk.web.cern.ch/t/jme-or/6547
-	# INFO: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#nanoAOD_Flags
-	self.a.Cut('jetId', 'Jet_jetId > 1')	# drop any events that passed *only* loose ID
-	self.NJETID = self.getNweighted()
-	self.AddCutflowColumn(self.NJETID, "NJETID")
-
         self.a.Cut('njets','nFatJet > 2')
 	self.NJETS = self.getNweighted()
 	self.AddCutflowColumn(self.NJETS, "NJETS")
+
+        # jetId cut: https://cms-pub-talk.web.cern.ch/t/jme-or/6547
+        # INFO: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#nanoAOD_Flags
+        self.a.Cut('jetId', 'Jet_jetId[0] > 1 && Jet_jetId[1] > 1')    # drop any events whose dijets did not both pass tight jetId requirement
+        self.NJETID = self.getNweighted()
+        self.AddCutflowColumn(self.NJETID, "NJETID")
 
         self.a.Cut('pT', 'FatJet_pt[0] > {0} && FatJet_pt[1] > {0}'.format(self.cuts['pt']))
 	self.NPT = self.getNweighted()
