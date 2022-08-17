@@ -136,9 +136,15 @@ class THClass:
                     Correction('Pdfweight','TIMBER/Framework/include/PDFweight_uncert.h',[self.a.lhaid],corrtype='uncert')
                 )
                 if self.year == '16' or self.year == '17' or self.year == '16APV':
+		    # this is valid for calculating Prefire weights by TIMBER, but NanoAODv9 contains the weights as TLeafs in the Events TTree. So, let's just use that
                     self.a.AddCorrection(
                         Correction("Prefire","TIMBER/Framework/include/Prefire_weight.h",[int(self.year) if 'APV' not in self.year else 16],corrtype='weight')
                     )
+		    
+		    # The column names are: L1PreFiringWeight_Up, L1PreFiringWeight_Dn, L1PreFiringWeight_Nom
+		    L1PreFiringWeight = Correction("L1PreFiringWeight","TIMBER/Framework/TopPhi_modules/BranchCorrection.cc",constructor=[],mainFunc='evalWeight',corrtype='weight',columnList=['L1PreFiringWeight_Nom','L1PreFiringWeight_Up','L1PreFiringWeight_Dn'])
+		    self.a.AddCorrection(L1PreFiringWeight, evalArgs={'val':'L1PreFiringWeight_Nom','valUp':'L1PreFiringWeight_Up','valDown':'L1PreFiringWeight_Dn'})	
+
                 elif self.year == '18':
                     self.a.AddCorrection(
                         Correction('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname],corrtype='corr')
@@ -163,6 +169,7 @@ class THClass:
                 self.a.AddCorrection(Correction('Pdfweight',corrtype='uncert'))
                 if self.year == '16' or self.year == '17' or self.year == '16APV':
                     self.a.AddCorrection(Correction('Prefire',corrtype='weight'))
+		    self.a.AddCorrection(Correction('L1PreFiringWeight',corrtype='weight'))
                 elif self.year == '18':
                     self.a.AddCorrection(Correction('HEM_drop',corrtype='corr'))
                 if 'ttbar' in self.setname:
@@ -194,7 +201,8 @@ class THClass:
             columns.extend(['Pileup__nom','Pileup__up','Pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
             if self.year == '16' or self.year == '17' or self.year == '16APV':
                 columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])
-		columns.extend(['L1PreFiringWeight_Nom', 'L1PreFiringWeight_Up', 'L1PreFiringWeight_Dn'])	# keep the TIMBER Prefire calculations, but also include these
+		columns.extend(['L1PreFiringWeight_Nom', 'L1PreFiringWeight_Up', 'L1PreFiringWeight_Dn'])	# keep the TIMBER Prefire calculations, but also include these from NanoAODv9
+		columns.extend(['L1PreFiringWeight__nom','L1PreFiringWeight__up','L1PreFiringWeight__down'])    # these are the weight columns created by the BranchCorrection module 
             elif self.year == '18':
                 columns.append('HEM_drop__nom')
             if 'ttbar' in self.setname:
