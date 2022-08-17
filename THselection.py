@@ -14,18 +14,6 @@ def THselection(args):
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),args.era,1,1)
     selection.OpenForSelection(args.variation)
     selection.ApplyTrigs(args.trigEff)
-
-    '''
-	The MakeTemplateHistos() routine at the end of the script will automatically search the DF for all columns beginning with 'weight__'
-	This means that, by default, the L1PreFiringWeight_* columns will be ignored. So, as a quick hack we will simply define new columns 
-	that conform to this naming standard using Define() and multiplying the existing columns by 1.0 to essentially "rename" them. 
-	We don't want to add these Prefire weights to the MakeWeightCols() function, since by definition these weights are already defined.
-		weight name ex: weight__Pileup_up
-    '''
-    selection.a.Define('weight__L1PreFiringWeight_up','L1PreFiringWeight_Up * 1.0')
-    selection.a.Define('weight__L1PreFiringWeight_down','L1PreFiringWeight_Dn * 1.0')
-    #selection.a.Define('weight__L1PreFiringWeight_nominal * 1.0','L1PreFiringWeight_Nom * 1.0')
-
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
 
     out = ROOT.TFile.Open('rootfiles/THselection_%s%s_%s%s.root'%(args.setname,
