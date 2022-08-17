@@ -14,6 +14,18 @@ def THselection(args):
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),args.era,1,1)
     selection.OpenForSelection(args.variation)
     selection.ApplyTrigs(args.trigEff)
+
+    '''
+	The MakeTemplateHistos() routine at the end of the script will automatically search the DF for all columns beginning with 'weight__'
+	This means that, by default, the L1PreFiringWeight_* columns will be ignored. So, as a quick hack we will simply define new columns 
+	that conform to this naming standard using Define() and multiplying the existing columns by 1.0 to essentially "rename" them. 
+	We don't want to add these Prefire weights to the MakeWeightCols() function, since by definition these weights are already defined.
+		weight name ex: weight__Pileup_up
+    '''
+    selection.a.Define('weight__L1PreFiringWeight_up','L1PreFiringWeight_Up * 1.0')
+    selection.a.Define('weight__L1PreFiringWeight_down','L1PreFiringWeight_Dn * 1.0')
+    #selection.a.Define('weight__L1PreFiringWeight_nominal * 1.0','L1PreFiringWeight_Nom * 1.0')
+
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
 
     out = ROOT.TFile.Open('rootfiles/THselection_%s%s_%s%s.root'%(args.setname,
@@ -40,11 +52,15 @@ def THselection(args):
 	selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
         passfailCR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger)
 
+	# rkey: SR/CR, pfkey: pass/loose/fail
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():
             for pfkey,n in rpair.items():
                 mod_name = "%s_%s_%s"%(t,rkey,pfkey)
                 mod_title = "%s %s"%(rkey,pfkey)
                 selection.a.SetActiveNode(n)
+		# MakeTemplateHistos takes in the template histogram and then the variables which to plot in the form [x, y]
+		# in this case, 'Higgs_msoftdrop_corrH' is the x axis (phi mass) and 'mth' is the y axis (dijet mass)
+		# both of these variables were created/defined during the ApplyTopPick() and ApplyHiggsTag() steps above (see THClass)
                 templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod_name,'MthvMh %s with %s'%(mod_title,t),40,60,260,22,800,3000),['Higgs_msoftdrop_corrH','mth'])
                 templates.Do('Write')
 
