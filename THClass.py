@@ -76,7 +76,25 @@ class THClass:
 	self.NPROC = self.getNweighted()
 	self.AddCutflowColumn(self.NPROC, "NPROC")
 
+	'''
         self.a.Cut('flags',self.a.GetFlagString())
+	self.NFLAGS = self.getNweighted()
+	self.AddCutflowColumn(self.NFLAGS, "NFLAGS")
+	'''
+	flags = [
+	    'Flag_goodVertices',
+	    'Flag_globalSuperTightHalo2016Filter',
+	    'Flag_HBHENoiseFilter',
+	    'Flag_HBHENoiseIsoFilter',
+	    'Flag_EcalDeadCellTriggerPrimitiveFilter',
+	    'Flag_BadPFMuonFilter',
+	    'Flag_BadPFMuonDzFilter',
+	    'Flag_eeBadScFilter'
+	]
+	if self.year == '17' or self.year == '18':
+	    flags.append('Flag_ecalBadCalibFilter')
+	MET_filters = self.a.GetFlagString(flags)	# string valid (existing in RDataFrame node) flags together w logical and
+	self.a.Cut('flags', MET_filters)
 	self.NFLAGS = self.getNweighted()
 	self.AddCutflowColumn(self.NFLAGS, "NFLAGS")
 
@@ -164,7 +182,7 @@ class THClass:
             'Dijet_jetId', 'nFatJet', 'Dijet_JES_nom',
             'HLT_PFHT.*', 'HLT_PFJet.*', 'HLT_AK8.*', 'HLT_Mu50',
             'event', 'eventWeight', 'luminosityBlock', 'run',
-	    'NPROC', 'NFLAGS', 'NJETS', 'NPT', 'NKIN'
+	    'NPROC', 'NFLAGS', 'NJETID', 'NJETS', 'NPT', 'NKIN'
         ]
 
         if not self.a.isData:
@@ -176,6 +194,7 @@ class THClass:
             columns.extend(['Pileup__nom','Pileup__up','Pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
             if self.year == '16' or self.year == '17' or self.year == '16APV':
                 columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])
+		columns.extend(['L1PreFiringWeight_Nom', 'L1PreFiringWeight_Up', 'L1PreFiringWeight_Dn'])	# keep the TIMBER Prefire calculations, but also include these
             elif self.year == '18':
                 columns.append('HEM_drop__nom')
             if 'ttbar' in self.setname:
