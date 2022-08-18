@@ -279,7 +279,7 @@ class THClass:
 
     def ApplyTrigs(self,corr=None):
         if self.a.isData:
-            self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[self.year]))
+            self.a.Cut('trigger',self.a.GetTriggerString(self.trigs[int(self.year) if 'APV' not in self.year else 16]))
         else:
             self.a.AddCorrection(corr, evalArgs={"xval":"m_javg","yval":"mth_trig"})    
         return self.a.GetActiveNode()            
