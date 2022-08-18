@@ -35,26 +35,27 @@ def generateCutflow(setName, selection=False):
 	    fList = open(snapFile)
 	    rFiles = [i.strip() for i in fList if i != '']
 	    for fName in rFiles:
-	        print('opening {}'.format(fName))
+	        #print('opening {}'.format(fName))
 	        f = ROOT.TFile.Open(fName, 'READ')
 	        # check for empty TTrees
 	        if not f.Get('Events'):
-		    print('Skipping file due to no Events TTree:\n\t{}'.format(fName))
+		    #print('Skipping file due to no Events TTree:\n\t{}'.format(fName))
 		    continue
 	        e = f.Get('Events')
 	        if not e.GetEntry():
-		    print('Skipping file due to empty Events TTree:\n\t{}'.format(fName))
+		    #print('Skipping file due to empty Events TTree:\n\t{}'.format(fName))
 		    continue
 		e.GetEntry()	# initialize all branches
 	        for cut, num in varDict.items():
 		    if ('SR' in cut) or ('CR' in cut):
 		        pass		    
 		    else:
-			print('Getting Leaf {}'.format(cut))
-	                varDict[cut] += e.GetLeaf(cut).GetValue(0)
+			#print('Getting Leaf {}'.format(cut))
+			if e.GetLeaf(cut):
+	                    varDict[cut] += e.GetLeaf(cut).GetValue(0)
 	        f.Close()
 
-    if selection:	# do snapshots too
+    if selection:
         # selection will have common sets joined by default (see rootfiles/get_all.py and perform_selection.py)
         # i.e.: 	THselection_ZJets_18.root
         for year, varDict in years.items():
@@ -92,6 +93,13 @@ def printYields(selection=False):
 		    latexRow += " {0:.3f} &".format(val)
             print(" & ".join(labels)+" \\\\")
             print(latexRow)
+
+	#print(res)
+        # just a short routine to check the impact of tight jetId cuts
+	for year in ['16','16APV','17','18']:
+            nJetID = float(res[year]['NJETID'])
+            nJets = float(res[year]['NJETS'])
+            print('20{} Percent loss from nJets -> nJetId cut: {}%'.format(year, (1.0 - nJetID/nJets)*100.))    
 
 def printEfficiencies(selection=False):
     '''prints the efficiencies for various T' samples.
