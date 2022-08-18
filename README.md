@@ -224,9 +224,21 @@ To do so, first create the `selection` directory on your EOS under `/store/user/
 6. Run the script `rootfiles/get_all.py` to gather all the rootfiles locally, and automatically combine common sets (V+Jets, ttbar, QCD, Data) for 2Dalphabet. 
 
 ## 8. Gathering Cutflow Information
+To get information on yields after all important cuts, run `python cutflowSummary.py`. If you pass the optional `--selection` flag, then the script will calculate the yields after the selection criteria as well. One can also calculate the signal efficiencies for select signals by adding calling `printEfficiencies()` in the main function. **(TODO: implement this option via flag arg)**
 
-To-do
+The number of events are recorded after each of the following cuts:
 
+Snapshot phase:
+* `NPROC`: Initial number of processed events
+* `NFLAGS`: Cut on MET filters
+* `NJETS`: Cut on `nFatJets > 2`
+* `NJETID`: Cut on tight `Jet_jetId`
+* `NPT`: Cut on lead/sublead pT
+* `NKIN`: Cut on all other kinematic variables
+
+Selection phase:
+* `nTop_CR/SR`: Top cut in CR/SR
+* `higgsF/L/P_CR/SR`: Higgs cut in fail/loose/pass regions in CR/SR
 
 # DEPRECATED 
 
