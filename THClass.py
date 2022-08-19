@@ -14,7 +14,7 @@ class THClass:
 	    # there is an issue with empty events TTrees, so make sure they don't make it through to the analyzer (mainly seen in V+Jets, esp at low HT)
 	    invalidFiles = []
 	    for iFile in infiles:
-		print('Adding {} to Analyzer'.format(iFile))
+		#print('Adding {} to Analyzer'.format(iFile))
 		f = ROOT.TFile.Open(iFile)
 		if not f.Get('Events'):
 		    print('\tWARNING: {} has no Events TTree - will not be added to analyzer'.format(iFile))
