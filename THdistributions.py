@@ -21,8 +21,8 @@ varnames = {
     'HT': 'Sum of lead and sublead jet p_{T}',
     'eta0': 'Leading AK8 jet #eta',
     'eta1': 'Sublead AK8 jet #eta',
-    'phi0': 'Leading AK8 jet #phi',
-    'phi1': 'Sublead AK8 jet #phi'   
+    'phi0': 'Leading AK8 jet #varphi',
+    'phi1': 'Sublead AK8 jet #varphi'   
 }
 
 # main function to be called for processing
@@ -60,6 +60,7 @@ def select(setname, args):
 	    hist_tuple = (varname,varname,64,-3.14,3.14)
 	# Project dataframe into a histogram (hist name/binning tuple, variable to plot from dataframe, weight)
 	hist = selection.a.GetActiveNode().DataFrame.Histo1D(hist_tuple,varname,'weight__nominal')
+	#hist = selection.a.GetActiveNode().DataFrame.Histo1D(hist_tuple,varname)
 	hist.GetValue()	# This gets the actual TH1 instead of a pointer to the TH1
 	out.Add(varname,hist)
 
@@ -76,6 +77,8 @@ if __name__ == "__main__":
 			default=2, help='Number of threads to use. On LPC, keep default at 2')
     parser.add_argument('--recreate', action='store_true',
 			help='Whether to recreate the output rootfiles containing histograms. If False (not passed as flag), will attempt to recycle previously created histograms. If True (passed as flag), will create/recreate the histograms')
+    parser.add_argument('--scale', action='store_true',
+			help='Whether or not to scale data + background to unity. Default False.')
 
     args = parser.parse_args()
     
@@ -119,13 +122,15 @@ if __name__ == "__main__":
 
     # for each variable to plot:
     for varname in varnames.keys():
-	plot_filename = 'plots/{}_{}.%s'.format(varname,args.era)
+	plot_filename = 'plots/{}_{}_{}.%s'.format(varname,args.era,'scaled' if args.scale else '')
 
 	# get the background hists
 	bkg_hists = OrderedDict()
 	for bkg in ['WJetsHT400', 'WJetsHT600', 'WJetsHT800', 'ZJetsHT600', 'ZJetsHT800', 'ttbar-allhad', 'ttbar-semilep', 'QCDHT700','QCDHT1000','QCDHT1500','QCDHT2000']:
 	    histgroups[bkg][varname].SetTitle('%s 20%s'%(varname, args.era)) # empty title
-	    if 'QCD' in bkg: # Add the QCD HT bins together for one QCD sample
+	    # add all subgroups together, i.e. QCD = QCDHT700 + QCDHT1000 + QCDHT1500 + QCDHT2000
+	    # to do so, first create the ordereddict of bkg histos. If the histo exists clone it, if not then add it to the dict
+	    if 'QCD' in bkg:
 		if 'QCD' not in bkg_hists.keys():
 		    bkg_hists['QCD'] = histgroups[bkg][varname].Clone('QCD_'+varname)
 		else:
@@ -147,17 +152,38 @@ if __name__ == "__main__":
                     bkg_hists['ttbar'].Add(histgroups[bkg][varname])
 
 	# get background and data histos in the format required for EasyPlots()
-	data = [histgroups['Data'].__getitem__(varname)]
-	bkgs = [[]]
-	for bkg in ['WJets', 'ZJets', 'ttbar', 'QCD']:
+	data = [histgroups['Data'].__getitem__(varname)]	# this list will have one item, the histogram for the given variable
+	bkgs = [[]]	# this list contains one list, which contains all bkg histos
+	for bkg in ['QCD','WJets','ttbar','ZJets']:	# plotting function stacks them in order, so put these in order largest -> smallest yield
 	    bkgs[0].append(bkg_hists[bkg])
+
+	# QCD scaling to data for each variable
+	dataSum = data[0].Integral()
+	qcdSum = bkgs[0][0].Integral()
+	qcdScale = dataSum/qcdSum
+	print('QCD scale: {}'.format(qcdScale))
+	bkgs[0][0].Scale(qcdScale)
+
         # Use TIMBER EasyPlots() utility (Thank you Lucas!!!!)
 	# https://github.com/lcorcodilos/TIMBER/blob/master/TIMBER/Tools/Plot.py#L376
 	for extension in ['pdf','png']:
+	    '''
 	    EasyPlots(
 		name = plot_filename%(extension),
 		histlist = data,
 		bkglist = bkgs,
 		xtitle = varnames[varname]
 	    )    
-
+	    '''
+	    CompareShapes(
+		outfilename = plot_filename%(extension),
+		year = args.era,
+		prettyvarname = varnames[varname],
+		bkgs = OrderedDict([('QCD',bkgs[0][0]),('WJets',bkgs[0][1]),('ttbar',bkgs[0][2]),('ZJets',bkgs[0][3])]),
+		#bkgs = OrderedDict([('WJets',bkgs[0][1]),('ttbar',bkgs[0][2]),('ZJets',bkgs[0][3])]),
+		signals = {'Data':data[0]},
+		colors={'WJets':3, 'ZJets':4, 'ttbar':2, 'QCD':5},
+		#colors={'WJets':3,'ZJets':4,'ttbar':2},
+		scale=args.scale,
+		logy=True
+	    )
