@@ -30,12 +30,12 @@ def THselection(args):
         top_tagger = '%s_TvsQCD'%t
         higgs_tagger = '%sMD_HbbvsQCD'%t
 
-        # Control region - KEEP TOP CUT
+        # Control region - INVERT TOP CUT
         selection.a.SetActiveNode(kinOnly)
 	selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)	
         passfailSR = selection.ApplyHiggsTag('CR', tagger=higgs_tagger)
 
-        # Signal region - INVERT TOP CUT
+        # Signal region - KEEP TOP CUT
         selection.a.SetActiveNode(kinOnly)
 	selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
         passfailCR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger)
