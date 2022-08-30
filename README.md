@@ -220,7 +220,7 @@ To do so, first create the `selection` directory on your EOS under `/store/user/
 2. Ensure that the snapshot file locations exist in the `dijet_nano/` directory via `python dijet_nano/get_all.py`
 3. Send a tarball of the current environment to EOS via `source condor/tar_env.sh`
 4. Run `source condor/selection_args.py` to generate the arguments for selection
-5. Send the jobs to condor via the command `python CondorHelper.py -r condor/run_selection.sh -a condor/selection_args.txt`
+5. Send the jobs to condor via the command `python CondorHelper.py -r condor/run_selection.sh -a condor/selection_args.txt -i "THselection.py"`
 6. Run the script `rootfiles/get_all.py` to gather all the rootfiles locally, and automatically combine common sets (V+Jets, ttbar, QCD, Data) for 2Dalphabet. 
 
 ## 8. Gathering Cutflow Information
