@@ -1,5 +1,6 @@
 '''
    provide control distributions of jet quantities (pt, eta, phi) for each year for data and   bkg
+   plotting in ROOT is a nightmare with python, so just use plotKinDist.py to plot them (python3)
 '''
 import ROOT, collections,sys,os
 sys.path.append('./')
@@ -7,9 +8,10 @@ from optparse import OptionParser
 from collections import OrderedDict
 
 from TIMBER.Analyzer import HistGroup, Correction
-from TIMBER.Tools.Common import CompileCpp
+from TIMBER.Tools.Common import CompileCpp, ExecuteCmd
 from TIMBER.Tools.Plot import *
 import helpers
+
 
 ROOT.gROOT.SetBatch(True)
 from THClass import THClass
@@ -24,6 +26,8 @@ varnames = {
     'phi0': 'Leading AK8 jet #varphi',
     'phi1': 'Sublead AK8 jet #varphi'   
 }
+
+#varnames={'phi0':'Leading AK8 jet #varphi'}
 
 # main function to be called for processing
 def select(setname, args):
@@ -52,8 +56,10 @@ def select(setname, args):
     out = HistGroup('{}_{}'.format(setname,year))
     for varname in varnames.keys():
 	histname = '{}_{}_{}'.format(setname, year, varname)
- 	if ('pt' in varname) or (varname == 'HT'):
+ 	if ('pt' in varname):
 	    hist_tuple = (varname,varname,100,350,2350)
+	if (varname == 'HT'):
+		hist_tuple = (varname,varname,200,350,4350)
 	if 'eta' in varname:
 	    hist_tuple = (varname,varname,48,-2.4,2.4)
 	if 'phi' in varname:
@@ -75,17 +81,38 @@ if __name__ == "__main__":
     parser.add_argument('-t', type=int, dest='threads',
 			action='store', required=False,
 			default=2, help='Number of threads to use. On LPC, keep default at 2')
+    '''
     parser.add_argument('--recreate', action='store_true',
 			help='Whether to recreate the output rootfiles containing histograms. If False (not passed as flag), will attempt to recycle previously created histograms. If True (passed as flag), will create/recreate the histograms')
     parser.add_argument('--scale', action='store_true',
 			help='Whether or not to scale data + background to unity. Default False.')
+    '''
 
     args = parser.parse_args()
     
-    if args.recreate: args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_%s.root'%args.era,'Pretag'], corrtype='weight')
+    #if args.recreate: args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_%s.root'%args.era,'Pretag'], corrtype='weight')
+
+    args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_%s.root'%args.era,'Pretag'], corrtype='weight')
 
     histgroups = {}
     # ZJetsHT400 is empty
+    for setname in ['Data', 'WJetsHT400', 'WJetsHT600', 'WJetsHT800', 'ZJetsHT600', 'ZJetsHT800', 'ttbar-allhad', 'ttbar-semilep', 'QCDHT700','QCDHT1000','QCDHT1500','QCDHT2000']:
+	histgroup = select(setname, args)
+	outfile = ROOT.TFile.Open('rootfiles/kinDist_{}_{}.root'.format(setname,args.era),'RECREATE')
+	outfile.cd()
+	histgroup.Do('Write')
+	outfile.Close()
+	del histgroup
+
+    # now hadd all the relevant ones
+    ExecuteCmd('hadd -f rootfiles/kinDist_QCD.root rootfiles/kinDist_QCDHT*_{}.root'.format(args.era))
+    ExecuteCmd('hadd -f rootfiles/kinDist_VJets.root rootfiles/kinDist_*JetsHT*_{}.root'.format(args.era))
+    ExecuteCmd('hadd -f rootfiles/kinDist_WJets.root rootfiles/kinDist_WJetsHT*_{}.root'.format(args.era))
+    ExecuteCmd('hadd -f rootfiles/kinDist_ZJets.root rootfiles/kinDist_ZJetsHT*_{}.root'.format(args.era))
+    ExecuteCmd('hadd -f rootfiles/kinDist_ttbar.root rootfiles/kinDist_ttbar-*_{}.root'.format(args.era))
+
+
+    '''
     for setname in ['Data', 'WJetsHT400', 'WJetsHT600', 'WJetsHT800', 'ZJetsHT600', 'ZJetsHT800', 'ttbar-allhad', 'ttbar-semilep', 'QCDHT700','QCDHT1000','QCDHT1500','QCDHT2000']:
 	print('Preparing plots for {} {}'.format(setname, args.era))
 	
@@ -102,31 +129,24 @@ if __name__ == "__main__":
 	infile = ROOT.TFile.Open('rootfiles/kinDist_{}_{}.root'.format(setname,args.era))
         # ... raise exception if we forgot to run with --recreate
         if infile == None:
-            raise TypeError("rootfiles/kinDist_{}_{}.root does not exist".format(setname,args.era))
+            raise TypeError("rootfiles/kinDist_{}_{}.root does not exist, rerun with --recreate".format(setname,args.era))
 	# Put histograms back into HistGroups
 	histgroups[setname] = HistGroup(setname)
 	for key in infile.GetListOfKeys(): # loop over histograms in the file
-	    keyname = key.GetName()
-	    varname = keyname[len(setname+'_'+args.era)+1:] # get the variable name (ex. eta0)
-
-	    '''
-	    #DEBUG
-	    print('keyname: {}'.format(keyname))
-	    print('varname: {}'.format(varname))	# something weird going on here
-	    '''
-
-	    inhist = infile.Get(key.GetName()) # get it from the file
+	    varname = key.GetName()
+	    inhist = infile.Get(varname) # get it from the file
 	    inhist.SetDirectory(0)
-	    histgroups[setname].Add(keyname,inhist)	# just add keyname not varname
+	    histgroups[setname].Add(varname,inhist)	# just add keyname not varname
 	    print('Adding plot of variable {} for {}'.format(varname, setname))
 
     # for each variable to plot:
     for varname in varnames.keys():
-	plot_filename = 'plots/{}_{}_{}.%s'.format(varname,args.era,'scaled' if args.scale else '')
+	plot_filename = 'plots/{}_{}{}.%s'.format(varname,args.era,'_scaled' if args.scale else '')
 
 	# get the background hists
 	bkg_hists = OrderedDict()
-	for bkg in ['WJetsHT400', 'WJetsHT600', 'WJetsHT800', 'ZJetsHT600', 'ZJetsHT800', 'ttbar-allhad', 'ttbar-semilep', 'QCDHT700','QCDHT1000','QCDHT1500','QCDHT2000']:
+	#for bkg in ['WJetsHT400', 'WJetsHT600', 'WJetsHT800', 'ZJetsHT600', 'ZJetsHT800', 'ttbar-allhad', 'ttbar-semilep', 'QCDHT700','QCDHT1000','QCDHT1500','QCDHT2000']:
+	for bkg in histgroups.keys():
 	    histgroups[bkg][varname].SetTitle('%s 20%s'%(varname, args.era)) # empty title
 	    # add all subgroups together, i.e. QCD = QCDHT700 + QCDHT1000 + QCDHT1500 + QCDHT2000
 	    # to do so, first create the ordereddict of bkg histos. If the histo exists clone it, if not then add it to the dict
@@ -167,23 +187,24 @@ if __name__ == "__main__":
         # Use TIMBER EasyPlots() utility (Thank you Lucas!!!!)
 	# https://github.com/lcorcodilos/TIMBER/blob/master/TIMBER/Tools/Plot.py#L376
 	for extension in ['pdf','png']:
-	    '''
+	    
 	    EasyPlots(
 		name = plot_filename%(extension),
 		histlist = data,
 		bkglist = bkgs,
 		xtitle = varnames[varname]
 	    )    
-	    '''
+	    
 	    CompareShapes(
 		outfilename = plot_filename%(extension),
 		year = args.era,
 		prettyvarname = varnames[varname],
-		bkgs = OrderedDict([('QCD',bkgs[0][0]),('WJets',bkgs[0][1]),('ttbar',bkgs[0][2]),('ZJets',bkgs[0][3])]),
-		#bkgs = OrderedDict([('WJets',bkgs[0][1]),('ttbar',bkgs[0][2]),('ZJets',bkgs[0][3])]),
+		#bkgs = OrderedDict([('QCD',bkgs[0][0]),('WJets',bkgs[0][1]),('ttbar',bkgs[0][2]),('ZJets',bkgs[0][3])]),
+		bkgs = OrderedDict([('WJets',bkgs[0][1]),('ttbar',bkgs[0][2]),('ZJets',bkgs[0][3])]),
 		signals = {'Data':data[0]},
-		colors={'WJets':3, 'ZJets':4, 'ttbar':2, 'QCD':5},
-		#colors={'WJets':3,'ZJets':4,'ttbar':2},
+		#colors={'WJets':3, 'ZJets':4, 'ttbar':2, 'QCD':5},
+		colors={'WJets':3,'ZJets':4,'ttbar':2},
 		scale=args.scale,
 		logy=True
 	    )
+    '''
