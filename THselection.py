@@ -33,12 +33,12 @@ def THselection(args):
         # Control region - INVERT TOP CUT
         selection.a.SetActiveNode(kinOnly)
 	selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)	
-        passfailSR = selection.ApplyHiggsTag('CR', tagger=higgs_tagger)
+        passfailCR = selection.ApplyHiggsTag('CR', tagger=higgs_tagger)
 
         # Signal region - KEEP TOP CUT
         selection.a.SetActiveNode(kinOnly)
 	selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
-        passfailCR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger)
+        passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():
