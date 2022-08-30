@@ -117,7 +117,8 @@ def plot(var,year,xtitle,ytitle):
     plt.xlabel(xtitle, horizontalalignment='right', x=1.0)
     plt.errorbar(scatterData, hRatio, yerr=errorsRatio, fmt='o', color='k')
 
-    plt.savefig('{}_{}.png'.format(var,year))
+    plt.savefig('plots/{}_{}.png'.format(var,year))
+    plt.savefig('plots/{}_{}.pdf'.format(var,year))
     plt.clf()
     '''
     plt.style.use([hep.style.CMS])
