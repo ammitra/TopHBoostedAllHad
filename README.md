@@ -240,6 +240,10 @@ Selection phase:
 * `nTop_CR/SR`: Top cut in CR/SR
 * `higgsF/L/P_CR/SR`: Higgs cut in fail/loose/pass regions in CR/SR
 
+## Kinematic distributions
+After having run snapshots, run `python dijet_nano/get_all.py` to populate the directory with the snapshot locations. Then, run `python THdistributions.py -y <year>` to generate kinematic distribution histograms in the `rootfiles/` directory. To plot, just run `python kinDistPlotter.py -y <year>`. **NOTE:** the plotting script only works with python3 since it uses fancy matplotlib things instead of ROOT. 
+
+
 # DEPRECATED 
 
 ##  Final selections and studies
