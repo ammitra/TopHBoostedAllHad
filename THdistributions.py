@@ -105,11 +105,11 @@ if __name__ == "__main__":
 	del histgroup
 
     # now hadd all the relevant ones
-    ExecuteCmd('hadd -f rootfiles/kinDist_QCD.root rootfiles/kinDist_QCDHT*_{}.root'.format(args.era))
-    ExecuteCmd('hadd -f rootfiles/kinDist_VJets.root rootfiles/kinDist_*JetsHT*_{}.root'.format(args.era))
-    ExecuteCmd('hadd -f rootfiles/kinDist_WJets.root rootfiles/kinDist_WJetsHT*_{}.root'.format(args.era))
-    ExecuteCmd('hadd -f rootfiles/kinDist_ZJets.root rootfiles/kinDist_ZJetsHT*_{}.root'.format(args.era))
-    ExecuteCmd('hadd -f rootfiles/kinDist_ttbar.root rootfiles/kinDist_ttbar-*_{}.root'.format(args.era))
+    ExecuteCmd('hadd -f rootfiles/kinDist_QCD_{0}.root rootfiles/kinDist_QCDHT*_{0}.root'.format(args.era))
+    ExecuteCmd('hadd -f rootfiles/kinDist_VJets_{0}.root rootfiles/kinDist_*JetsHT*_{0}.root'.format(args.era))
+    ExecuteCmd('hadd -f rootfiles/kinDist_WJets_{0}.root rootfiles/kinDist_WJetsHT*_{0}.root'.format(args.era))
+    ExecuteCmd('hadd -f rootfiles/kinDist_ZJets_{0}.root rootfiles/kinDist_ZJetsHT*_{0}.root'.format(args.era))
+    ExecuteCmd('hadd -f rootfiles/kinDist_ttbar_{0}.root rootfiles/kinDist_ttbar-*_{0}.root'.format(args.era))
 
 
     '''

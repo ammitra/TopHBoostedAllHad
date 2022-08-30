@@ -59,7 +59,7 @@ def plot(var,year,xtitle,ytitle):
             if name == 'QCD':
                 labelsBkg.append('Multijets')
                 colorsBkg.append('y')
-            elif name == 'V':
+            elif name == 'VJets':
                 labelsBkg.append('V+jets')
                 colorsBkg.append('aquamarine')
             elif name == 'ttbar':
@@ -107,7 +107,7 @@ def plot(var,year,xtitle,ytitle):
     plt.ylabel(ytitle, horizontalalignment='right', y=1.0)
     axs[1].set_ylabel("Data/MC")
     yMax = axs[0].get_ylim()
-    axs[0].set_ylim([0.01, yMax[1]*100])
+    axs[0].set_ylim([0.01, yMax[1]*10000])
     hep.cms.text("Preliminary", loc=1)
     plt.legend(loc='best')
 
