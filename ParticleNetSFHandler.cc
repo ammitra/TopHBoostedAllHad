@@ -136,7 +136,7 @@ PNetSFHandler::GetScaleFactor(float pt, float score) {
                     }
 	    }	
 	}
-	else {
+	else {    // 800-infty
 	    switch (_variation) {
                 case 0:    // nominal
                     if (_year == "2016APV") {
@@ -180,5 +180,95 @@ PNetSFHandler::GetScaleFactor(float pt, float score) {
 	    }
 	}
     }
-
+    
+    // now tight working point, [0.98, 1.0]
+    if ((score > 0.98) && (score < 1.0)) {
+	// now check pt
+	if ((pt >= 400) && (pt < 600)) {
+	    switch (_variation) {
+		case 0:    // nominal
+                    if (_year == "2016APV") {
+                        out = 1.102;
+                    }
+                    else if (_year == "2016") {
+                        out = 1.032;
+                    }
+                    else if (_year == "2017") {
+                        out = 0.973;
+                    }
+                    else {
+                        out = 0.904;
+                    }
+		case 1:    // up
+                    if (_year == "2016APV") {
+                        out = 1.102 + 0.219;
+                    }
+                    else if (_year == "2016") {
+                        out = 1.032 + 0.102;
+                    }
+                    else if (_year == "2017") {
+                        out = 0.973 + 0.053;
+                    }
+                    else {
+                        out = 0.904 + 0.062;
+                    }
+		case -1:    // down
+                    if (_year == "2016APV") {
+                        out = 1.102 - 0.184;
+                    }
+                    else if (_year == "2016") {
+                        out = 1.032 - 0.100;
+                    }
+                    else if (_year == "2017") {
+                        out = 0.973 - 0.069;
+                    }
+                    else {
+                        out = 0.904 - 0.080;
+                    }
+	    }
+	}
+	else if ((pt >= 600) && (pt < 800)) {
+	    switch (_variation) {
+		case 0:    // nominal
+                    if (_year == "2016APV") {
+                        out = 1.103;
+                    }
+                    else if (_year == "2016") {
+                        out = 1.173;
+                    }
+                    else if (_year == "2017") {
+                        out = 1.006;
+                    }
+                    else {
+                        out = 0.921;
+                    }
+		case 1:    // up
+                    if (_year == "2016APV") {
+                        out = 1.103 + 0.252;
+                    }
+                    else if (_year == "2016") {
+                        out = 1.173 + 0.209;
+                    }
+                    else if (_year == "2017") {
+                        out = 1.006 + 0.058;
+                    }
+                    else {
+                        out = 0.921 + 0.048;
+                    }
+		case -1:    // down
+                    if (_year == "2016APV") {
+                        out = 1.103 - 0.232;
+                    }
+                    else if (_year == "2016") {
+                        out = 1.173 - 0.203;
+                    }
+                    else if (_year == "2017") {
+                        out = 1.006 - 0.075;
+                    }
+                    else {
+                        out = 0.921 - 0.080;
+                    }
+	    }
+	}
+    }
 };
