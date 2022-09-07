@@ -64,7 +64,7 @@ PNetSFHandler::PNetSFHandler(RVec<float> wps, RVec<float> effs, std::string year
   _rand = TRandom(1234);
 };
 
-int getWPcat(float taggerVal) {
+int PNetSFHandler::getWPcat(float taggerVal) {
   // determine the WP category we're in, 0:fail, 1:loose, 2:tight
   int wpCat;
   if ((taggerVal > _wps[0]) && (taggerVal < _wps[1])) { // loose
@@ -79,7 +79,7 @@ int getWPcat(float taggerVal) {
   return wpCat;
 }
 
-float getSF(float pt, float taggerVal) {
+float PNetSFHandler::getSF(float pt, float taggerVal) {
   /* getthe scale factor from the jet's year, score, and pt */
   float SF;
   int ptCat;
@@ -100,7 +100,7 @@ float getSF(float pt, float taggerVal) {
   }
   // get the SF
   switch (wpCat) {
-    case 0;   // if jet is originally in fail, pass SF of 1.0 (no change)
+    case 0:   // if jet is originally in fail, pass SF of 1.0 (no change)
       SF = 1.0;
     case 1:   // jet is in MP (loose)
       if (_year=="2016APV") { SF = SF2016APV_L[_var][ptCat]; }
@@ -126,6 +126,7 @@ RVec<int> PNetSFHandler::createTag(RVec<float> taggerVals) {
   RVec<int> jetCats;
   for (size_t ijet=0; ijet<taggerVals.size(); ijet++) {   // loop over all jets
     int cat;
+    float taggerVal = taggerVals[ijet];
     if ((taggerVal > _wps[0]) && (taggerVal < _wps[1])) {   // 0.8 < tag < 0.98
       _origTags[1]++;
       jetCats[ijet] = 1;
@@ -165,7 +166,7 @@ RVec<int> PNetSFHandler::updateTag(RVec<int> jetCats, RVec<float> pt, RVec<float
 
     // generate the random number for the event 
     double rn = _rand.Rndm();
-    printf("\trn: %d",rn);
+    printf("\trn: %f",rn);
 
     // check the four cases and modify the new category appropriately
     if ((SF_L < 1) && (SF_T < 1)) {
