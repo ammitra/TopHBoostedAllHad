@@ -6,6 +6,19 @@ ROOT.gROOT.SetBatch(True)
 
 from THClass import THClass
 
+def getEfficiencies(sel, wp_loose, wp_tight):
+    start = sel.a.GetActiveNode()
+    nTot = sel.getNweighted()
+    sel.a.Define("Eff_L_cut","Dijet_particleNetMD_HbbvsQCD > {} && Dijet_particleNetMD_HbbvsQCD < {}".format(wp_loose, wp_tight))
+    nL = sel.getNweighted()
+    sel.a.SetActiveNode(start)
+    sel.a.Define("Eff_T_cut","Dijet_particleNetMD_HbbvsQCD > {}".format(wp_tight))
+    nT = sel.getNweighted()
+    effL = nL/nTot
+    effT = nT/nTot
+    sel.a.SetActiveNode(start)
+    return effL, effT
+
 def THselection(args):
     #ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
@@ -14,6 +27,29 @@ def THselection(args):
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),args.era,1,1)
     selection.OpenForSelection(args.variation)
     selection.ApplyTrigs(args.trigEff)
+
+    # apply ParticleNet scale factors to signal
+    if ('Tprime' in args.setname):
+	CompileCpp("ParticleNet_SF.cc")
+	# determine which variation to pass to constructor
+	if (args.variation == 'PNet_up'):
+	    var=1
+	elif (args.variation == 'PNet_down'):
+	    var=2
+	else:
+	    var=0
+	# calculate efficiencies
+	eff_L, eff_T = getEfficiencies(selection, 0.8, 0.98)
+	print("eff_L: {}".format(eff_L))
+	print("eff_T: {}".format(eff_T))
+	# instantiate Scale Factor class: {WPs}, {effs}, "year", variation
+	CompileCpp('PNetSFHandler p = PNetSFHandler({0.8,0.98}, {%f,%f}, %s, %i);'%(eff_L, eff_T, args.era, var))
+	# now create the column with original tagger category values (0: fail, 1: loose, 2: tight)
+	a.Define("OriginalTagCats","p.createTag(Dijet_particleNetMD_HbbvsQCD)")
+	# now create the column with *new* tagger categories, after applying logic. MUST feed in the original column (created in last step)
+	a.Define("NewTagCats","p.updateTag(OriginalTagCats, Dijet_pt, particleNetMD_HbbvsQCD)")
+	# at this point, we have used SFs and efficiencies to perform btag reassignment on a jet-by-jet basis. 
+
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
 
     out = ROOT.TFile.Open('rootfiles/THselection_%s%s_%s%s.root'%(args.setname,
@@ -33,12 +69,12 @@ def THselection(args):
         # Control region - INVERT TOP CUT
         selection.a.SetActiveNode(kinOnly)
 	selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)	
-        passfailCR = selection.ApplyHiggsTag('CR', tagger=higgs_tagger)
+        passfailCR = selection.ApplyHiggsTag('CR', tagger=higgs_tagger, signal=True if 'Tprime' in args.setname else False)
 
         # Signal region - KEEP TOP CUT
         selection.a.SetActiveNode(kinOnly)
 	selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
-        passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger)
+        passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=True if 'Tprime' in args.setname else False)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():

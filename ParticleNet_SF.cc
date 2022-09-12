@@ -50,8 +50,6 @@ class PNetSFHandler {
     RVec<int> updateTag(RVec<int> jetCats, RVec<float> pt, RVec<float> taggerVals);   // determines the jet's new tagger category 
     RVec<int> createTag(RVec<float> taggerVals);                      // create vector of tagger categories based on jets' original tagger value.
 
-    int test(float taggerVal);
-
     //int bothLessThanOne(int jetCat, float sf_l, float sf_t);        // both HP, MP SFs < 1
     //int bothGreaterThanOne(int jetCat, float sf_l, float sf_t);     // both HP, MP SFs > 1
     //int LLowerTGreaterThanOne(int jetCat, float sf_l, float sf_t);  // MP SF < 1, HP SF > 1
@@ -67,12 +65,6 @@ PNetSFHandler::PNetSFHandler(RVec<float> wps, RVec<float> effs, std::string year
   _rand = TRandom(1234);
 };
 
-int PNetSFHandler::test(float taggerVal) {
-    if ((taggerVal > _wps[0]) && (taggerVal < _wps[1])) return 1;
-    if (taggerVal > _wps[1]) return 2;
-    if (taggerVal < _wps[0]) return 0;
-}
-
 int PNetSFHandler::getWPcat(float taggerVal) {
   // determine the WP category we're in, 0:fail, 1:loose, 2:tight
   int wpCat;
@@ -86,7 +78,7 @@ int PNetSFHandler::getWPcat(float taggerVal) {
     wpCat = 0;
   }
   return wpCat;
-}
+};
 
 float PNetSFHandler::getSF(float pt, float taggerVal) {
   /* getthe scale factor from the jet's year, score, and pt */
@@ -123,7 +115,7 @@ float PNetSFHandler::getSF(float pt, float taggerVal) {
       else { SF = SF2018_T[_var][ptCat]; }
   }
   return SF;
-}
+};
 
 RVec<int> PNetSFHandler::createTag(RVec<float> taggerVals) {
   /* Creates tagger categories for phi candidate jets.
