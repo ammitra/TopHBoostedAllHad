@@ -49,6 +49,9 @@ class PNetSFHandler {
     float getSF(float pt, float taggerVal);                           // gets the proper SF based on jet's pt and score as well as internal variables _year, _var
     RVec<int> updateTag(RVec<int> jetCats, RVec<float> pt, RVec<float> taggerVals);   // determines the jet's new tagger category 
     RVec<int> createTag(RVec<float> taggerVals);                      // create vector of tagger categories based on jets' original tagger value.
+
+    int test(float taggerVal);
+
     //int bothLessThanOne(int jetCat, float sf_l, float sf_t);        // both HP, MP SFs < 1
     //int bothGreaterThanOne(int jetCat, float sf_l, float sf_t);     // both HP, MP SFs > 1
     //int LLowerTGreaterThanOne(int jetCat, float sf_l, float sf_t);  // MP SF < 1, HP SF > 1
@@ -63,6 +66,12 @@ PNetSFHandler::PNetSFHandler(RVec<float> wps, RVec<float> effs, std::string year
   // unique but repeatable random numbers. For repeated calls in the same event, random #s from Rndm() will be identical
   _rand = TRandom(1234);
 };
+
+int PNetSFHandler::test(float taggerVal) {
+    if ((taggerVal > _wps[0]) && (taggerVal < _wps[1])) return 1;
+    if (taggerVal > _wps[1]) return 2;
+    if (taggerVal < _wps[0]) return 0;
+}
 
 int PNetSFHandler::getWPcat(float taggerVal) {
   // determine the WP category we're in, 0:fail, 1:loose, 2:tight
@@ -122,8 +131,9 @@ RVec<int> PNetSFHandler::createTag(RVec<float> taggerVals) {
    * example calling from TIMBER (after compiling class): analyzer.Define("ScaledPnetH","PNetSFHandler.createTag(particleNetMD_HbbvsQCD);")
    * cat (int): 0-fail, 1-MP(loose), 2-HP(tight)
   */
-  printf("Creating tag categories - 0: Fail, 1: Loose, 2: Tight\n");
-  RVec<int> jetCats;
+  //std::cout << "in vec size: " << taggerVals.size() << "\n"; 
+  //printf("Creating tag categories - 0: Fail, 1: Loose, 2: Tight\n");
+  RVec<int> jetCats(taggerVals.size());
   for (size_t ijet=0; ijet<taggerVals.size(); ijet++) {   // loop over all jets
     int cat;
     float taggerVal = taggerVals[ijet];
@@ -140,7 +150,7 @@ RVec<int> PNetSFHandler::createTag(RVec<float> taggerVals) {
       jetCats[ijet] = 0;
     }
   }
-  printf("Finished creating tag categories. Initial values before btag reassignment:\n\tFail: %i\n\tLoose: %i\n\tTight: %i\n",_origTags[0],_origTags[1],_origTags[2]);
+  //printf("Finished creating tag categories. Initial values before btag reassignment:\n\tFail: %i\n\tLoose: %i\n\tTight: %i\n",_origTags[0],_origTags[1],_origTags[2]);
   return jetCats;
 };
 
@@ -153,8 +163,8 @@ RVec<int> PNetSFHandler::updateTag(RVec<int> jetCats, RVec<float> pt, RVec<float
    * returns:
    *    cats = new vector of ints representing the jet categories after checking the four SF conditions
   */
-  printf("Updating tag categories - 0: Fail, 1: Loose, 2: Tight\n");
-  RVec<int> cats;
+  //printf("Updating tag categories - 0: Fail, 1: Loose, 2: Tight\n");
+  RVec<int> cats(jetCats.size());
   float eff_L = _effs[0];
   float eff_T = _effs[1];
   for (size_t ijet=0; ijet<pt.size(); ijet++) {
@@ -166,8 +176,9 @@ RVec<int> PNetSFHandler::updateTag(RVec<int> jetCats, RVec<float> pt, RVec<float
 
     // generate the random number for the event 
     double rn = _rand.Rndm();
-    printf("\trn: %f",rn);
+    //printf("\trn: %f",rn);
 
+    /* BROKEN - results in very incorrect retag values across nom/up/down
     // check the four cases and modify the new category appropriately
     if ((SF_L < 1) && (SF_T < 1)) {
       if ( (newCat==2) && (rn < (1-SF_T)) ) newCat--;                         // demote from tight (2) to loose (1)
@@ -185,12 +196,33 @@ RVec<int> PNetSFHandler::updateTag(RVec<int> jetCats, RVec<float> pt, RVec<float
       if ( (newCat==2) && (rn < (1-SF_T)) ) newCat--;                              // demote from tight (2) to loose (1)
       if ( (newCat==0) && (rn < (eff_L*(SF_L-1))/(1-(eff_T+eff_L))) ) newCat++;    // promote from untag (0) to loose (1)
     }
+    */
+
+    if ((SF_L < 1) && (SF_T < 1)) {
+      if ( (newCat==2) && (rn < (1.-SF_T)) ) newCat--;                         // demote from tight (2) to loose (1)
+      if ( (newCat==1) && (rn < (1.-SF_L)) ) newCat--;                         // demote from loose (1) to untag (0)
+    }
+    else if ((SF_L > 1) && (SF_T > 1)) {
+      if (newCat==0) {
+        if (rn < (eff_T*(SF_T-1.))/(1.-eff_L+eff_T)) newCat=2;                 // promote from untag (0)  to tight (2)
+        if (rn < (eff_L*(SF_L-1.))/(1.-eff_L-eff_T)*(1.-(eff_T*(SF_T-1.))/(1.-eff_L+eff_T)) ) newCat++;   // promote from untag (0) to loose (1)
+      }
+    }
+    else if ((SF_L < 1) && (SF_T > 1)) {
+      if ( (newCat==0) && (rn < (eff_T*(SF_T-1.))/(1.-(eff_L+eff_T)) ) ) newCat=2;  // promote from untag (0) to tight (2)
+      if ( (newCat==1) && (rn < 1.-SF_L) ) newCat--;                                // demote from loose (1) to untag (0)    
+    }
+    else if ((SF_L > 1) && (SF_T < 1)) {
+      if ( (newCat==2) && (rn <  1.-SF_T) ) newCat=0;                               // demote from tight (2) to untag (0)
+      if ( (newCat==0) && (rn < (eff_L*(SF_L-1.))/(1.-(eff_L+eff_T)) ) ) newCat++;  // promote from untag (0) to loose (1)
+    }
+
     // append new category value to RVec
     cats[ijet] = newCat;
     // update the new tag category array
     _newTags[newCat]++;
   }
   // values in _newTags array MUST be updated during the 4 above subroutines based on their outcome
-  printf("Finished updating tag categories. New values after btag reassignment:\n\tFail: %i\n\tLoose: %i\n\tTight: %i\n",_newTags[0],_newTags[1],_newTags[2]);
+  //printf("Finished updating tag categories. New values after btag reassignment:\n\tFail: %i\n\tLoose: %i\n\tTight: %i\n",_newTags[0],_newTags[1],_newTags[2]);
   return cats;
 };
