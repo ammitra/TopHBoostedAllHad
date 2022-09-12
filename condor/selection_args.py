@@ -31,8 +31,11 @@ files = GetAllFiles()
 for f in files:
     setname, era = GetProcYearFromFile(f)
     if 'Data' not in setname and 'QCD' not in setname:
-	out.write('-s {} -y {} -v None \n'.format(setname, era))
-	for jme in ['JES', 'JER', 'JMS', 'JMR']:
+	out.write('-s {} -y {} -v None \n'.format(setname, era))  # perform nominal variation first
+	JME = ['JES', 'JER', 'JMS', 'JMR']	# normal Jet corrections
+	if 'Tprime' in setname:
+	    JME.extend(['PNet'])	# particleNet SF corrections (See THselection.py, need to be named PNet_up/down
+	for jme in JME:
 	    for v in ['up', 'down']:
 		out.write('-s {} -y {} -v {}_{} \n'.format(setname, era, jme, v))
     else: 
