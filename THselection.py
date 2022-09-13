@@ -6,60 +6,70 @@ ROOT.gROOT.SetBatch(True)
 
 from THClass import THClass
 
-def getEfficiencies(sel, wp_loose, wp_tight):
-    start = sel.a.GetActiveNode()
-    nTot = sel.getNweighted()
-    sel.a.Define("Eff_L_cut","Dijet_particleNetMD_HbbvsQCD > {} && Dijet_particleNetMD_HbbvsQCD < {}".format(wp_loose, wp_tight))
-    nL = sel.getNweighted()
-    sel.a.SetActiveNode(start)
-    sel.a.Define("Eff_T_cut","Dijet_particleNetMD_HbbvsQCD > {}".format(wp_tight))
-    nT = sel.getNweighted()
+def getEfficiencies(analyzer, tagger, wp_loose, wp_tight):
+    start = analyzer.GetActiveNode()
+    nTot = analyzer.DataFrame.Sum("genWeight").GetValue()
+    print("nTot = {}".format(nTot))
+    analyzer.Cut("Eff_L_cut","{0} > {1} && {0} < {2}".format(tagger, wp_loose, wp_tight))
+    nL = analyzer.DataFrame.Sum("genWeight").GetValue()
+    print("nL = {}".format(nL))
+    analyzer.SetActiveNode(start)
+    analyzer.Cut("Eff_T_cut","{0} > {1}".format(tagger, wp_tight))
+    nT = analyzer.DataFrame.Sum("genWeight").GetValue()
+    print("nT = {}".format(nT))
     effL = nL/nTot
     effT = nT/nTot
-    sel.a.SetActiveNode(start)
+    analyzer.SetActiveNode(start)
     return effL, effT
 
+def applyScaleFactors(analyzer, tagger, variation, eff_loose, eff_tight, wp_loose, wp_tight):
+    '''
+	creates PNetSFHandler object and creates the original and updated tagger categories
+	must be called ONLY once, after calling ApplyTopPick() so proper Higgs vect is created
+    '''
+    # instantiate Scale Factor class: {WPs}, {effs}, "year", variation
+    CompileCpp('PNetSFHandler p = PNetSFHandler({0.8,0.98}, {%f,%f}, "20%s", %i);'%(eff_loose, eff_tight, args.era, variation))
+    # now create the column with original tagger category values (0: fail, 1: loose, 2: tight)
+    analyzer.Define("OriginalTagCats","p.createTag({})".format(tagger))
+    # now create the column with *new* tagger categories, after applying logic. MUST feed in the original column (created in last step)
+    analyzer.Define("NewTagCats","p.updateTag(OriginalTagCats, Higgs_pt_corr, {})".format(tagger))
+
 def THselection(args):
-    #ROOT.ROOT.EnableImplicitMT(args.threads)
+    ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
+
+    # check if signal
+    signal = False
+    if ('Tprime' in args.setname):
+	signal = True
+        # determine which variation to pass constructor
+        if (args.variation == 'PNet_up'):
+            var = 1
+        elif (args.variation == 'PNet_down'):
+            var = 2
+        else:
+            var = 0
+        CompileCpp("ParticleNet_SF.cc")     # compile class for later use
 
     print('Opening dijet_nano/{}_{}_snapshot.txt'.format(args.setname,args.era))
     selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),args.era,1,1)
     selection.OpenForSelection(args.variation)
     selection.ApplyTrigs(args.trigEff)
-
-    # apply ParticleNet scale factors to signal
-    if ('Tprime' in args.setname):
-	CompileCpp("ParticleNet_SF.cc")
-	# determine which variation to pass to constructor
-	if (args.variation == 'PNet_up'):
-	    var=1
-	elif (args.variation == 'PNet_down'):
-	    var=2
-	else:
-	    var=0
-	# calculate efficiencies
-	eff_L, eff_T = getEfficiencies(selection, 0.8, 0.98)
-	print("eff_L: {}".format(eff_L))
-	print("eff_T: {}".format(eff_T))
-	# instantiate Scale Factor class: {WPs}, {effs}, "year", variation
-	CompileCpp('PNetSFHandler p = PNetSFHandler({0.8,0.98}, {%f,%f}, %s, %i);'%(eff_L, eff_T, args.era, var))
-	# now create the column with original tagger category values (0: fail, 1: loose, 2: tight)
-	a.Define("OriginalTagCats","p.createTag(Dijet_particleNetMD_HbbvsQCD)")
-	# now create the column with *new* tagger categories, after applying logic. MUST feed in the original column (created in last step)
-	a.Define("NewTagCats","p.updateTag(OriginalTagCats, Dijet_pt, particleNetMD_HbbvsQCD)")
-	# at this point, we have used SFs and efficiencies to perform btag reassignment on a jet-by-jet basis. 
-
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
-
     out = ROOT.TFile.Open('rootfiles/THselection_%s%s_%s%s.root'%(args.setname,
                                                                   '' if args.topcut == '' else '_htag'+args.topcut.replace('.','p'),
                                                                   args.era,
-                                                                  '' if args.variation == 'None' else '_'+args.variation),
-                          'RECREATE')
+                                                                  '' if args.variation == 'None' else '_'+args.variation), 'RECREATE')
     out.cd()
-    #for t in ['deepTag','particleNet']:
-    for t in ['particleNet']:
+
+    # apply Scale Factors
+    print(selection.a)
+    eff_L, eff_T = getEfficiencies(selection.a, 'Dijet_particleNetMD_HbbvsQCD', 0.8, 0.98)
+    print('eff_L: {}%'.format(eff_L*100.))
+    print('eff_T: {}%'.format(eff_T*100.))
+    applyScaleFactors(selection.a, 'Dijet_particleNetMD_HbbvsQCD', var, eff_L, eff_T, 0.8, 0.98)
+
+    for t in ['particleNet']:	# add other taggers to this list if studying more than just ParticleNet
         if args.topcut != '':
             selection.cuts[t+'MD_HbbvsQCD'] = float(args.topcut)
 
@@ -68,13 +78,14 @@ def THselection(args):
 
         # Control region - INVERT TOP CUT
         selection.a.SetActiveNode(kinOnly)
-	selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)	
-        passfailCR = selection.ApplyHiggsTag('CR', tagger=higgs_tagger, signal=True if 'Tprime' in args.setname else False)
+	selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)
+        passfailCR = selection.ApplyHiggsTag('CR', tagger='Higgs_'+higgs_tagger, signal=signal)
 
         # Signal region - KEEP TOP CUT
         selection.a.SetActiveNode(kinOnly)
 	selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
-        passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=True if 'Tprime' in args.setname else False)
+	eff_L,eff_T = getEfficiencies(selection.a, 'Higgs_'+higgs_tagger, 0.8, 0.98)
+        passfailSR = selection.ApplyHiggsTag('SR', tagger='Higgs_'+higgs_tagger, signal=signal)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():
@@ -133,7 +144,7 @@ if __name__ == '__main__':
                         action='store', default='',
                         help='Overrides config entry if non-empty')
     args = parser.parse_args()
-    #args.threads = 1
+    args.threads = 2
     args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_{}.root'.format(args.era if 'APV' not in args.era else 16),'Pretag'], corrtype='weight')
     CompileCpp('THmodules.cc')
     THselection(args)
