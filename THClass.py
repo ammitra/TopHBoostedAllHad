@@ -137,10 +137,11 @@ class THClass:
                 )
                 if self.year == '16' or self.year == '17' or self.year == '16APV':
 		    # this is valid for calculating Prefire weights by TIMBER, but NanoAODv9 contains the weights as TLeafs in the Events TTree. So, let's just use that
+		    '''
                     self.a.AddCorrection(
                         Correction("Prefire","TIMBER/Framework/include/Prefire_weight.h",[int(self.year) if 'APV' not in self.year else 16],corrtype='weight')
                     )
-		    
+		    '''
 		    # The column names are: L1PreFiringWeight_Up, L1PreFiringWeight_Dn, L1PreFiringWeight_Nom
 		    L1PreFiringWeight = Correction("L1PreFiringWeight","TIMBER/Framework/TopPhi_modules/BranchCorrection.cc",constructor=[],mainFunc='evalWeight',corrtype='weight',columnList=['L1PreFiringWeight_Nom','L1PreFiringWeight_Up','L1PreFiringWeight_Dn'])
 		    self.a.AddCorrection(L1PreFiringWeight, evalArgs={'val':'L1PreFiringWeight_Nom','valUp':'L1PreFiringWeight_Up','valDown':'L1PreFiringWeight_Dn'})	
@@ -168,7 +169,7 @@ class THClass:
                 self.a.AddCorrection(Correction('Pileup',corrtype='weight'))
                 self.a.AddCorrection(Correction('Pdfweight',corrtype='uncert'))
                 if self.year == '16' or self.year == '17' or self.year == '16APV':
-                    self.a.AddCorrection(Correction('Prefire',corrtype='weight'))
+                    #self.a.AddCorrection(Correction('Prefire',corrtype='weight'))
 		    self.a.AddCorrection(Correction('L1PreFiringWeight',corrtype='weight'))
                 elif self.year == '18':
                     self.a.AddCorrection(Correction('HEM_drop',corrtype='corr'))
@@ -200,7 +201,7 @@ class THClass:
                             'Dijet_JMR_nom','Dijet_JMR_up','Dijet_JMR_down'])
             columns.extend(['Pileup__nom','Pileup__up','Pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
             if self.year == '16' or self.year == '17' or self.year == '16APV':
-                columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])
+                #columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])					# these are the TIMBER prefire calculations (don't include)
 		columns.extend(['L1PreFiringWeight_Nom', 'L1PreFiringWeight_Up', 'L1PreFiringWeight_Dn'])	# keep the TIMBER Prefire calculations, but also include these from NanoAODv9
 		columns.extend(['L1PreFiringWeight__nom','L1PreFiringWeight__up','L1PreFiringWeight__down'])    # these are the weight columns created by the BranchCorrection module 
             elif self.year == '18':
@@ -297,7 +298,7 @@ class THClass:
         checkpoint = self.a.GetActiveNode()
         passLooseFail = {}
 	# Higgs Pass + cutflow info
-        passLooseFail["pass"] = self.a.Cut('HbbTag_pass','Higgs_{0} > {1}'.format(tagger,self.cuts[tagger]) if not signal else 'NewTagCats==2')
+        passLooseFail["pass"] = self.a.Cut('HbbTag_pass','{0} > {1}'.format(tagger,self.cuts[tagger])) #if not signal else 'NewTagCats==2')
 	if SRorCR == 'SR':
 	    self.higgsP_SR = self.getNweighted()
 	    self.AddCutflowColumn(self.higgsP_SR, "higgsP_SR")
@@ -306,7 +307,7 @@ class THClass:
 	    self.AddCutflowColumn(self.higgsP_CR, "higgsP_CR")
 	# Higgs Loose + cutflow info
         self.a.SetActiveNode(checkpoint)
-        passLooseFail["loose"] = self.a.Cut('HbbTag_loose','Higgs_{0} > 0.8 && Higgs_{0} < {1}'.format(tagger,self.cuts[tagger]) if not signal else 'NewTagCats==1')
+        passLooseFail["loose"] = self.a.Cut('HbbTag_loose','{0} > 0.8 && Higgs_{0} < {1}'.format(tagger,self.cuts[tagger])) #if not signal else 'NewTagCats==1')
         if SRorCR == 'SR':
             self.higgsL_SR = self.getNweighted()
 	    self.AddCutflowColumn(self.higgsL_SR, "higgsL_SR")
@@ -315,7 +316,7 @@ class THClass:
 	    self.AddCutflowColumn(self.higgsL_CR, "higgsL_CR")
 	# Higgs Fail + cutflow info
         self.a.SetActiveNode(checkpoint)
-        passLooseFail["fail"] = self.a.Cut('HbbTag_fail','Higgs_{0} < 0.8'.format(tagger,self.cuts[tagger]) if not signal else 'NewTagCats==0')
+        passLooseFail["fail"] = self.a.Cut('HbbTag_fail','{0} < 0.8'.format(tagger,self.cuts[tagger])) #if not signal else 'NewTagCats==0')
         if SRorCR == 'SR':
             self.higgsF_SR = self.getNweighted()
 	    self.AddCutflowColumn(self.higgsF_SR, "higgsF_SR")
