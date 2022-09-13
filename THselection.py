@@ -6,7 +6,13 @@ ROOT.gROOT.SetBatch(True)
 
 from THClass import THClass
 
-def getEfficiencies(analyzer, tagger, wp_loose, wp_tight):
+def getEfficiencies(analyzer, tagger, SRorCR, wp_loose, wp_tight):
+    ''' 
+	call this function after ApplyTopPick() has been called
+	Therefore, we have to prepend the tagger with 'Higgs_'
+    '''
+    print('Obtaining efficiencies in {}'.format(SRorCR))
+    tagger = 'Higgs_' + tagger
     start = analyzer.GetActiveNode()
     nTot = analyzer.DataFrame.Sum("genWeight").GetValue()
     print("nTot = {}".format(nTot))
@@ -20,19 +26,24 @@ def getEfficiencies(analyzer, tagger, wp_loose, wp_tight):
     effL = nL/nTot
     effT = nT/nTot
     analyzer.SetActiveNode(start)
+    print('{}: effL = {}%'.format(SRorCR, effL*100.))
+    print('{}: effT = {}%'.format(SRorCR, effT*100.))
     return effL, effT
 
-def applyScaleFactors(analyzer, tagger, variation, eff_loose, eff_tight, wp_loose, wp_tight):
+def applyScaleFactors(analyzer, tagger, variation, SRorCR, eff_loose, eff_tight, wp_loose, wp_tight):
     '''
 	creates PNetSFHandler object and creates the original and updated tagger categories
 	must be called ONLY once, after calling ApplyTopPick() so proper Higgs vect is created
+	Therefore, we have to prepend the tagger with 'Higgs_'
     '''
+    print('Applying SFs in {}'.format(SRorCR))
+    tagger = 'Higgs_' + tagger
     # instantiate Scale Factor class: {WPs}, {effs}, "year", variation
-    CompileCpp('PNetSFHandler p = PNetSFHandler({0.8,0.98}, {%f,%f}, "20%s", %i);'%(eff_loose, eff_tight, args.era, variation))
+    CompileCpp('PNetSFHandler p_%s = PNetSFHandler({0.8,0.98}, {%f,%f}, "20%s", %i);'%(SRorCR, eff_loose, eff_tight, args.era, variation))
     # now create the column with original tagger category values (0: fail, 1: loose, 2: tight)
-    analyzer.Define("OriginalTagCats","p.createTag({})".format(tagger))
+    analyzer.Define("OriginalTagCats","p_{}.createTag({})".format(SRorCR, tagger))
     # now create the column with *new* tagger categories, after applying logic. MUST feed in the original column (created in last step)
-    analyzer.Define("NewTagCats","p.updateTag(OriginalTagCats, Higgs_pt_corr, {})".format(tagger))
+    analyzer.Define("NewTagCats","p_{}.updateTag(OriginalTagCats, Higgs_pt_corr, {})".format(SRorCR, tagger))
 
 def THselection(args):
     ROOT.ROOT.EnableImplicitMT(args.threads)
@@ -62,13 +73,6 @@ def THselection(args):
                                                                   '' if args.variation == 'None' else '_'+args.variation), 'RECREATE')
     out.cd()
 
-    # apply Scale Factors
-    print(selection.a)
-    eff_L, eff_T = getEfficiencies(selection.a, 'Dijet_particleNetMD_HbbvsQCD', 0.8, 0.98)
-    print('eff_L: {}%'.format(eff_L*100.))
-    print('eff_T: {}%'.format(eff_T*100.))
-    applyScaleFactors(selection.a, 'Dijet_particleNetMD_HbbvsQCD', var, eff_L, eff_T, 0.8, 0.98)
-
     for t in ['particleNet']:	# add other taggers to this list if studying more than just ParticleNet
         if args.topcut != '':
             selection.cuts[t+'MD_HbbvsQCD'] = float(args.topcut)
@@ -79,13 +83,19 @@ def THselection(args):
         # Control region - INVERT TOP CUT
         selection.a.SetActiveNode(kinOnly)
 	selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)
-        passfailCR = selection.ApplyHiggsTag('CR', tagger='Higgs_'+higgs_tagger, signal=signal)
+	# now that top selection has been made for CR, we get the loose/tight efficiencies for the CR and make tagger categories (IF SIGNAL)
+	if signal:
+	    eff_L_CR, eff_T_CR = getEfficiencies(selection.a, higgs_tagger, 'CR', 0.8, 0.98)
+	    applyScaleFactors(selection.a, higgs_tagger, var, 'CR', eff_L_CR, eff_T_CR, 0.8, 0.95)
+        passfailCR = selection.ApplyHiggsTag('CR', tagger=higgs_tagger, signal=signal)
 
         # Signal region - KEEP TOP CUT
         selection.a.SetActiveNode(kinOnly)
 	selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
-	eff_L,eff_T = getEfficiencies(selection.a, 'Higgs_'+higgs_tagger, 0.8, 0.98)
-        passfailSR = selection.ApplyHiggsTag('SR', tagger='Higgs_'+higgs_tagger, signal=signal)
+        if signal:
+            eff_L_SR, eff_T_SR = getEfficiencies(selection.a, higgs_tagger, 'SR', 0.8, 0.98)
+            applyScaleFactors(selection.a, higgs_tagger, var, 'SR', eff_L_SR, eff_T_SR, 0.8, 0.95)
+        passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=signal)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():

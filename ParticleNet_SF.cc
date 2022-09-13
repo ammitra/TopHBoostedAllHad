@@ -44,16 +44,25 @@ class PNetSFHandler {
 
   public:
     PNetSFHandler(RVec<float> wps, RVec<float> effs, std::string year, int var);  // default: wps={0.8,0.98}, effs={effl,effT}, var=0/1/2
-    ~PNetSFHandler(){};
+    ~PNetSFHandler();
     int getWPcat(float taggerVal);                                    // determine WP category: 0: fail, 1: loose, 2: tight
     float getSF(float pt, float taggerVal);                           // gets the proper SF based on jet's pt and score as well as internal variables _year, _var
-    RVec<int> updateTag(RVec<int> jetCats, RVec<float> pt, RVec<float> taggerVals);   // determines the jet's new tagger category 
-    RVec<int> createTag(RVec<float> taggerVals);                      // create vector of tagger categories based on jets' original tagger value.
+    int updateTag(int jetCat, float pt, float taggerVal);	      // determines the jet's new tagger category
+    int createTag(float taggerVal);				      // create new tagger category based on jet's original tagger value
+    void printVals();						      // print the number of jets in each category
 
-    //int bothLessThanOne(int jetCat, float sf_l, float sf_t);        // both HP, MP SFs < 1
-    //int bothGreaterThanOne(int jetCat, float sf_l, float sf_t);     // both HP, MP SFs > 1
-    //int LLowerTGreaterThanOne(int jetCat, float sf_l, float sf_t);  // MP SF < 1, HP SF > 1
-    //int LGreaterTLowerThanOne(int jetCat, float sf_l, float sf_t);  // MP SF > 1, HP SF < 1
+    // These functions should *NOT* be used, but are included for posterity
+    // Essentially, instead of generating a vector of integers, just generate an integer
+    // The reason is that we call these via TIMBER's Define() function, which takes in a C++ function or string and applies it to *EVERY* value in the column 
+    // This means that we don't have to pass in the vectors themselves, just the column names
+    RVec<int> updateTag(RVec<int> jetCats, RVec<float> pt, RVec<float> taggerVals);   // determines the jet's new tagger category 
+    RVec<int> createTag(RVec<float> taggerVals);                                      // create vector of tagger categories based on jets' original tagger value.
+};
+
+void PNetSFHandler::printVals() {
+    // prints the number of original and new tagger values
+    printf("Number of Original\n\tFail: %d\n\tLoose: %d\n\tPass: %d\n\tTotal: %d\n", _origTags[0], _origTags[1], _origTags[2], _origTags[0]+_origTags[1]+_origTags[2]);
+    printf("Number of New\n\tFail: %d\n\tLoose: %d\n\tPass: %d\n\tTotal: %d\n", _newTags[0], _newTags[1], _newTags[2], _newTags[0]+_newTags[1]+_newTags[2]);
 };
 
 PNetSFHandler::PNetSFHandler(RVec<float> wps, RVec<float> effs, std::string year, int var) {
@@ -63,6 +72,11 @@ PNetSFHandler::PNetSFHandler(RVec<float> wps, RVec<float> effs, std::string year
   _var = var;
   // unique but repeatable random numbers. For repeated calls in the same event, random #s from Rndm() will be identical
   _rand = TRandom(1234);
+};
+
+PNetSFHandler::~PNetSFHandler() {
+    // print out number of original and new tagger vals upon destruction
+    printVals();
 };
 
 int PNetSFHandler::getWPcat(float taggerVal) {
@@ -117,6 +131,93 @@ float PNetSFHandler::getSF(float pt, float taggerVal) {
   return SF;
 };
 
+
+int PNetSFHandler::createTag(float taggerVal) {
+    /* Creates tagger categories for phi candidate jets
+     * this MUST be called in TIMBER before running the rest of the script, as it places all jets into their respective categories for later use in updateTag()
+     * This function is meant to be called after selecting the top and higgs in CR and SR (see THselection.py - getEfficiencies)
+    */
+    if ((taggerVal > _wps[0]) && (taggerVal < _wps[1])) {
+	_origTags[1]++;
+	return 1;
+    }
+    else if (taggerVal > _wps[1]) {
+	_origTags[2]++;
+	return 2;
+    }
+    else {
+	_origTags[0]++;
+	return 0;
+    }
+};
+
+int PNetSFHandler::updateTag(int jetCat, float pt, float taggerVal) {
+    /* updates the tagger category for phi jets
+     * https://twiki.cern.ch/twiki/bin/view/CMS/BTagSFMethods#2a_Jet_by_jet_updating_of_the_b
+     * Params:
+     * 	 jetCat    = original jet category (0: fail, 1: loose, 2: pass)
+     * 	 pt        = jet pt
+     * 	 taggerVal = particleNet tagger value
+    */ 
+    float eff_L = _effs[0];
+    float eff_T = _effs[1];
+    float SF_L = getSF(pt, taggerVal);
+    float SF_T = getSF(pt, taggerVal);
+    double rn = _rand.Rndm();
+    int newCat = jetCat;	// grab the original tag category, will be updated
+    // begin logic
+    if ((SF_L < 1) && (SF_T < 1)) {
+	if ( (newCat==2) && (rn < (1.-SF_T)) ) newCat=0;	// tight (2) -> untag (0)
+	if ( (newCat==1) && (rn < (1.-SF_L)) ) newCat=0;	// loose (1) -> untag (0)
+    }
+    if ((SF_L > 1) && (SF_T > 1)) {
+	float fL, fT;
+	if (newCat==0) {
+	    float num = eff_T*(SF_T-1.);
+	    float den = 1.-(eff_L+eff_T);
+	    fT = num/den;
+	    if (rn < fT) newCat=2;	// untag (0) -> tight (2)
+	    else {
+		rn = _rand.Rndm();
+		num = eff_L*(SF_L-1.);
+		den = (1.-eff_L-eff_T)*(1.-fT);
+		fL = num/den;
+		if (rn < fL) newCat=1; 	// loose (1) -> tight (2)
+	    }
+	}
+    }
+    if ((SF_L < 1) && (SF_T > 1)) {
+	if (newCat==0) {
+	    float num = eff_T*(SF_T-1.);
+	    float den = 1.-(eff_L+eff_T);
+	    float f = num/den;
+	    if (rn < f) newCat=2;	    // untag (0) -> tight (2)
+	}
+	if (newCat==1) {
+	    if (rn < (1.-SF_L)) newCat=0;   // loose (1) -> untag (0)
+	}
+    }
+    if ((SF_L > 1) && (SF_T < 1)) { 
+	if ((newCat==2) && (rn < (1.-SF_T))) newCat=0;	// tight (2) -> untag (0)
+	if (newCat==0) {
+	    float num = eff_L*(SF_L-1.);
+	    float den = 1.-(eff_L+eff_T);
+	    float f = num/den;
+	    if (rn < f) newCat=1;	// untag (0) -> loose (1)
+	}
+    }
+    // update the new tag category array
+    _newTags[newCat]++;
+    // return the new tagger category value
+    return newCat;
+};
+
+/* ----------------------------------------------------------------------------------
+ *
+ *    Do not use these functions, use the above versions 
+ *
+ * ----------------------------------------------------------------------------------
+ */
 RVec<int> PNetSFHandler::createTag(RVec<float> taggerVals) {
   /* Creates tagger categories for phi candidate jets.
    * This MUST be called in TIMBER before running the rest of the script, as it places all jets into their respective categories for later use in updateTag()

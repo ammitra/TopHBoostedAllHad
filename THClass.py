@@ -289,6 +289,7 @@ class THClass:
 	'''
 	    SRorCR [str] = "SR" or "CR" - used to generate cutflow information after each Higgs tagger cut
 	    tagger [str] = discriminator used for Higgs ID. default: particleNetMD_HbbvsQCD
+		NOTE: The ApplyTopPick() function will create a column with the name Higgs_particleNetMD_HbbvsQCD, so we have to select for that below
 	    signal [bool] = whether signal or not. If signal, then perform Higgs tag based on columns created after SF application:
 		Pass:   NewTagCats==2		# see ParticleNet_SF.cc and THselection.py for more information
 		Loose:  NewTagCats==1
@@ -298,7 +299,7 @@ class THClass:
         checkpoint = self.a.GetActiveNode()
         passLooseFail = {}
 	# Higgs Pass + cutflow info
-        passLooseFail["pass"] = self.a.Cut('HbbTag_pass','{0} > {1}'.format(tagger,self.cuts[tagger])) #if not signal else 'NewTagCats==2')
+        passLooseFail["pass"] = self.a.Cut('HbbTag_pass','Higgs_{0} > {1}'.format(tagger,self.cuts[tagger]) if not signal else 'NewTagCats==2')
 	if SRorCR == 'SR':
 	    self.higgsP_SR = self.getNweighted()
 	    self.AddCutflowColumn(self.higgsP_SR, "higgsP_SR")
@@ -307,7 +308,7 @@ class THClass:
 	    self.AddCutflowColumn(self.higgsP_CR, "higgsP_CR")
 	# Higgs Loose + cutflow info
         self.a.SetActiveNode(checkpoint)
-        passLooseFail["loose"] = self.a.Cut('HbbTag_loose','{0} > 0.8 && Higgs_{0} < {1}'.format(tagger,self.cuts[tagger])) #if not signal else 'NewTagCats==1')
+        passLooseFail["loose"] = self.a.Cut('HbbTag_loose','Higgs_{0} > 0.8 && Higgs_{0} < {1}'.format(tagger,self.cuts[tagger]) if not signal else 'NewTagCats==1')
         if SRorCR == 'SR':
             self.higgsL_SR = self.getNweighted()
 	    self.AddCutflowColumn(self.higgsL_SR, "higgsL_SR")
@@ -316,7 +317,7 @@ class THClass:
 	    self.AddCutflowColumn(self.higgsL_CR, "higgsL_CR")
 	# Higgs Fail + cutflow info
         self.a.SetActiveNode(checkpoint)
-        passLooseFail["fail"] = self.a.Cut('HbbTag_fail','{0} < 0.8'.format(tagger,self.cuts[tagger])) #if not signal else 'NewTagCats==0')
+        passLooseFail["fail"] = self.a.Cut('HbbTag_fail','Higgs_{0} < 0.8'.format(tagger,self.cuts[tagger]) if not signal else 'NewTagCats==0')
         if SRorCR == 'SR':
             self.higgsF_SR = self.getNweighted()
 	    self.AddCutflowColumn(self.higgsF_SR, "higgsF_SR")
