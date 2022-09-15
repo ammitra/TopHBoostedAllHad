@@ -32,6 +32,9 @@ for y in org_files.keys():
     subdatafiles = glob('dijet_nano/Data*_%s_snapshot.txt'%y)
     ExecuteCmd('rm dijet_nano/Data_{0}_snapshot.txt'.format(y))
     ExecuteCmd('cat dijet_nano/Data*_{0}_snapshot.txt > dijet_nano/Data_{0}_snapshot.txt'.format(y))
+    # actually, since we have to treat each run differently due to triggers, keep the subdatafiles
+    '''
     for s in subdatafiles:
         if s != 'dijet_nano/Data_{0}_snapshot.txt'.format(y):
             ExecuteCmd('rm %s'%s)
+    '''
