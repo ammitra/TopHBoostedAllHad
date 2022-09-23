@@ -155,6 +155,20 @@ if __name__ == '__main__':
                         help='Overrides config entry if non-empty')
     args = parser.parse_args()
     args.threads = 2
-    args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_{}.root'.format(args.era if 'APV' not in args.era else 16),'Pretag'], corrtype='weight')
+
+    # We must apply the 2017B triffer efficiency to ~12% of the 2017 MC
+    # This trigEff correction is passed to ApplyTrigs() in the THselection() function
+    if ('Data' not in args.setname) and (args.era == '17'): # we are dealing with MC from 2017
+	cutoff = 0.11655	# fraction of total JetHT data belonging to 2017B
+	TRand = ROOT.TRandom()
+	rand = TRand.Uniform(0.0, 1.0)
+	if rand < cutoff:	# apply the 2017B trigger efficiency to this MC 
+	    print('Applying 2017B trigger efficiency')
+	    args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_17B.root','Pretag'],corrtype='weight')
+	else:
+	    args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_17.root','Pretag'],corrtype='weight')
+    else:
+        args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_{}.root'.format(args.era if 'APV' not in args.era else 16),'Pretag'], corrtype='weight')
+
     CompileCpp('THmodules.cc')
     THselection(args)

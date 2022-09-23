@@ -6,53 +6,36 @@ from TIMBER.Tools.Common import CompileCpp
 from THClass import THClass
 
 def MakeEfficiency(year):
-    selection = THClass('dijet_nano/Data_{}_snapshot.txt'.format(year),year,1,1)
+    '''
+        year (str) : 16, 17, 17B, 17All, 18
+    '''
+    # For measuring trigger efficiencies, we use the data from the orthogonal SingleMuon dataset
+    # For 2017, we need to ensure that the 2017B dataset is evaluated separately and its own efficiency is generated
+    # so that it may be applied to a fraction of the 2017 MC corresponding to the contribution of 2017B to the total
+    # 2017 dataset.
+    # We must also evaluate the 2017C, 2017D, 2017E and 2017F datasets combined together, since they share triggers which
+    # result in higher efficiencies than with the inclusion of the 2017B dataset.
+    if year == '17B':
+	fName = 'dijet_nano/SingleMuonDataB_17_snapshot.txt'
+    elif year == '17All':
+        fName = 'dijet_nano/SingleMuonDataWithB_17_snapshot.txt'
+    else:
+	fName = 'dijet_nano/SingleMuonData_{}_snapshot.txt'.format(year)
+
+    selection = THClass(fName,year if 'B' not in year else '17',1,1)
     selection.OpenForSelection('None')
-    # selection.a.Define('mth_trig','hardware::InvariantMass(Dijet_vect)')
-    # selection.a.Define('m_javg','(Dijet_msoftdrop[0]+Dijet_msoftdrop[0])/2')
-    # selection.a.Cut('morePt','ROOT::VecOps::All(Dijet_pt > 400)')
     hists = HistGroup('out')
 
-    noTag = selection.a.Cut('pretrig','HLT_PFJet320==1')
+    noTag = selection.a.Cut('pretrig','HLT_Mu50==1')
 
     # Baseline - no tagging
     hists.Add('preTagDenominator',selection.a.DataFrame.Histo2D(('preTagDenominator','',20,60,260,22,800,3000),'m_javg','mth_trig'))
     selection.ApplyTrigs()
     hists.Add('preTagNumerator',selection.a.DataFrame.Histo2D(('preTagNumerator','',20,60,260,22,800,3000),'m_javg','mth_trig'))
 
-    # DeepAK8 SR
-    selection.a.SetActiveNode(noTag)
-    selection.ApplyTopPick('deepTag_TvsQCD')
-    hists.Add('postTagDenominator_DAK8_SR',selection.a.DataFrame.Histo2D(('postTagDenominator_DAK8_SR','',20,60,260,22,800,3000),'m_javg','mth_trig'))
-    selection.ApplyTrigs()
-    hists.Add('preTagNumerator_DAK8_SR',selection.a.DataFrame.Histo2D(('preTagNumerator_DAK8_SR','',20,60,260,22,800,3000),'m_javg','mth_trig'))
-    # DeepAK8 CR
-    selection.a.SetActiveNode(noTag)
-    selection.ApplyTopPick('deepTag_TvsQCD',invert=True)
-    hists.Add('postTagDenominator_DAK8_CR',selection.a.DataFrame.Histo2D(('postTagDenominator_DAK8_CR','',20,60,260,22,800,3000),'m_javg','mth_trig'))
-    selection.ApplyTrigs()
-    hists.Add('preTagNumerator_DAK8_CR',selection.a.DataFrame.Histo2D(('preTagNumerator_DAK8_CR','',20,60,260,22,800,3000),'m_javg','mth_trig'))
-
-    # ParticleNet SR
-    selection.a.SetActiveNode(noTag)
-    selection.ApplyTopPick('particleNet_TvsQCD')
-    hists.Add('postTagDenominator_PN_SR',selection.a.DataFrame.Histo2D(('postTagDenominator_PN_SR','',20,60,260,22,800,3000),'m_javg','mth_trig'))
-    selection.ApplyTrigs()
-    hists.Add('preTagNumerator_PN_SR',selection.a.DataFrame.Histo2D(('preTagNumerator_PN_SR','',20,60,260,22,800,3000),'m_javg','mth_trig'))
-
-    selection.a.SetActiveNode(noTag)
-    selection.ApplyTopPick('particleNet_TvsQCD',invert=True)
-    hists.Add('postTagDenominator_PN_CR',selection.a.DataFrame.Histo2D(('postTagDenominator_PN_CR','',20,60,260,22,800,3000),'m_javg','mth_trig'))
-    selection.ApplyTrigs()
-    hists.Add('preTagNumerator_PN_CR',selection.a.DataFrame.Histo2D(('preTagNumerator_PN_CR','',20,60,260,22,800,3000),'m_javg','mth_trig'))
-
-    # Make efficieincies
+    # make efficiencies
     effs = {
         "Pretag": ROOT.TEfficiency(hists['preTagNumerator'], hists['preTagDenominator']),
-        "DAK8_SR": ROOT.TEfficiency(hists['preTagNumerator_DAK8_SR'], hists['postTagDenominator_DAK8_SR']),
-        "DAK8_CR": ROOT.TEfficiency(hists['preTagNumerator_DAK8_CR'], hists['postTagDenominator_DAK8_CR']),
-        "PN_SR": ROOT.TEfficiency(hists['preTagNumerator_PN_SR'], hists['postTagDenominator_PN_SR']),
-        "PN_CR": ROOT.TEfficiency(hists['preTagNumerator_PN_CR'], hists['postTagDenominator_PN_CR'])
     }
 
     out = ROOT.TFile.Open('THtrigger2D_%s.root'%year,'RECREATE')
@@ -86,16 +69,18 @@ if __name__ == '__main__':
     start = time.time()
     CompileCpp('THmodules.cc')
     if not args.recycle:
-        for y in [16,17,18]:
+        for y in ['16','17','17B','18']:
             MakeEfficiency(y)
 
     files = {
-        16: ROOT.TFile.Open('THtrigger2D_16.root'),
-        17: ROOT.TFile.Open('THtrigger2D_17.root'),
-        18: ROOT.TFile.Open('THtrigger2D_18.root')
+        '16': ROOT.TFile.Open('THtrigger2D_16.root'),
+        '17': ROOT.TFile.Open('THtrigger2D_17.root'),
+        '18': ROOT.TFile.Open('THtrigger2D_18.root'),
+	'17B': ROOT.TFile.Open('THtrigger2D_17B.root'),
+	'17All': ROOT.TFile.Open('THtrigger2D_17All.root')
     }
 
-    hists = {hname.GetName():[files[y].Get(hname.GetName()) for y in [16,17,18]] for hname in files[16].GetListOfKeys() if '_hist' in hname.GetName()}
+    hists = {hname.GetName():[files[y].Get(hname.GetName()) for y in ['16','17','18']] for hname in files['16'].GetListOfKeys() if '_hist' in hname.GetName()}
     colors = [ROOT.kBlack, ROOT.kGreen+1, ROOT.kOrange-3]
     legendNames = ['2016','2017','2018']
     for hname in hists.keys():

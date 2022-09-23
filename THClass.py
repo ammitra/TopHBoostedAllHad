@@ -41,13 +41,16 @@ class THClass:
         self.njobs = njobs
         self.config = OpenJSON('THconfig.json')
         self.cuts = self.config['CUTS']
-        # self.dijetIdxs = [0,1]
+        self.newTrigs = self.config['TRIGS']	
         self.trigs = {
             16:['HLT_PFHT800','HLT_PFHT900'],
-            17:['HLT_PFHT1050','HLT_AK8PFJet500'],
+	    17:["HLT_PFHT1050","HLT_AK8PFJet500","HLT_AK8PFHT750_TrimMass50","HLT_AK8PFHT800_TrimMass50","HLT_AK8PFJet400_TrimMass30"],
+            #17:['HLT_PFHT1050','HLT_AK8PFJet500'],
+	    #18:["HLT_PFHT1050","HLT_AK8PFHT800_TrimMass50","HLT_AK8PFJet500","HLT_AK8PFJet400_TrimMass30","HLT_AK8PFHT750_TrimMass50"]
             18:['HLT_AK8PFJet400_TrimMass30','HLT_AK8PFHT850_TrimMass50','HLT_PFHT1050']
         }
-        if 'Data' in inputfile:
+
+        if 'Data' in inputfile:		# SingleMuonDataX_year and DataX_year are possible data inputfile names
             self.a.isData = True
         else:
             self.a.isData = False
@@ -127,7 +130,8 @@ class THClass:
                 lumiFilter = ModuleWorker('LumiFilter','TIMBER/Framework/include/LumiFilter.h',[int(self.year) if 'APV' not in self.year else 16])
                 self.a.Cut('lumiFilter',lumiFilter.GetCall(evalArgs={"lumi":"luminosityBlock"}))
                 if self.year == '18':
-                    HEM_worker = ModuleWorker('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname])
+		    # need to get same setname for single muon datasets, i.e. SingleMuonDataX_18 -> DataX (perform string slice)
+                    HEM_worker = ModuleWorker('HEM_drop','TIMBER/Framework/include/HEM_drop.h',[self.setname if 'Muon' not in self.setname else self.setname[10:]])
                     self.a.Cut('HEM','%s[0] > 0'%(HEM_worker.GetCall(evalArgs={"FatJet_eta":"Dijet_eta","FatJet_phi":"Dijet_phi"})))
 
             else:
@@ -161,7 +165,12 @@ class THClass:
                             'GenPart_vect':'GenParticle_vect'
                         }
                     )
-            self.a = AutoJME.AutoJME(self.a, 'Dijet', self.year, self.setname)
+	    # need to account for Single Muon datasets having a differnt setname, i.e. SingleMuonDataX_year
+	    if ('Muon' in self.setname):
+		self.a = AutoJME.AutoJME(self.a, 'Dijet', self.year, self.setname[10:])
+	    else:
+		# regardless of passing self.setname, the AutoJME function will check if input is data or not
+		self.a = AutoJME.AutoJME(self.a, 'Dijet', self.year, self.setname)
             self.a.MakeWeightCols(extraNominal='genWeight' if not self.a.isData else '')
         
         else:
@@ -277,6 +286,20 @@ class THClass:
         # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
         # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
         return self.a.GetActiveNode()
+
+    def ApplyNewTrigs(self, subyear, corr=None):
+	'''
+	for use with the new triggers, using the triggers listed in THconfig.json, derived via scripts/trigTest.py
+	subyear str = name of subyear file in dijet_nano, e.g. "DataC_17"
+	'''
+	if self.a.isData:
+	    subyearTrigs = self.newTrigs[subyear]
+	    # due to Python JSON weirdness, the above list will have all elements in unicode, so need to convert to ascii
+	    trigs = [trig.encode('ascii','ignore') for trig in subyearTrigs]
+	    self.a.Cut('trigger', self.a.GetTriggerString(trigs))
+	else:
+	    self.a.AddCorrection(corr, evalArgs={"xval":"m_javg","yval":"mth_trig"})
+	return self.a.GetActiveNode()
 
     def ApplyTrigs(self,corr=None):
         if self.a.isData:

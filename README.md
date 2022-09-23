@@ -121,6 +121,8 @@ based on these.
 **NOTE** this means that only jobs that have finished successfully will be grabbed. If
 a job is still running or failed, it will not be included.
 
+**NOTE2:** It has been determined that Run 2017B lacks substructure- and grooming-based triggers that the rest of 2017 has, resulting in low efficiencies for 2017 if included in the whole dataset. Therefore, the `get_all.py` script will create a concatenated file with all runs in 2017, but the main `Data_17_snapshot.txt` and `SingleMuonData_17_snapshot.txt` files will *not* include the run 2017B files.
+
 ### Checking job success
 ------------------
 The most fool-proof method is to read the stdout/stderr of each job but this is of course very time consuming.
@@ -157,6 +159,21 @@ command `condor_qedit <task>.<job> -name <sched> RequestMemory 4000` (which incr
 
 ## 5. Making the trigger efficiencies
 ----------------------------
+The trigger efficiency is measured in the SingleMuon dataset separately for the three years, using the `HLT_Mu50` trigger as a reference. It was discovered that, during run 2017B certain substructure- and grooming-based triggers were not available. Therefore, including run 2017B into the total 2017 dataset caused the efficiency of the entire year to drop dramatically. Therefore, the efficiency is measured separately for 2017B, but this run is dropped from the total 2017 dataset when measuring the efficiency for the whole year. Run 2017B accounts for ~12% of the total 2017 JetHT dataset and ~8% of the total SingleMuon dataset, after preselection/snapshotting (see `scripts/check2017fraction.py`). Therefore, we apply the 2017B efficiency to 12% of the 2017MC to account for this difference in efficiency (see the main function in `THselection.py`).
+
+The triggers used in this analysis are as follows:
+| Dataset  | Triggers |
+| -------- | -------- |
+| 2016  | `HLT_PFHT800`, `HLT_PFHT900`  |
+| 2017B | `HLT_PFHT1050`, `HLT_AK8PFJet500` |
+| 2017  | `HLT_PFHT1050`, `HLT_AK8PFJet500`, `HLT_AK8PFHT750_TrimMass50`, `HLT_AK8PFHT800_TrimMass50`, `HLT_AK8PFJet400_TrimMass30` |
+| 2018  | `HLT_PFHT1050`, `HLT_AK8PFJet400_TrimMass30`, `HLT_AK8PFHT850_TrimMass50` |
+
+
+<details>
+<summary>Old trigger efficiency info (pre Sept. 23, 2022 - before OR)</summary>
+<br>
+
 The choice of triggers to use per year was made using the TrigTester.py utility in TIMBER.
 First the data snapshots were hadd-ed to backfill any empty trigger entries from sub-year eras.
 ```
@@ -210,6 +227,7 @@ Five variations are created per-year.
 5. ParticleNet top anti-tag (for validation region)
 
 We select the pretag version since it is the smoothest and all variations are in agreement with one another.
+</details>
 
 ## 7. Running Selection
 Run the selection on condor, since the number of files is truly enormous. The script `perform_selection.py` will run all selections with all variations locally, but there is a strange bug which affects every ~20th selection job and causing a segfault during Higgs tagging. The script can be re-run and it will skip existing files. But instead, it's best to run on condor. 

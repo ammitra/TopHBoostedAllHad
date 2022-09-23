@@ -6,52 +6,40 @@ from TIMBER.Tools.Common import CompileCpp
 from THClass import THClass
 
 def MakeEfficiency(year):
-    selection = THClass('dijet_nano/Data_{}_snapshot.txt'.format(year),year,1,1)
+    '''
+	year (str) : 16, 17, 17B, 17All, 18
+    '''
+    # For measuring trigger efficiencies, we use the data from the orthogonal SingleMuon dataset
+    # For 2017, we need to ensure that the 2017B dataset is evaluated separately and its own efficiency is generated
+    # so that it may be applied to a fraction of the 2017 MC corresponding to the contribution of 2017B to the total
+    # 2017 dataset. 
+    # The dijet_nano/get_all.py script ensures that the 2017B run is not included in both `Data_17_snapshot.txt` and 
+    # `SingleMuonData_17_snapshot.txt`
+    # We must also evaluate the 2017C, 2017D, 2017E and 2017F datasets combined together, since they share triggers which
+    # result in higher efficiencies than with the inclusion of the 2017B dataset.
+    if year == '17B':
+	fName = 'dijet_nano/SingleMuonDataB_17_snapshot.txt'
+    elif year == '17All':
+	fName = 'dijet_nano/SingleMuonDataWithB_17_snapshot.txt'
+    else:
+	fName = 'dijet_nano/SingleMuonData_{}_snapshot.txt'.format(year)
+
+    print('Opening {}'.format(fName.split('/')[-1]))
+
+    selection = THClass(fName,year if year.isdigit() else '17',1,1)
     selection.OpenForSelection('None')
-    # selection.a.Define('mth_trig','hardware::InvariantMass(Dijet_vect)')
-    # selection.a.Cut('morePt','ROOT::VecOps::All(Dijet_pt > 400)')
     hists = HistGroup('out')
 
-    noTag = selection.a.Cut('pretrig','HLT_PFJet320==1')
+    noTag = selection.a.Cut('pretrig','HLT_Mu50==1')
 
     # Baseline - no tagging
     hists.Add('preTagDenominator',selection.a.DataFrame.Histo1D(('preTagDenominator','',22,800,3000),'mth_trig'))
     selection.ApplyTrigs()
     hists.Add('preTagNumerator',selection.a.DataFrame.Histo1D(('preTagNumerator','',22,800,3000),'mth_trig'))
 
-    # DeepAK8 SR
-    selection.a.SetActiveNode(noTag)
-    selection.ApplyTopPick('deepTag_TvsQCD')
-    hists.Add('postTagDenominator_DAK8_SR',selection.a.DataFrame.Histo1D(('postTagDenominator_DAK8_SR','',22,800,3000),'mth_trig'))
-    selection.ApplyTrigs()
-    hists.Add('preTagNumerator_DAK8_SR',selection.a.DataFrame.Histo1D(('preTagNumerator_DAK8_SR','',22,800,3000),'mth_trig'))
-    # DeepAK8 CR
-    selection.a.SetActiveNode(noTag)
-    selection.ApplyTopPick('deepTag_TvsQCD',invert=True)
-    hists.Add('postTagDenominator_DAK8_CR',selection.a.DataFrame.Histo1D(('postTagDenominator_DAK8_CR','',22,800,3000),'mth_trig'))
-    selection.ApplyTrigs()
-    hists.Add('preTagNumerator_DAK8_CR',selection.a.DataFrame.Histo1D(('preTagNumerator_DAK8_CR','',22,800,3000),'mth_trig'))
-
-    # ParticleNet SR
-    selection.a.SetActiveNode(noTag)
-    selection.ApplyTopPick('particleNet_TvsQCD')
-    hists.Add('postTagDenominator_PN_SR',selection.a.DataFrame.Histo1D(('postTagDenominator_PN_SR','',22,800,3000),'mth_trig'))
-    selection.ApplyTrigs()
-    hists.Add('preTagNumerator_PN_SR',selection.a.DataFrame.Histo1D(('preTagNumerator_PN_SR','',22,800,3000),'mth_trig'))
-
-    selection.a.SetActiveNode(noTag)
-    selection.ApplyTopPick('particleNet_TvsQCD',invert=True)
-    hists.Add('postTagDenominator_PN_CR',selection.a.DataFrame.Histo1D(('postTagDenominator_PN_CR','',22,800,3000),'mth_trig'))
-    selection.ApplyTrigs()
-    hists.Add('preTagNumerator_PN_CR',selection.a.DataFrame.Histo1D(('preTagNumerator_PN_CR','',22,800,3000),'mth_trig'))
-
     # Make efficieincies
     effs = {
         "Pretag": ROOT.TEfficiency(hists['preTagNumerator'], hists['preTagDenominator']),
-        "DAK8_SR": ROOT.TEfficiency(hists['preTagNumerator_DAK8_SR'], hists['postTagDenominator_DAK8_SR']),
-        "DAK8_CR": ROOT.TEfficiency(hists['preTagNumerator_DAK8_CR'], hists['postTagDenominator_DAK8_CR']),
-        "PN_SR": ROOT.TEfficiency(hists['preTagNumerator_PN_SR'], hists['postTagDenominator_PN_SR']),
-        "PN_CR": ROOT.TEfficiency(hists['preTagNumerator_PN_CR'], hists['postTagDenominator_PN_CR'])
     }
 
     out = ROOT.TFile.Open('THtrigger_%s.root'%year,'RECREATE')
@@ -73,16 +61,18 @@ def MakeEfficiency(year):
 if __name__ == '__main__':
     start = time.time()
     CompileCpp('THmodules.cc')
-    for y in [16,17,18]:
+    for y in ['16','17','17B','17All','18']:
         MakeEfficiency(y)
 
     files = {
-        16: ROOT.TFile.Open('THtrigger_16.root'),
-        17: ROOT.TFile.Open('THtrigger_17.root'),
-        18: ROOT.TFile.Open('THtrigger_18.root')
+        '16': ROOT.TFile.Open('THtrigger_16.root'),
+        '17': ROOT.TFile.Open('THtrigger_17.root'),	 # contains 2017 C, D, E, F
+        '18': ROOT.TFile.Open('THtrigger_18.root'),
+	'17B': ROOT.TFile.Open('THtrigger_17B.root'),	 # contains 2017 B
+	'17All': ROOT.TFile.Open('THtrigger_17All.root') # contains 2017 B, C, D, E, F
     }
 
-    hists = {hname.GetName():[files[y].Get(hname.GetName()) for y in [16,17,18]] for hname in files[16].GetListOfKeys() if '_graph' in hname.GetName()}
+    hists = {hname.GetName():[files[y].Get(hname.GetName()) for y in ['16','17','18']] for hname in files['16'].GetListOfKeys() if '_graph' in hname.GetName()}
     colors = [ROOT.kBlack, ROOT.kGreen+1, ROOT.kOrange-3]
     legendNames = ['2016','2017','2018']
     for hname in hists.keys():
@@ -102,5 +92,29 @@ if __name__ == '__main__':
 
         leg.Draw()
         c.Print('plots/Trigger_%s.pdf'%hname,'pdf')
+
+    c.Clear()
+    # Now compare just 2017 total (B,C,D,E,F) and 2017 later (C, D, E, F)
+    leg2 = ROOT.TLegend(0.7,0.5,0.88,0.7)
+    # total 2017 minus 2017B
+    h17 = files['17'].Get('Pretag_graph')
+    h17.SetLineColor(ROOT.kGreen)
+    h17.SetTitle('')
+    h17.GetXaxis().SetTitle('m_{jj}')
+    h17.GetYaxis().SetTitle('Efficiency')
+    h17.Draw('AP')
+    leg2.AddEntry(h17, 'later 2017', 'pe') 
+
+    # only 2017B
+    h17B = files['17B'].Get('Pretag_graph')
+    h17B.SetLineColor(ROOT.kBlack)
+    h17B.SetTitle('')
+    h17B.GetXaxis().SetTitle('m_{jj}')
+    h17B.GetYaxis().SetTitle('Efficiency')
+    h17B.Draw('same P')
+    leg2.AddEntry(h17B, 'full 2017', 'pe')
+
+    leg2.Draw()
+    c.Print('plots/Trigger_2017Full_vs_2017Later_pretag.pdf')
 
     print ('%s sec'%(time.time()-start))
