@@ -49,6 +49,9 @@ def THselection(args):
     ROOT.ROOT.EnableImplicitMT(args.threads)
     start = time.time()
 
+    print('Opening dijet_nano/{}_{}_snapshot.txt'.format(args.setname,args.era))
+    selection = THClass('dijet_nano/{}_{}_snapshot.txt'.format(args.setname,args.era),args.era,1,1)
+
     # check if signal
     signal = False
     if ('Tprime' in args.setname):
@@ -60,10 +63,14 @@ def THselection(args):
             var = 2
         else:
             var = 0
-        CompileCpp("ParticleNet_SF.cc")     # compile class for later use
+        CompileCpp("ParticleNet_SF.cc")     # compile class for later use (Higgs SF)
+	# now do top tag SF
+	PNetTopSF = Correction("PNetTopSF","PNetTopTag_weight.cc",constructor=[args.era],mainFunc='eval',corrtype='weight')
+	selection.a.AddCorrection(PNetTopSF,evalArgs={'pt':'Dijet_pt','topScore':'Dijet_particleNet_TvsQCD','idxs':'{0,1}','scoreCut':'0.94'})
 
-    print('Opening dijet_nano/{}_{}_snapshot.txt'.format(args.setname,args.era))
-    selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),args.era,1,1)
+
+    #print('Opening dijet_nano/{}_{}_snapshot.txt'.format(args.setname,args.era))
+    #selection = THClass('dijet_nano/%s_%s_snapshot.txt'%(args.setname,args.era),args.era,1,1)
     selection.OpenForSelection(args.variation)
     selection.ApplyTrigs(args.trigEff)
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
