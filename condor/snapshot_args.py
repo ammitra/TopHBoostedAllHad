@@ -7,6 +7,7 @@ for f in glob.glob('raw_nano/*.txt'):
         print ('File %s is empty... Skipping.'%(f))
         continue
 
+    # filename will look like: raw_nano/TprimeB-1000-75_18.txt
     filename = f.split('/')[-1].split('.')[0]
     nfiles = len(open(f,'r').readlines())
     setname = filename.split('_')[0]

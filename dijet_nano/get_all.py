@@ -32,9 +32,20 @@ for y in org_files.keys():
     subdatafiles = glob('dijet_nano/Data*_%s_snapshot.txt'%y)
     ExecuteCmd('rm dijet_nano/Data_{0}_snapshot.txt'.format(y))
     ExecuteCmd('cat dijet_nano/Data*_{0}_snapshot.txt > dijet_nano/Data_{0}_snapshot.txt'.format(y))
-    # actually, since we have to treat each run differently due to triggers, keep the subdatafiles
-    '''
-    for s in subdatafiles:
-        if s != 'dijet_nano/Data_{0}_snapshot.txt'.format(y):
-            ExecuteCmd('rm %s'%s)
-    '''
+
+    # consolidate single muon data files
+    singlemuonfiles = glob('dijet_nano/SingleMuonData*_{}_snapshot.txt'.format(y))
+    ExecuteCmd('rm dijet_nano/SingleMuonData_{}_snapshot.txt'.format(y))
+    ExecuteCmd('cat dijet_nano/SingleMuonData*_{0}_snapshot.txt > dijet_nano/SingleMuonData_{0}_snapshot.txt'.format(y))
+
+
+# now, since 2017B has fewer triggers (poor efficiency) and will be omitted, we need to omit it from the respective data files
+# rename concatenated 2017 data (2017B inclusive) to new file 
+ExecuteCmd('mv dijet_nano/SingleMuonData_17_snapshot.txt dijet_nano/SingleMuonDataWithB_17_snapshot.txt')
+# remove 17B data from concatenated files 
+ExecuteCmd('cat dijet_nano/SingleMuonDataWithB_17_snapshot.txt | grep -v DataB > dijet_nano/SingleMuonData_17_snapshot.txt')
+
+# do the same thing for JetHT data
+ExecuteCmd('mv dijet_nano/Data_17_snapshot.txt dijet_nano/DataWithB_17_snapshot.txt')
+ExecuteCmd('cat dijet_nano/DataWithB_17_snapshot.txt | grep -v DataB > dijet_nano/Data_17_snapshot.txt')
+

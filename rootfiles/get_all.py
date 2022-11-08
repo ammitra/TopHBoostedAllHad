@@ -87,7 +87,7 @@ rawFiles = subprocess.check_output('eos {} ls {}'.format(redirector,eos_path), s
 files = rawFiles.split('\n')
 
 for fName in files:
-    if fName == '':
+    if (fName == '') or ('Muon' in fName):
 	pass
     else:
         ExecuteCmd('xrdcp {}{}{} rootfiles/'.format(redirector, eos_path, fName))

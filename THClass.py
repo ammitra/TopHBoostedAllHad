@@ -244,6 +244,31 @@ class THClass:
             self.a.Define('Dijet_msoftdrop_corrH','hardware::MultiHadamardProduct(Dijet_msoftdrop,{Dijet_JES_nom})')
         return self.a.GetActiveNode()
 
+    def ApplyTopPick_Signal(self, TopTagger, XbbTagger, pt, TopScoreCut, eff0, eff1, year, TopVariation, invert):
+	objIdxs = 'ObjIdxs_{}{}'.format('Not' if invert else '', TopTagger)
+	if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
+	    self.a.Define(objIdxs, 'PickTopWithSFs(%s, %s, %s, {0, 1}, %f, %f, %f, "20%s", %i, %s)'%(TopTagger, XbbTagger, pt, TopScoreCut, eff0, eff1, year, TopVariation, 'true' if invert else 'false'))
+	    # at this point, we'll have a column named ObjIdxs_(NOT)_particleNet_TvsQCD contianing the indices of which of the two jets is the top and the phi (top-0, Phi-1)
+	    # or, if neither passed it will look like {-1,-1}
+	    self.a.Define('tIdx','{}[0]'.format(objIdxs))
+	    self.a.Define('hIdx','{}[1]'.format(objIdxs))
+	#DEBUG
+	nTot = self.a.DataFrame.Sum("genWeight").GetValue()
+	print('NTot before TopPick (signal) = {}'.format(nTot))
+	self.a.Cut('HasTop','tIdx > -1')
+        #DEBUG
+        nTot = self.a.DataFrame.Sum("genWeight").GetValue()
+        print('NTot after TopPick (signal) = {}'.format(nTot))
+        # at this point, rename Dijet -> Top/Higgs based on its index determined above
+        self.a.ObjectFromCollection('Top','Dijet','tIdx',skip=['msoftdrop_corrH'])
+        self.a.ObjectFromCollection('Higgs','Dijet','hIdx',skip=['msoftdrop_corrT'])
+
+        self.a.Define('Top_vect','hardware::TLvector(Top_pt_corr, Top_eta, Top_phi, Top_msoftdrop_corrT)')
+        self.a.Define('Higgs_vect','hardware::TLvector(Higgs_pt_corr, Higgs_eta, Higgs_phi, Higgs_msoftdrop_corrH)')
+        self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
+        return self.a.GetActiveNode()	
+
+
     def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False, CRv2=None):
         objIdxs = 'ObjIdxs_%s%s'%('Not' if invert else '',tagger)
         if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
