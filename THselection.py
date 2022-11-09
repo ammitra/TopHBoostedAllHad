@@ -84,11 +84,9 @@ def THselection(args):
 	elif (args.variation == 'PNetXbb_down'):
 	    TopVar = 0
 	    XbbVar = 2
-	elif (args.variation == 'None'):
+	else:	# if doing any other variation, keep Top/Xbb SFs nominal
 	    TopVar = 0
 	    XbbVar = 0
-	else:
-	    raise ValueError('Variation argument {} is not compatible with signal {}'.format(args.variation, args.setname))
 
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
     out = ROOT.TFile.Open('rootfiles/THselection_%s%s_%s%s.root'%(args.setname,
