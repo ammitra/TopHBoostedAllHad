@@ -16,6 +16,7 @@ double RAND() {
 }
 
 float getSF(int jetCat, float pt, std::string _year, int _var) {
+    if ((jetCat!=0) && (jetCat!=1)) {std::cerr<<"ERROR - INITIAL JET CATEGORY MUST BE 0 or 1. Current value is " << jetCat << std::endl;}
     // SF[_var][pt] (_var: 0=nom, 1=up, 2=down)
     // variations are described above, pt cats are [300, 400), [400, 480), [480, 600), [600, 1200) across all years
     // Scale factors located at:
@@ -41,17 +42,22 @@ float getSF(int jetCat, float pt, std::string _year, int _var) {
     else { return 1.0; }
     // get SF
     switch (jetCat) {
-        case 0: // jet is originally in fail
+        case 0: { // jet is originally in fail
             if (_year=="2016APV") { SF = SF2016APV_L[_var][ptCat]; }
             else if (_year=="2016") { SF = SF2016_L[_var][ptCat]; }
             else if (_year=="2017") { SF = SF2017_L[_var][ptCat]; }
             else { SF = SF2018_L[_var][ptCat]; }
-        case 1: // jet originally in pass
+	    break;
+	}
+        case 1: { // jet originally in pass
             if (_year=="2016APV") { SF = SF2016APV_T[_var][ptCat]; }
             else if (_year=="2016") { SF = SF2016_T[_var][ptCat]; }
             else if (_year=="2017") { SF = SF2017_T[_var][ptCat]; }
             else { SF = SF2018_T[_var][ptCat]; }
+	    break;
+	}
     }
+    if (SF<0.7) {std::cerr << "SF is " << SF << " for variation " << _var << " and ptCat " << ptCat << std::endl;}
     return SF;
 }
 
@@ -65,12 +71,8 @@ int getNewTopCat(float SF, int oldCat, float eff, double rand, bool invert) {
     if (SF < 1) {
         // downgrade fraction (1-SF) of tagged -> untagged
         if ((oldCat == 1) && (rand < 1.-SF)) { 
-	    //if (!invert) {
-	    // DEBUG
-	    //std::cerr << "rand: " << rand <<  " - Top jet DEMOTED (tagged -> untagged)\n";
-	    //}
 	    newCat=0; 
-	};
+	}
     }
     else {
         // upgrade fraction of untagged -> tagged
@@ -78,11 +80,7 @@ int getNewTopCat(float SF, int oldCat, float eff, double rand, bool invert) {
             float num = 1.-SF;
             float den = 1.-(1./eff);
             float f = num/den;
-            if (rand < f) {	// f will also be quite small, and it should be difficult to promote... So I'd imagine we'd want rand < f
-		//if (!invert) {
-		// DEBUG
-		//std::cerr << "rand: " << rand << " - Top jet PROMOTED (untagged -> tagged)\n";
-		//}
+            if (rand < f) {	
                 newCat = 1;
             }
         }
@@ -114,8 +112,9 @@ RVec<int> PickTopWithSFs(RVec<float> TvsQCD,
     int orig_score0 = getOriginalTopCat(TvsQCD[idx0], WP);
     int orig_score1 = getOriginalTopCat(TvsQCD[idx1], WP);
     // now, determine new tagger category
-    int SF0 = getSF(orig_score0, pt[idx0], year, variation);
-    int SF1 = getSF(orig_score1, pt[idx1], year, variation);
+    float SF0 = getSF(orig_score0, pt[idx0], year, variation);
+    float SF1 = getSF(orig_score1, pt[idx1], year, variation);
+    if ((SF0==0) || (SF1==0)) {std::cerr<<"SF is 0\n";}
     double rand0 = RAND();
     double rand1 = RAND();
     int new_score0 = getNewTopCat(SF0, orig_score0, eff0, rand0, invertScore);
