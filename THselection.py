@@ -66,6 +66,15 @@ def THselection(args):
     print('Opening dijet_nano/{}_{}_snapshot.txt'.format(args.setname,args.era))
     selection = THClass('dijet_nano/{}_{}_snapshot.txt'.format(args.setname,args.era),args.era,1,1)
     selection.OpenForSelection(args.variation)
+
+    # apply HT cut due to improved trigger effs
+    before = selection.a.DataFrame.Count().GetValue()
+    selection.a.Cut('HT_cut','HT > 750')
+    after = selection.a.DataFrame.Count().GetValue()
+    frac = float(after)/float(before)
+    loss = 100.*(1-frac)
+    print('Fractional loss of {}% of events after HT cut'.format(loss))
+
     selection.ApplyTrigs(args.trigEff)
 
     # scale factor application

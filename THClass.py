@@ -43,10 +43,10 @@ class THClass:
         self.cuts = self.config['CUTS']
         self.newTrigs = self.config['TRIGS']	
         self.trigs = {
-            16:['HLT_PFHT800','HLT_PFHT900'],
-	    17:["HLT_PFHT1050","HLT_AK8PFJet500","HLT_AK8PFHT750_TrimMass50","HLT_AK8PFHT800_TrimMass50","HLT_AK8PFJet400_TrimMass30"],
-            #17:['HLT_PFHT1050','HLT_AK8PFJet500'],
-	    #18:["HLT_PFHT1050","HLT_AK8PFHT800_TrimMass50","HLT_AK8PFJet500","HLT_AK8PFJet400_TrimMass30","HLT_AK8PFHT750_TrimMass50"]
+	    16:['HLT_PFHT800','HLT_PFHT900'],
+            17:["HLT_PFHT1050","HLT_AK8PFJet500","HLT_AK8PFHT750_TrimMass50","HLT_AK8PFHT800_TrimMass50","HLT_AK8PFJet400_TrimMass30"],
+            19:['HLT_PFHT1050','HLT_AK8PFJet500'], # just use 19 for trigger script for 17b, 17all
+            #18:["HLT_PFHT1050","HLT_AK8PFHT800_TrimMass50","HLT_AK8PFJet500","HLT_AK8PFJet400_TrimMass30","HLT_AK8PFHT750_TrimMass50"]
             18:['HLT_AK8PFJet400_TrimMass30','HLT_AK8PFHT850_TrimMass50','HLT_PFHT1050']
         }
 
@@ -79,11 +79,6 @@ class THClass:
 	self.NPROC = self.getNweighted()
 	self.AddCutflowColumn(self.NPROC, "NPROC")
 
-	'''
-        self.a.Cut('flags',self.a.GetFlagString())
-	self.NFLAGS = self.getNweighted()
-	self.AddCutflowColumn(self.NFLAGS, "NFLAGS")
-	'''
 	flags = [
 	    'Flag_goodVertices',
 	    'Flag_globalSuperTightHalo2016Filter',
@@ -242,6 +237,10 @@ class THClass:
             self.a.Define('Dijet_pt_corr','hardware::MultiHadamardProduct(Dijet_pt,{Dijet_JES_nom})')
             self.a.Define('Dijet_msoftdrop_corrT','hardware::MultiHadamardProduct(Dijet_msoftdrop,{Dijet_JES_nom})')
             self.a.Define('Dijet_msoftdrop_corrH','hardware::MultiHadamardProduct(Dijet_msoftdrop,{Dijet_JES_nom})')
+        # for trigger studies
+        self.a.Define('pt0','Dijet_pt_corr[0]')
+        self.a.Define('pt1','Dijet_pt_corr[1]')
+        self.a.Define('HT','pt0+pt1')
         return self.a.GetActiveNode()
 
     def ApplyTopPick_Signal(self, TopTagger, XbbTagger, pt, TopScoreCut, eff0, eff1, year, TopVariation, invert):

@@ -5,9 +5,10 @@ from TIMBER.Analyzer import HistGroup
 from TIMBER.Tools.Common import CompileCpp
 from THClass import THClass
 
-def MakeEfficiency(year):
+def MakeEfficiency(year, HT=0):
     '''
         year (str) : 16, 17, 17B, 17All, 18
+	HT   (int) : value of HT to cut on
     '''
     # For measuring trigger efficiencies, we use the data from the orthogonal SingleMuon dataset
     # For 2017, we need to ensure that the 2017B dataset is evaluated separately and its own efficiency is generated
@@ -26,16 +27,24 @@ def MakeEfficiency(year):
     selection.OpenForSelection('None')
     hists = HistGroup('out')
 
+    # cut on HT to improve efficiency
+    before = selection.a.DataFrame.Count()
+    selection.a.Cut('HT_cut', 'HT > {}'.format(HT))
+    after = selection.a.DataFrame.Count()
+
     noTag = selection.a.Cut('pretrig','HLT_Mu50==1')
 
     # Baseline - no tagging
     hists.Add('preTagDenominator',selection.a.DataFrame.Histo2D(('preTagDenominator','',20,60,260,22,800,3000),'m_javg','mth_trig'))
+    hists.Add('preTagDenominatorZoomed', selection.a.DataFrame.Histo2D(('preTagDenominatorZoomed','',20,60,260,20,800,2000),'m_javg','mth_trig'))
     selection.ApplyTrigs()
     hists.Add('preTagNumerator',selection.a.DataFrame.Histo2D(('preTagNumerator','',20,60,260,22,800,3000),'m_javg','mth_trig'))
+    hists.Add('preTagNumeratorZoomed', selection.a.DataFrame.Histo2D(('preTagNumeratorZoomed','',20,60,260,20,800,2000),'m_javg','mth_trig'))
 
     # make efficiencies
     effs = {
         "Pretag": ROOT.TEfficiency(hists['preTagNumerator'], hists['preTagDenominator']),
+	"PretagZoom": ROOT.TEfficiency(hists['preTagNumeratorZoomed'], hists['preTagDenominatorZoomed']),
     }
 
     out = ROOT.TFile.Open('THtrigger2D_%s.root'%year,'RECREATE')
@@ -50,6 +59,7 @@ def MakeEfficiency(year):
         g.SetMinimum(0.6)
         g.SetMaximum(1.0)
         f = ROOT.TF2("eff_func","1-[0]/10*exp([1]*y/1000)*exp([2]*x/200)",60,260,800,2600)
+	#f = ROOT.TF2("eff_func","1-[0]*exp([1]*y/1000)*exp([2]*x/200)",60,260,800,2600)
         f.SetParameter(0,1)
         f.SetParameter(1,-2)
         f.SetParameter(2,-2)
@@ -62,6 +72,9 @@ def MakeEfficiency(year):
 if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
+    parser.add_argument('--HT', type=str, dest='HT',
+                        action='store', default='0',
+                         help='Value of HT to cut on')
     parser.add_argument('--recycle', dest='recycle',
                         action='store_true', default=False,
                         help='Recycle existing files and just plot.')
@@ -70,7 +83,7 @@ if __name__ == '__main__':
     CompileCpp('THmodules.cc')
     if not args.recycle:
         for y in ['16','17','17B','18']:
-            MakeEfficiency(y)
+            MakeEfficiency(y, args.HT)
 
     files = {
         '16': ROOT.TFile.Open('THtrigger2D_16.root'),
@@ -95,6 +108,6 @@ if __name__ == '__main__':
             h.SetTitle(legendNames[i])
             h.Draw('colz')
 
-        c.Print('plots/Trigger2D_%s.pdf'%hname,'pdf')
+        c.Print('plots/Trigger2D_{}_HT{}.pdf'.format(hname, args.HT),'pdf')
 
     print ('%s sec'%(time.time()-start))
