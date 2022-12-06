@@ -68,12 +68,9 @@ def THselection(args):
     selection.OpenForSelection(args.variation)
 
     # apply HT cut due to improved trigger effs
-    before = selection.a.DataFrame.Count().GetValue()
-    selection.a.Cut('HT_cut','HT > 750')
-    after = selection.a.DataFrame.Count().GetValue()
-    frac = float(after)/float(before)
-    loss = 100.*(1-frac)
-    print('Fractional loss of {}% of events after HT cut'.format(loss))
+    before = selection.a.DataFrame.Count()
+    selection.a.Cut('HT_cut','HT > 900')
+    after = selection.a.DataFrame.Count()
 
     selection.ApplyTrigs(args.trigEff)
 
@@ -183,6 +180,13 @@ def THselection(args):
         scale.Write()
         #selection.a.PrintNodeTree('NodeTree_selection.pdf',verbose=True)
 
+    before = before.GetValue()
+    after = after.GetValue()
+    frac = float(after)/float(before)
+    loss = 100.*(1-frac)
+    print('------------------------------------------------------------')
+    print('Fractional loss of {}% of events after HT cut'.format(loss))
+    print('------------------------------------------------------------')
     print ('%s sec'%(time.time()-start))
 
 if __name__ == '__main__':
