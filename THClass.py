@@ -192,7 +192,7 @@ class THClass:
             'Dijet_deepTagMD_TvsQCD', 'Dijet_deepTag_TvsQCD', 'Dijet_particleNet_HbbvsQCD',
             'Dijet_particleNet_TvsQCD', 'Dijet_particleNetMD.*', 'Dijet_rawFactor', 'Dijet_tau*',
             'Dijet_jetId', 'nFatJet', 'Dijet_JES_nom',
-            'HLT_PFHT.*', 'HLT_PFJet.*', 'HLT_AK8.*', 'HLT_Mu50',
+            'HLT_PFHT.*', 'HLT_PFJet.*', 'HLT_AK8.*', 'HLT_Mu50', 'HLT_IsoMu*', 'HLT_Ele27_WPTight_Gsf', 'HLT_Ele35_WPTight_Gsf',
             'event', 'eventWeight', 'luminosityBlock', 'run',
 	    'NPROC', 'NFLAGS', 'NJETID', 'NJETS', 'NPT', 'NKIN'
         ]
