@@ -41,12 +41,15 @@ def MakeEfficiency(year, HT=0):
 
     # Baseline - no tagging
     hists.Add('preTagDenominator',selection.a.DataFrame.Histo1D(('preTagDenominator','',22,800,3000),'mth_trig'))
+    hists.Add('preTagDenominator_mjavg',selection.a.DataFrame.Histo1D(('preTagDenominator','',20,0,500),'m_javg'))
     selection.ApplyTrigs()
     hists.Add('preTagNumerator',selection.a.DataFrame.Histo1D(('preTagNumerator','',22,800,3000),'mth_trig'))
+    hists.Add('preTagNumerator_mjavg',selection.a.DataFrame.Histo1D(('preTagNumerator','',20,0,500),'m_javg'))
 
     # Make efficieincies
     effs = {
         "Pretag": ROOT.TEfficiency(hists['preTagNumerator'], hists['preTagDenominator']),
+	"Pretag_mjavg": ROOT.TEfficiency(hists['preTagNumerator_mjavg'], hists['preTagDenominator_mjavg'])
     }
 
     out = ROOT.TFile.Open('triggers/THtrigger_HT{}_{}.root'.format(HT,year),'RECREATE')
@@ -101,7 +104,7 @@ if __name__ == '__main__':
         for i,h in enumerate(hists[hname]):
             h.SetLineColor(colors[i])
             h.SetTitle('')
-            h.GetXaxis().SetTitle('m_{jj}')
+            h.GetXaxis().SetTitle('m_{jj}' if 'avg' not in hname else 'm_{j}^{avg}')
             h.GetYaxis().SetTitle('Efficiency')
             if i == 0:
                 h.Draw('AP')
