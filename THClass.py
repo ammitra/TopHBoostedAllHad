@@ -182,7 +182,10 @@ class THClass:
                 
         return self.a.GetActiveNode()
 
-    def Snapshot(self,node=None):
+    def Snapshot(self,node=None, colNames=[]):
+	'''
+	colNames [str] (optional): list of column names to add to the snapshot 
+	'''
         startNode = self.a.GetActiveNode()
         if node == None: node = self.a.GetActiveNode()
 
@@ -212,6 +215,9 @@ class THClass:
                 columns.append('HEM_drop__nom')
             if 'ttbar' in self.setname:
                 columns.extend(['TptReweight__nom','TptReweight__up','TptReweight__down'])
+
+	if (len(colNames) > 0):
+	    columns.extend(colNames)
 
         self.a.SetActiveNode(node)
         self.a.Snapshot(columns,'THsnapshot_%s_%s_%sof%s.root'%(self.setname,self.year,self.ijob,self.njobs),'Events',openOption='RECREATE',saveRunChain=True)
@@ -331,6 +337,36 @@ class THClass:
         else:
             self.a.AddCorrection(corr, evalArgs={"xval":"m_javg","yval":"mth_trig"})    
         return self.a.GetActiveNode()
+
+    def ApplyTopTag_ttbarCR(self, tagger='deepTagMD_HbbvsQCD', topTagger='deepTagMD_TvsQCD', signal=False):
+	'''
+	Used to create the Fail and Pass regions of the ttbar control region. 
+	The ttbar CR Fail is defined identically to the SR fail, that is, one jet PNet top-tagged and the other jet failing an Hbb score. 
+	The ttbar CR Pass region is then defined by one jet PNet top-tagged and the other jet passing the deepAK8 MD top tagging.
+	WPs: https://twiki.cern.ch/twiki/bin/view/CMS/DeepAK8Tagging2018WPsSFs#Working_Points
+	'''
+	# 0.5% WP
+	if ('16' in self.year):
+	    WP = 0.632
+	elif (self.year == '17'):
+	    WP = 0.554
+	else:
+	    WP = 0.685
+	WP = 0.92
+	checkpoint = self.a.GetActiveNode()
+	passFail = {}
+	# for the ttbar CR, we start same as SR fail
+	passFail['SRfail'] = self.a.Cut('ttbarCR_Hbb_fail','Higgs_{0} < 0.8'.format(tagger) if not signal else 'NewTagCats==0')
+	#self.a.SetActiveNode(checkpoint)
+	# the Fail region is then a failing deepAAK8 tagger
+	passFail['fail'] = self.a.Cut('ttbarCR_top_fail','Higgs_{0} < {1}'.format(topTagger,WP))
+	self.a.SetActiveNode(checkpoint)
+	# the Pass region is then a deepAK8 MD top tagger > some working point 
+	passFail['pass'] = self.a.Cut('ttbarCR_top_pass','Higgs_{0} > {1}'.format(topTagger,WP))
+	# reset active node, return dict
+	self.a.SetActiveNode(checkpoint)
+	return passFail
+
 
     def ApplyHiggsTag(self, SRorCR, tagger='deepTagMD_HbbvsQCD', signal=False):
 	'''
