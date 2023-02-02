@@ -15,3 +15,4 @@ THpileup.root
 rootfiles*
 plots
 raw_nano/*.txt
+highMassTprime/*.txt
