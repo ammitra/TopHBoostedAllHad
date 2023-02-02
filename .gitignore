@@ -16,3 +16,4 @@ rootfiles*
 plots
 raw_nano/*.txt
 highMassTprime/*.txt
+*.txt
