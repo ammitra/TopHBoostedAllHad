@@ -17,7 +17,7 @@ def GetProcYearFromTxt(filename):
     else:
 	print('ERROR')
 
-def CombineCommonSets(groupname,doStudies=False,modstr=''):
+def CombineCommonSets(groupname,doStudies=False,modstr='',HT=''):
     '''Which stitch together either QCD or ttbar (ttbar-allhad+ttbar-semilep)
     @param groupname (str, optional): "QCD" or "ttbar".
     '''
@@ -26,7 +26,7 @@ def CombineCommonSets(groupname,doStudies=False,modstr=''):
         raise ValueError('Can only combine QCD or ttbar or W/Z')
     
     for y in ['16','16APV','17','18']:
-        baseStr = 'rootfiles/TH%s_{0}{2}_{1}{3}.root'%('studies' if doStudies else 'selection')
+        baseStr = 'rootfiles/TH%s_HT%s_{0}{2}_{1}{3}.root'%(HT,'studies' if doStudies else 'selection')
         if groupname == 'ttbar':
             to_loop = [''] if doStudies else ['','JES','JER','JMS','JMR']
             for v in to_loop:
@@ -73,29 +73,36 @@ def CombineCommonSets(groupname,doStudies=False,modstr=''):
                             baseStr.format('{}JetsHT800'.format('W' if groupname == 'W' else 'Z'),y,modstr,v3))
                         )
 
-def MakeRun2(setname,doStudies=False,modstr=''):
+def MakeRun2(setname,doStudies=False,modstr='',HT=''):
     t = 'studies' if doStudies else 'selection'
-    ExecuteCmd('hadd -f -k rootfiles/TH{1}_{0}{2}_Run2.root rootfiles/TH{1}_{0}{2}_16.root rootfiles/TH{1}_{0}{2}_17.root rootfiles/TH{1}_{0}{2}_18.root'.format(setname,t,modstr))
+    ExecuteCmd('hadd -f -k rootfiles/TH{1}_HT{3}_{0}{2}_Run2.root rootfiles/TH{1}_{0}{2}_16.root rootfiles/TH{1}_{0}{2}_17.root rootfiles/TH{1}_{0}{2}_18.root'.format(setname,t,modstr,HT))
 
 
 # ------------------------------------------------------------------------------------------
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--HT', type=str, dest='HT',
+			action='store', default='0',
+			 help='Value of HT to cut on')
+    args = parser.parse_args()
 
-redirector = 'root://cmseos.fnal.gov/'
-eos_path = '/store/user/ammitra/topHBoostedAllHad/selection/'
+    redirector = 'root://cmseos.fnal.gov/'
+    eos_path = '/store/user/ammitra/topHBoostedAllHad/selection/THselection_HT{}*'.format(args.HT)
 
-rawFiles = subprocess.check_output('eos {} ls {}'.format(redirector,eos_path), shell=True)
-files = rawFiles.split('\n')
+    rawFiles = subprocess.check_output('eos {} ls {}'.format(redirector,eos_path), shell=True)
+    files = rawFiles.split('\n')
 
-for fName in files:
-    if (fName == '') or ('Muon' in fName):
-	pass
-    else:
-        ExecuteCmd('xrdcp {}{}{} rootfiles/'.format(redirector, eos_path, fName))
+    for fName in files:
+	if (fName == '') or ('Muon' in fName):
+	    pass
+    	else:
+            ExecuteCmd('xrdcp {}{}{} rootfiles/'.format(redirector, eos_path, fName))
 
-# now that we have all files, perform housekeeping
-CombineCommonSets('QCD', False)
-CombineCommonSets('ttbar', False)
-CombineCommonSets('W', False)
-CombineCommonSets('Z', False)
-MakeRun2('Data', False)
+    # now that we have all files, perform housekeeping
+    CombineCommonSets('QCD', False, args.HT)
+    CombineCommonSets('ttbar', False, args.HT)
+    CombineCommonSets('W', False, args.HT)
+    CombineCommonSets('Z', False, args.HT)
+    MakeRun2('Data', False, args.HT)
 
