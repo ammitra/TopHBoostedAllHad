@@ -69,7 +69,7 @@ def THselection(args):
 
     # apply HT cut due to improved trigger effs
     before = selection.a.DataFrame.Count()
-    selection.a.Cut('HT_cut','HT > 900')
+    selection.a.Cut('HT_cut','HT > {}'.format(args.HT))
     after = selection.a.DataFrame.Count()
 
     selection.ApplyTrigs(args.trigEff)
@@ -95,7 +95,7 @@ def THselection(args):
 	    XbbVar = 0
 
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
-    out = ROOT.TFile.Open('rootfiles/THselection_%s%s_%s%s.root'%(args.setname,
+    out = ROOT.TFile.Open('rootfiles/THselection_HT%s_%s%s_%s%s.root'%(args.HT, args.setname,
                                                                   '' if args.topcut == '' else '_htag'+args.topcut.replace('.','p'),
                                                                   args.era,
                                                                   '' if args.variation == 'None' else '_'+args.variation), 'RECREATE')
@@ -201,6 +201,9 @@ if __name__ == '__main__':
     parser.add_argument('-v', type=str, dest='variation',
                         action='store', default='None',
                         help='JES_up, JES_down, JMR_up,...')
+    parser.add_argument('--HT', type=str, dest='HT',
+                        action='store', default='0',
+                        help='Value of HT to cut on')
     parser.add_argument('--topcut', type=str, dest='topcut',
                         action='store', default='',
                         help='Overrides config entry if non-empty')
@@ -215,11 +218,11 @@ if __name__ == '__main__':
 	rand = TRand.Uniform(0.0, 1.0)
 	if rand < cutoff:	# apply the 2017B trigger efficiency to this MC 
 	    print('Applying 2017B trigger efficiency')
-	    args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_17B.root','Pretag'],corrtype='weight')
+	    args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_HT{}_17B.root'.format(args.HT),'Pretag'],corrtype='weight')
 	else:
-	    args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_17.root','Pretag'],corrtype='weight')
+	    args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_HT{}_17.root'.format(args.HT),'Pretag'],corrtype='weight')
     else:
-        args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_{}.root'.format(args.era if 'APV' not in args.era else 16),'Pretag'], corrtype='weight')
+        args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_HT{}_{}.root'.format(args.HT,args.era if 'APV' not in args.era else 16),'Pretag'], corrtype='weight')
 
     CompileCpp('THmodules.cc')
     if ('Tprime' in args.setname):

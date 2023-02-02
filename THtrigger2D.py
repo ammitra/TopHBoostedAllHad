@@ -47,7 +47,7 @@ def MakeEfficiency(year, HT=0):
 	"PretagZoom": ROOT.TEfficiency(hists['preTagNumeratorZoomed'], hists['preTagDenominatorZoomed']),
     }
 
-    out = ROOT.TFile.Open('THtrigger2D_%s.root'%year,'RECREATE')
+    out = ROOT.TFile.Open('THtrigger2D_HT{}_{}.root'.format(HT,year), 'RECREATE')
     out.cd()
     for name,eff in effs.items():
         g = eff.CreateHistogram()
@@ -86,11 +86,11 @@ if __name__ == '__main__':
             MakeEfficiency(y, args.HT)
 
     files = {
-        '16': ROOT.TFile.Open('THtrigger2D_16.root'),
-        '17': ROOT.TFile.Open('THtrigger2D_17.root'),
-        '18': ROOT.TFile.Open('THtrigger2D_18.root'),
-	'17B': ROOT.TFile.Open('THtrigger2D_17B.root'),
-	'17All': ROOT.TFile.Open('THtrigger2D_17All.root')
+        '16': ROOT.TFile.Open('THtrigger2D_HT{}_16.root'.format(args.HT)),
+        '17': ROOT.TFile.Open('THtrigger2D_HT{}_17.root'.format(args.HT)),
+        '18': ROOT.TFile.Open('THtrigger2D_HT{}_18.root'.format(args.HT)),
+	'17B': ROOT.TFile.Open('THtrigger2D_HT{}_17B.root'.format(args.HT)),
+	'17All': ROOT.TFile.Open('THtrigger2D_HT{}_17All.root'.format(args.HT))
     }
 
     hists = {hname.GetName():[files[y].Get(hname.GetName()) for y in ['16','17','18']] for hname in files['16'].GetListOfKeys() if '_hist' in hname.GetName()}
