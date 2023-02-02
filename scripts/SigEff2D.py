@@ -39,8 +39,8 @@ mPhi = OrderedDict([(i,None) for i in [75,100,125,175,200,250,350,450,500]])
 def GetEfficiencies(year):
     '''year (str): 16, 16APV, 17, 18'''
     # Create the TPrime mass dict, with each TPrime mass point having a copy of the mPhi dict
-    #efficiencies = {TMass:mPhi.copy() for TMass in range(800,1900,100)}
-    efficiencies = OrderedDict([(i,mPhi.copy()) for i in range(800,1900,100)])
+    # There are no signal samples for T' = [2100,2200,2300,2500,2600,2700]
+    efficiencies = OrderedDict([(i,mPhi.copy()) for i in range(800,3100,100) if i not in [2100,2200,2300,2500,2600,2700]])
     # Get the actual snapshots for a given year
     snapshots = glob.glob('dijet_nano/TprimeB-*_{}_snapshot.txt'.format(year))
     # Loop through the snapshots and create a TChain for each
@@ -57,8 +57,9 @@ def GetEfficiencies(year):
 	eff = end/start
 	efficiencies[TMass][PhiMass] = eff
 
-    effArr = np.zeros((11,9),dtype=float)
-    row = 11
+    # The Tprime masses (rows) are ['800', '900', '1000', '1100', '1200', '1300', '1400', '1500', '1600', '1700', '1800', '1900', '2000', '2400', '2800', '2900', '3000'] - 17 Tprime mass points
+    effArr = np.zeros((17,9),dtype=float)
+    row = 17
     for TMass, PhiMasses in efficiencies.items():
 	col = 0
 	row -= 1
@@ -70,7 +71,7 @@ def GetEfficiencies(year):
     
     fig, ax = plt.subplots(figsize=(10,10))
     im = ax.imshow(100.*effArr)
-    TMasses = [str(i) for i in range(800,1900,100)]
+    TMasses = [str(i) for i in range(800,3100,100) if i not in [2100,2200,2300,2500,2600,2700]]
     TMasses.reverse()
     PhiMasses = [str(i) for i in [75,100,125,175,200,250,350,450,500]]
     ax.set_xticks(np.arange(len(PhiMasses)))
@@ -84,31 +85,11 @@ def GetEfficiencies(year):
     cbar = ax.figure.colorbar(im, ax=ax)
     cbar.ax.set_ylabel('Signal Efficiency (%)', rotation=-90, va="bottom",fontsize='large')
     ax.set_title("Signal Efficiency 20{}".format(year))
+    ax.set_aspect('auto')
     plt.xlabel(r"$m_{\phi}$ [GeV]",fontsize='large')
     plt.ylabel(r"$m_{t\phi}$ [GeV]",fontsize='large')
     plt.savefig('plots/SignalEfficiency_{}.png'.format(year),dpi=300)
 
-    '''
-    # Now that we have all the efficiencies, plot them 
-    y = array('d',[800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800])
-    x = array('d',[75,100,125,175,200,250,350,450,500])
-    hist = ROOT.TH2D("Eff2D_{}".format(year),"",8,x,10,y)
-    hist.SetStats(0)
-    hist.GetXaxis().SetTitle('m_{#phi} [GeV]')
-    hist.GetYaxis().SetTitle('m_{t#phi} [GeV]')
-    for TMass, PhiMasses in efficiencies.items():
-	for PhiMass, eff in PhiMasses.items():
-	    xBin = hist.GetXaxis().FindBin(PhiMass)
-	    yBin = hist.GetYaxis().FindBin(TMass)
-	    if (TMass==1800) and (PhiMass==125): print('{}-{} efficiency: {}'.format(TMass, PhiMass, round(eff*100.,3)))
-	    if eff == None:
-		eff = 0.0
-	    hist.SetBinContent(xBin, yBin, round(eff*100.,3))
-    can = ROOT.TCanvas('c','c',1000,800)
-    hist.Draw('colz text')
-    can.SaveAs('plots/SignalEfficiency_{}.pdf'.format(year))
-    print(efficiencies)
-    '''
 
 if __name__=='__main__':
     for year in ['16','16APV','17','18']:
