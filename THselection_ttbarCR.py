@@ -95,7 +95,7 @@ def THselection(args):
             XbbVar = 0
 
     kinOnly = selection.a.MakeWeightCols(extraNominal='' if selection.a.isData else 'genWeight*%s'%selection.GetXsecScale())
-    out = ROOT.TFile.Open('rootfiles/THselection_ttbarCR_%s%s_%s%s.root'%(args.setname,
+    out = ROOT.TFile.Open('rootfiles/THselection_HT%s_ttbarCR_%s%s_%s%s.root'%(args.HT,args.setname,
                                                                   '' if args.topcut == '' else '_htag'+args.topcut.replace('.','p'),
                                                                   args.era,
                                                                   '' if args.variation == 'None' else '_'+args.variation), 'RECREATE')
