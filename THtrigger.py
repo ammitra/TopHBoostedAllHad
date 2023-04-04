@@ -42,14 +42,17 @@ def MakeEfficiency(year, HT=0):
     # Baseline - no tagging
     hists.Add('preTagDenominator',selection.a.DataFrame.Histo1D(('preTagDenominator','',22,800,3000),'mth_trig'))
     hists.Add('preTagDenominator_mjavg',selection.a.DataFrame.Histo1D(('preTagDenominator','',20,0,500),'m_javg'))
+    hists.Add('preTagDenominator_HT',selection.a.DataFrame.Histo1D(('preTagDenominator','',20,0,3000),'HT'))
     selection.ApplyTrigs()
     hists.Add('preTagNumerator',selection.a.DataFrame.Histo1D(('preTagNumerator','',22,800,3000),'mth_trig'))
     hists.Add('preTagNumerator_mjavg',selection.a.DataFrame.Histo1D(('preTagNumerator','',20,0,500),'m_javg'))
+    hists.Add('preTagNumerator_HT',selection.a.DataFrame.Histo1D(('preTagNumerator','',20,0,3000),'HT'))
 
     # Make efficieincies
     effs = {
         "Pretag": ROOT.TEfficiency(hists['preTagNumerator'], hists['preTagDenominator']),
-	"Pretag_mjavg": ROOT.TEfficiency(hists['preTagNumerator_mjavg'], hists['preTagDenominator_mjavg'])
+	"Pretag_mjavg": ROOT.TEfficiency(hists['preTagNumerator_mjavg'], hists['preTagDenominator_mjavg']),
+	"Pretag_HT":ROOT.TEfficiency(hists['preTagNumerator_HT'], hists['preTagDenominator_HT'])
     }
 
     out = ROOT.TFile.Open('triggers/THtrigger_HT{}_{}.root'.format(HT,year),'RECREATE')

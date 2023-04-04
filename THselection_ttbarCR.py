@@ -171,19 +171,20 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args.threads = 2
 
-    # We must apply the 2017B triffer efficiency to ~12% of the 2017 MC
-    # This trigEff correction is passed to ApplyTrigs() in the THselection() function
+    # Updated method using the trigger efficiencies parameterized by 2D function
     if ('Data' not in args.setname) and (args.era == '17'): # we are dealing with MC from 2017
         cutoff = 0.11655        # fraction of total JetHT data belonging to 2017B
         TRand = ROOT.TRandom()
         rand = TRand.Uniform(0.0, 1.0)
         if rand < cutoff:       # apply the 2017B trigger efficiency to this MC
             print('Applying 2017B trigger efficiency')
-            args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_HT{}_17B.root'.format(args.HT),'Pretag'],corrtype='weight')
+            args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader_2DfittedHist.h',['out_Eff_2017B.root','Eff_2017B'],corrtype='weight')
         else:
-            args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_HT{}_17.root'.format(args.HT),'Pretag'],corrtype='weight')
-    else:
+            args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader_2DfittedHist.h',['out_Eff_2017.root','Eff_2017'],corrtype='weight')
+    elif ('16' in args.era):
         args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_HT{}_{}.root'.format(args.HT,args.era if 'APV' not in args.era else 16),'Pretag'], corrtype='weight')
+    else:
+        args.trigEff = Correction("TriggerEff18",'TIMBER/Framework/include/EffLoader_2DfittedHist.h',['out_Eff_2018.root','Eff_2018'],corrtype='weight')
 
     CompileCpp('THmodules.cc')
     if ('Tprime' in args.setname):

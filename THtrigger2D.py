@@ -36,10 +36,10 @@ def MakeEfficiency(year, HT=0):
 
     # Baseline - no tagging
     hists.Add('preTagDenominator',selection.a.DataFrame.Histo2D(('preTagDenominator','',20,60,260,22,800,3000),'m_javg','mth_trig'))
-    hists.Add('preTagDenominatorZoomed', selection.a.DataFrame.Histo2D(('preTagDenominatorZoomed','',20,60,260,20,800,2000),'m_javg','mth_trig'))
+    hists.Add('preTagDenominatorZoomed', selection.a.DataFrame.Histo2D(('preTagDenominatorZoomed','',20,60,260,22,800,2000),'m_javg','mth_trig'))
     selection.ApplyTrigs()
     hists.Add('preTagNumerator',selection.a.DataFrame.Histo2D(('preTagNumerator','',20,60,260,22,800,3000),'m_javg','mth_trig'))
-    hists.Add('preTagNumeratorZoomed', selection.a.DataFrame.Histo2D(('preTagNumeratorZoomed','',20,60,260,20,800,2000),'m_javg','mth_trig'))
+    hists.Add('preTagNumeratorZoomed', selection.a.DataFrame.Histo2D(('preTagNumeratorZoomed','',20,60,260,22,800,2000),'m_javg','mth_trig'))
 
     # make efficiencies
     effs = {
