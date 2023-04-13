@@ -23,8 +23,8 @@ if __name__ == '__main__':
 	setname, era = GetProcYearFromFile(f)
 	if ('Muon' in setname) or (setname=='Data') or (setname=='QCD') or (setname=='WJets') or (setname=='ZJets') or (setname=='ttbar'):
 	    continue
-	if ('Tprime' in setname) and ('1800-125') not in setname:
-	    continue
+	#if ('Tprime' in setname) and ('1800-125') not in setname:
+	    #continue
    	if 'Data' not in setname and 'QCD' not in setname:
 	    out.write('-s {} -y {} -v None --HT {}\n'.format(setname, era, args.HT))  # perform nominal variation first
 	    JME = ['JES', 'JER', 'JMS', 'JMR']	# normal Jet corrections
