@@ -190,6 +190,7 @@ class THClass:
         if node == None: node = self.a.GetActiveNode()
 
         columns = [
+	    'FatJet_pt', # keep this so that we can calculate the HT 
             'Dijet_eta','Dijet_msoftdrop','Dijet_pt','Dijet_phi',
             'Dijet_deepTagMD_HbbvsQCD', 'Dijet_deepTagMD_ZHbbvsQCD',
             'Dijet_deepTagMD_TvsQCD', 'Dijet_deepTag_TvsQCD', 'Dijet_particleNet_HbbvsQCD',
@@ -243,6 +244,10 @@ class THClass:
             self.a.Define('Dijet_pt_corr','hardware::MultiHadamardProduct(Dijet_pt,{Dijet_JES_nom})')
             self.a.Define('Dijet_msoftdrop_corrT','hardware::MultiHadamardProduct(Dijet_msoftdrop,{Dijet_JES_nom})')
             self.a.Define('Dijet_msoftdrop_corrH','hardware::MultiHadamardProduct(Dijet_msoftdrop,{Dijet_JES_nom})')
+	#########################################################################################
+	# This is *not* a viable description of HT
+	# need to fix
+	#########################################################################################
         # for trigger studies
         self.a.Define('pt0','Dijet_pt_corr[0]')
         self.a.Define('pt1','Dijet_pt_corr[1]')
@@ -352,7 +357,6 @@ class THClass:
 	    WP = 0.554
 	else:
 	    WP = 0.685
-	WP = 0.92
 	checkpoint = self.a.GetActiveNode()
 	passFail = {}
 	# for the ttbar CR, we start same as SR fail
