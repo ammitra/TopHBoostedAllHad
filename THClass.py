@@ -359,14 +359,13 @@ class THClass:
 	    WP = 0.685
 	checkpoint = self.a.GetActiveNode()
 	passFail = {}
-	# for the ttbar CR, we start same as SR fail
+	# for the ttbar CR, we start same as SR fail. Then we want to operate on the Hbb candidate jet, since we've already ID'd the top
 	passFail['SRfail'] = self.a.Cut('ttbarCR_Hbb_fail','Higgs_{0} < 0.8'.format(tagger) if not signal else 'NewTagCats==0')
-	#self.a.SetActiveNode(checkpoint)
-	# the Fail region is then a failing deepAAK8 tagger
-	passFail['fail'] = self.a.Cut('ttbarCR_top_fail','Top_{0} < {1}'.format(topTagger,WP))
+	# the Fail region is then a failing deepAK8 tagger 
+	passFail['fail'] = self.a.Cut('ttbarCR_top_fail','Higgs_{0} < {1}'.format(topTagger,WP))
 	self.a.SetActiveNode(checkpoint)
 	# the Pass region is then a deepAK8 MD top tagger > some working point 
-	passFail['pass'] = self.a.Cut('ttbarCR_top_pass','Top_{0} > {1}'.format(topTagger,WP))
+	passFail['pass'] = self.a.Cut('ttbarCR_top_pass','Higgs_{0} > {1}'.format(topTagger,WP))
 	# reset active node, return dict
 	self.a.SetActiveNode(checkpoint)
 	return passFail
