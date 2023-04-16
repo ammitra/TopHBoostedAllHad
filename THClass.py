@@ -254,8 +254,8 @@ class THClass:
         self.a.Define('HT','pt0+pt1')
         return self.a.GetActiveNode()
 
-    def ApplyTopPick_Signal(self, TopTagger, XbbTagger, pt, TopScoreCut, eff0, eff1, year, TopVariation, invert):
-	objIdxs = 'ObjIdxs_{}{}'.format('Not' if invert else '', TopTagger)
+    def ApplyTopPick_Signal(self, TopTagger, XbbTagger, pt, TopScoreCut, eff0, eff1, year, TopVariation, invert, ttbarCR=False):
+	objIdxs = 'ObjIdxs{}_{}{}'.format('_ttbarCR' if ttbarCR else '', 'Not' if invert else '', TopTagger)
 	if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
 	    self.a.Define(objIdxs, 'PickTopWithSFs(%s, %s, %s, {0, 1}, %f, %f, %f, "20%s", %i, %s)'%(TopTagger, XbbTagger, pt, TopScoreCut, eff0, eff1, year, TopVariation, 'true' if invert else 'false'))
 	    # at this point, we'll have a column named ObjIdxs_(NOT)_particleNet_TvsQCD contianing the indices of which of the two jets is the top and the phi (top-0, Phi-1)
@@ -279,8 +279,8 @@ class THClass:
         return self.a.GetActiveNode()	
 
 
-    def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False, CRv2=None):
-        objIdxs = 'ObjIdxs_%s%s'%('Not' if invert else '',tagger)
+    def ApplyTopPick(self,tagger='deepTag_TvsQCD',invert=False, CRv2=None, ttbarCR=False):
+        objIdxs = 'ObjIdxs%s_%s%s'%('_ttbarCR' if ttbarCR else '','Not' if invert else '',tagger)
         if objIdxs not in [str(cname) for cname in self.a.DataFrame.GetColumnNames()]:
 
 	    if (CRv2 == None):
@@ -363,10 +363,10 @@ class THClass:
 	passFail['SRfail'] = self.a.Cut('ttbarCR_Hbb_fail','Higgs_{0} < 0.8'.format(tagger) if not signal else 'NewTagCats==0')
 	#self.a.SetActiveNode(checkpoint)
 	# the Fail region is then a failing deepAAK8 tagger
-	passFail['fail'] = self.a.Cut('ttbarCR_top_fail','Higgs_{0} < {1}'.format(topTagger,WP))
+	passFail['fail'] = self.a.Cut('ttbarCR_top_fail','Top_{0} < {1}'.format(topTagger,WP))
 	self.a.SetActiveNode(checkpoint)
 	# the Pass region is then a deepAK8 MD top tagger > some working point 
-	passFail['pass'] = self.a.Cut('ttbarCR_top_pass','Higgs_{0} > {1}'.format(topTagger,WP))
+	passFail['pass'] = self.a.Cut('ttbarCR_top_pass','Top_{0} > {1}'.format(topTagger,WP))
 	# reset active node, return dict
 	self.a.SetActiveNode(checkpoint)
 	return passFail

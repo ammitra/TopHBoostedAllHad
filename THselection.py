@@ -110,8 +110,11 @@ def THselection(args):
 
 	# SIGNAL
 	if signal:
+	    print('-----------------------------------------------------------------------------------------------------')
+	    print('		REGULAR CR + SR									       ')
+            print('-----------------------------------------------------------------------------------------------------')
+	    print('----------------------- CONTROL REGION --------------------------------------------------------------')
 	    # CONTROL REGION - INVERT TOP CUT
-	    print("CONTROL REGION --------------------------------------------------------------------------------------------------------")
 	    selection.a.SetActiveNode(kinOnly)
             e0CR = getTopEfficiencies(analyzer=selection.a, tagger='Dijet_'+top_tagger+'[0]', wp=0.94, idx=0, tag='cr1')
             e1CR = getTopEfficiencies(analyzer=selection.a, tagger='Dijet_'+top_tagger+'[1]', wp=0.94, idx=1, tag='cr2')
@@ -120,7 +123,7 @@ def THselection(args):
             applyScaleFactors(selection.a, higgs_tagger, XbbVar, 'CR', eff_L_CR, eff_T_CR, 0.8, 0.95)
             passfailCR = selection.ApplyHiggsTag('CR', tagger=higgs_tagger, signal=signal)
 	    # SIGNAL REGION
-            print("SIGNAL REGION --------------------------------------------------------------------------------------------------------")
+            print('----------------------- SIGNAL REGION --------------------------------------------------------------')
             selection.a.SetActiveNode(kinOnly)
             e0SR = getTopEfficiencies(analyzer=selection.a, tagger='Dijet_'+top_tagger+'[0]', wp=0.94, idx=0, tag='sr1')
             e1SR = getTopEfficiencies(analyzer=selection.a, tagger='Dijet_'+top_tagger+'[1]', wp=0.94, idx=1, tag='sr2')
@@ -129,8 +132,24 @@ def THselection(args):
             applyScaleFactors(selection.a, higgs_tagger, XbbVar, 'SR', eff_L_SR, eff_T_SR, 0.8, 0.95)
             passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=signal)
 
+            print('-----------------------------------------------------------------------------------------------------')
+	    print('              TTBAR CR                                                                               ')
+	    print('-----------------------------------------------------------------------------------------------------')
+            selection.a.SetActiveNode(kinOnly)
+            e0ttbarCR = getTopEfficiencies(analyzer=selection.a, tagger='Dijet_'+top_tagger+'[0]', wp=0.94, idx=0, tag='ttbarCR1')
+            e1ttbarCR = getTopEfficiencies(analyzer=selection.a, tagger='Dijet_'+top_tagger+'[1]', wp=0.94, idx=1, tag='ttbarCR2')
+            selection.ApplyTopPick_Signal(TopTagger='Dijet_'+top_tagger, XbbTagger='Dijet_'+higgs_tagger, pt='Dijet_pt_corr', TopScoreCut=0.94, eff0=e0ttbarCR, eff1=e1ttbarCR, year=args.era, TopVariation=TopVar, invert=False, ttbarCR=True)
+            eff_L_ttbarCR, eff_T_ttbarCR = getXbbEfficiencies(selection.a, higgs_tagger, 'ttbarCR', 0.8, 0.98)
+            applyScaleFactors(selection.a, higgs_tagger, XbbVar, 'ttbarCR', eff_L_ttbarCR, eff_T_ttbarCR, 0.8, 0.95)
+            #passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=signal)
+	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal)
+
+
 	# EVERYTHING ELSE
 	else:
+            print('-----------------------------------------------------------------------------------------------------')
+            print('              REGULAR CR + SR                                                                        ')
+            print('-----------------------------------------------------------------------------------------------------')
 	    # CONTROL REGION - INVERT TOP CUT
             selection.a.SetActiveNode(kinOnly)
             selection.ApplyTopPick(tagger=top_tagger,invert=True,CRv2=higgs_tagger)
@@ -139,9 +158,15 @@ def THselection(args):
             selection.a.SetActiveNode(kinOnly)
             selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
             passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=signal)
+            print('-----------------------------------------------------------------------------------------------------')
+            print('              TTBAR CR                                                                               ')
+            print('-----------------------------------------------------------------------------------------------------')
+            selection.a.SetActiveNode(kinOnly)
+            selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger,ttbarCR=True)
+	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
-        for rkey,rpair in {"SR":passfailSR,"CR":passfailCR}.items():
+        for rkey,rpair in {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFail}.items():
             for pfkey,n in rpair.items():
                 mod_name = "%s_%s_%s"%(t,rkey,pfkey)
                 mod_title = "%s %s"%(rkey,pfkey)

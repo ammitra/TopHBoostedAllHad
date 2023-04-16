@@ -174,7 +174,7 @@ RVec<int> PickDijets(RVec<float> pt, RVec<float> eta, RVec<float> phi, RVec<floa
                 if (jet0Idx == -1) {
                     jet0Idx = ijet;
                 } else {
-                    if (hardware::DeltaPhi(phi[jet0Idx], phi[ijet]) > M_PI/2) {
+                    if (abs(hardware::DeltaPhi(phi[jet0Idx], phi[ijet])) > M_PI/2) {
                         jet1Idx = ijet;
                         break;
                     }
