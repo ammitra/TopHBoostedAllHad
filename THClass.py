@@ -343,20 +343,20 @@ class THClass:
             self.a.AddCorrection(corr, evalArgs={"xval":"m_javg","yval":"mth_trig"})    
         return self.a.GetActiveNode()
 
-    def ApplyTopTag_ttbarCR(self, tagger='deepTagMD_HbbvsQCD', topTagger='deepTagMD_TvsQCD', signal=False):
+    def ApplyTopTag_ttbarCR(self, tagger='deepTagMD_HbbvsQCD', topTagger='deepTagMD_TvsQCD', signal=False, loose=True):
 	'''
 	Used to create the Fail and Pass regions of the ttbar control region. 
 	The ttbar CR Fail is defined identically to the SR fail, that is, one jet PNet top-tagged and the other jet failing an Hbb score. 
 	The ttbar CR Pass region is then defined by one jet PNet top-tagged and the other jet passing the deepAK8 MD top tagging.
 	WPs: https://twiki.cern.ch/twiki/bin/view/CMS/DeepAK8Tagging2018WPsSFs#Working_Points
 	'''
-	# 0.5% WP
+	# 0.5% WP = loose, 0.1% = tight
 	if ('16' in self.year):
-	    WP = 0.632
+	    WP = 0.632 if loose else 0.889
 	elif (self.year == '17'):
-	    WP = 0.554
+	    WP = 0.554 if loose else 0.863
 	else:
-	    WP = 0.685
+	    WP = 0.685 if loose else 0.92
 	checkpoint = self.a.GetActiveNode()
 	passFail = {}
 	# for the ttbar CR, we start same as SR fail. Then we want to operate on the Hbb candidate jet, since we've already ID'd the top

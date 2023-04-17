@@ -131,7 +131,6 @@ def THselection(args):
             eff_L_SR, eff_T_SR = getXbbEfficiencies(selection.a, higgs_tagger, 'SR', 0.8, 0.98)
             applyScaleFactors(selection.a, higgs_tagger, XbbVar, 'SR', eff_L_SR, eff_T_SR, 0.8, 0.95)
             passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=signal)
-
             print('-----------------------------------------------------------------------------------------------------')
 	    print('              TTBAR CR                                                                               ')
 	    print('-----------------------------------------------------------------------------------------------------')
@@ -142,7 +141,7 @@ def THselection(args):
             eff_L_ttbarCR, eff_T_ttbarCR = getXbbEfficiencies(selection.a, higgs_tagger, 'ttbarCR', 0.8, 0.98)
             applyScaleFactors(selection.a, higgs_tagger, XbbVar, 'ttbarCR', eff_L_ttbarCR, eff_T_ttbarCR, 0.8, 0.95)
             #passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=signal)
-	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal)
+	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
 
 
 	# EVERYTHING ELSE
@@ -163,7 +162,7 @@ def THselection(args):
             print('-----------------------------------------------------------------------------------------------------')
             selection.a.SetActiveNode(kinOnly)
             selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger,ttbarCR=True)
-	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal)
+	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, args=False)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFail}.items():
