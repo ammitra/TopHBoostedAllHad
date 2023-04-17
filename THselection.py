@@ -162,7 +162,7 @@ def THselection(args):
             print('-----------------------------------------------------------------------------------------------------')
             selection.a.SetActiveNode(kinOnly)
             selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger,ttbarCR=True)
-	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, args=False)
+	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFail}.items():
