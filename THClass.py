@@ -96,7 +96,7 @@ class THClass:
 	self.NFLAGS = self.getNweighted()
 	self.AddCutflowColumn(self.NFLAGS, "NFLAGS")
 
-        self.a.Cut('njets','nFatJet > 2')
+        self.a.Cut('njets','nFatJet >= 2')
 	self.NJETS = self.getNweighted()
 	self.AddCutflowColumn(self.NJETS, "NJETS")
 
@@ -182,6 +182,45 @@ class THClass:
                 
         return self.a.GetActiveNode()
 
+    #################################
+    # For lepton veto orthogonality #
+    #################################
+    def LeptonVeto(self):
+	'''
+	Semileptonic search has the following leptonic preselection:
+	TightLeptons
+	    tightMu = list(filter(lambda x : x.tightId and x.pt>30 and x.pfRelIso04_all<0.15 and abs(x.eta)<2.4,muon))
+	    tightEl = list(filter(lambda x : x.mvaFall17V2Iso_WP80 and x.pt>35 and abs(x.eta)<2.5, electron))
+	TopLeptons
+	    goodMu = list(filter(lambda x : x.pt>30 and x.looseId==1 and abs(x.dxy)<0.02 and abs(x.eta)<2.4, muons))
+	    goodEl = list(filter(lambda x : x.pt>35 and x.mvaFall17V2noIso_WP90==1 and abs(x.dxy)<0.05 and abs(x.eta)<2.5, electrons))
+	We will invert these requirements and see how the yields are affected. However, there may be multiple leptons per event, 
+	so we will first check if the event has muons (nMuon<1) and if there are, we loop over the leptons in the event and 
+	immediately return true if a lepton in the event meets the veto criteria. See THmodules.cc for implementation.
+	'''
+	self.PreLeptonVeto = self.getNweighted()
+	self.AddCutflowColumn(self.PreLeptonVeto,'PreLepVeto')
+	# tightMu inversion
+	self.a.Cut('tightMu_veto','TightMuVeto(nMuon, Muon_tightId, Muon_pt, Muon_pfRelIso04_all, Muon_eta)==0')
+	self.NTightMu = self.getNweighted()
+	self.AddCutflowColumn(self.NTightMu, "NTightMu")
+	# tightEl inversion
+	self.a.Cut('tightEl_veto','TightElVeto(nElectron, Electron_mvaFall17V2Iso_WP80, Electron_pt, Electron_eta)==0')
+	self.NTightEl = self.getNweighted()
+	self.AddCutflowColumn(self.NTightEl, "NTightEl")
+	# goodMu inversion
+	self.a.Cut('goodMu_veto','GoodMuVeto(nMuon, Muon_pt, Muon_looseId, Muon_dxy, Muon_eta)==0')
+	self.NGoodMu = self.getNweighted()
+	self.AddCutflowColumn(self.NGoodMu, "NGoodMu")
+	# goodEl inversion
+	self.a.Cut('goodEl_veto','GoodElVeto(nElectron, Electron_pt, Electron_mvaFall17V2noIso_WP90, Electron_dxy, Electron_eta)==0')
+	self.NGoodEl = self.getNweighted()
+	self.AddCutflowColumn(self.NGoodEl, "NGoodEl")
+
+	self.PostLeptonVeto = self.getNweighted()
+	self.AddCutflowColumn(self.PostLeptonVeto,'PostLepVeto')
+	return self.a.GetActiveNode()
+
     def Snapshot(self,node=None, colNames=[]):
 	'''
 	colNames [str] (optional): list of column names to add to the snapshot 
@@ -198,7 +237,7 @@ class THClass:
             'Dijet_jetId', 'nFatJet', 'Dijet_JES_nom',
             'HLT_PFHT.*', 'HLT_PFJet.*', 'HLT_AK8.*', 'HLT_Mu50', 'HLT_IsoMu*', 'HLT_Ele27_WPTight_Gsf', 'HLT_Ele35_WPTight_Gsf',
             'event', 'eventWeight', 'luminosityBlock', 'run',
-	    'NPROC', 'NFLAGS', 'NJETID', 'NJETS', 'NPT', 'NKIN'
+	    'NPROC', 'NFLAGS', 'NJETID', 'NJETS', 'NPT', 'NKIN', 'NTightMu', 'NTightEl', 'NGoodMu', 'NGoodEl', 'PreLepVeto', 'PostLepVeto'
         ]
 
         if not self.a.isData:

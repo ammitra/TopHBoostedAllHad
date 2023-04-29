@@ -6,6 +6,57 @@
 
 using namespace ROOT::VecOps;
 
+/*****************************************************************
+ *  Lepton veto functions 
+ *  ---------------------
+ *  Loops over all leptons in an event and returns true if 
+ *  a lepton in the event meets the criteria for vetoing the 
+ *  event. These functions should return a True if the criteria
+ *  is met and False if the criteria is not met. The user is 
+ *  in charge of correctly interpreting the results of the 
+ *  function return, i.e., in an RDataFrame Filter() call.
+ *****************************************************************/
+bool TightMuVeto(int nMuon, RVec<bool> tightId, RVec<float> muonPt, RVec<float> muonRelIso, RVec<float> muonEta) {
+    if (nMuon < 1) {return false;}	// don't veto event, there are no muons
+    bool veto = false;
+    for (int iMu = 0; iMu < muonPt.size(); iMu++) {
+	veto = (tightId[iMu] == 0) && (muonPt[iMu] < 30.) && (muonRelIso[iMu] > 0.15) && (std::abs(muonEta[iMu])>2.4);
+	if (veto) {return veto;}
+    }
+    return veto;
+} 
+
+bool TightElVeto(int nElectron, RVec<bool> elIso, RVec<float> elPt, RVec<float> elEta) {
+    if (nElectron < 1) {return false;}
+    bool veto = false;
+    for (int iEl = 0; iEl < elPt.size(); iEl++){
+	veto = (elIso[iEl] == 0) && (elPt[iEl] < 35.) && (std::abs(elEta[iEl])>2.5);
+	if (veto) {return veto;}
+    }
+    return veto;
+}
+
+bool GoodMuVeto(int nMuon, RVec<float> muonPt, RVec<bool> looseId, RVec<float> dxy, RVec<float> muonEta) {
+    if (nMuon < 1) {return false;}
+    bool veto = false;
+    for (int iMu = 0; iMu < muonPt.size(); iMu++) {
+	veto = (muonPt[iMu] < 30.) && (looseId[iMu] == 0) && (std::abs(dxy[iMu]) > 0.02) && (std::abs(muonEta[iMu]) > 2.4);
+	if (veto) {return veto;} 
+    }
+    return veto;
+}
+
+bool GoodElVeto(int nElectron, RVec<float> elPt, RVec<bool> elIso, RVec<float> dxy, RVec<float> elEta) {
+    if (nElectron < 1) {return false;}
+    bool veto =false;
+    for (int iEl = 0; iEl < elPt.size(); iEl++) {
+	veto = (elPt[iEl] < 35.) && (elIso[iEl] == 0) && (std::abs(dxy[iEl]) > 0.05) && (std::abs(elEta[iEl]) > 2.5);
+	if (veto) {return veto;}
+    }
+    return veto;
+}
+// -------------------------------------------------------------------------------
+
 double RAND() {
     const double from = 0.0;
     const double to = 1.0;
