@@ -20,7 +20,7 @@ bool TightMuVeto(int nMuon, RVec<bool> tightId, RVec<float> muonPt, RVec<float> 
     if (nMuon < 1) {return false;}	// don't veto event, there are no muons
     bool veto = false;
     for (int iMu = 0; iMu < muonPt.size(); iMu++) {
-	veto = (tightId[iMu] == 0) && (muonPt[iMu] < 30.) && (muonRelIso[iMu] > 0.15) && (std::abs(muonEta[iMu])>2.4);
+	veto = (tightId[iMu] == 1) && (muonPt[iMu] > 30.) && (muonRelIso[iMu] < 0.15) && (std::abs(muonEta[iMu]) < 2.4); // veto if meets SL selection criteria
 	if (veto) {return veto;}
     }
     return veto;
@@ -30,7 +30,7 @@ bool TightElVeto(int nElectron, RVec<bool> elIso, RVec<float> elPt, RVec<float> 
     if (nElectron < 1) {return false;}
     bool veto = false;
     for (int iEl = 0; iEl < elPt.size(); iEl++){
-	veto = (elIso[iEl] == 0) && (elPt[iEl] < 35.) && (std::abs(elEta[iEl])>2.5);
+	veto = (elIso[iEl] == 1) && (elPt[iEl] > 35.) && (std::abs(elEta[iEl])<2.5);
 	if (veto) {return veto;}
     }
     return veto;
@@ -40,7 +40,7 @@ bool GoodMuVeto(int nMuon, RVec<float> muonPt, RVec<bool> looseId, RVec<float> d
     if (nMuon < 1) {return false;}
     bool veto = false;
     for (int iMu = 0; iMu < muonPt.size(); iMu++) {
-	veto = (muonPt[iMu] < 30.) && (looseId[iMu] == 0) && (std::abs(dxy[iMu]) > 0.02) && (std::abs(muonEta[iMu]) > 2.4);
+	veto = (muonPt[iMu] > 30.) && (looseId[iMu] == 1) && (std::abs(dxy[iMu]) < 0.02) && (std::abs(muonEta[iMu]) < 2.4);
 	if (veto) {return veto;} 
     }
     return veto;
@@ -50,7 +50,7 @@ bool GoodElVeto(int nElectron, RVec<float> elPt, RVec<bool> elIso, RVec<float> d
     if (nElectron < 1) {return false;}
     bool veto =false;
     for (int iEl = 0; iEl < elPt.size(); iEl++) {
-	veto = (elPt[iEl] < 35.) && (elIso[iEl] == 0) && (std::abs(dxy[iEl]) > 0.05) && (std::abs(elEta[iEl]) > 2.5);
+	veto = (elPt[iEl] > 35.) && (elIso[iEl] == 1) && (std::abs(dxy[iEl]) < 0.05) && (std::abs(elEta[iEl]) < 2.5);
 	if (veto) {return veto;}
     }
     return veto;
