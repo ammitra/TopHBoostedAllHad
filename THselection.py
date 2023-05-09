@@ -162,7 +162,7 @@ def THselection(args):
             print('-----------------------------------------------------------------------------------------------------')
             selection.a.SetActiveNode(kinOnly)
             selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger,ttbarCR=True)
-	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
+	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=True)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
         for rkey,rpair in {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFail}.items():
@@ -175,7 +175,7 @@ def THselection(args):
 		# both of these variables were created/defined during the ApplyTopPick() and ApplyHiggsTag() steps above (see THClass)
                 templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod_name,'MthvMh %s with %s'%(mod_title,t),40,60,260,22,800,3000),['Higgs_msoftdrop_corrH','mth'])
                 templates.Do('Write')
-    '''
+
     # now process cutflow information
     cutflowInfo = OrderedDict([
 	('nTop_CR',selection.nTop_CR), 
@@ -196,7 +196,6 @@ def THselection(args):
 	hCutflow.AddBinContent(nBin, value)
 	nBin += 1
     hCutflow.Write()
-    '''
 
     if not selection.a.isData:
         scale = ROOT.TH1F('scale','xsec*lumi/genEventSumw',1,0,1)

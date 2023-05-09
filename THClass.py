@@ -308,10 +308,18 @@ class THClass:
         #DEBUG
         nTot = self.a.DataFrame.Sum("genWeight").GetValue()
         print('NTot after TopPick (signal) = {}'.format(nTot))
+
+        # now get the cutflow information after top tag
+        if (invert == True):    # control region
+            self.nTop_CR = self.getNweighted()
+            self.AddCutflowColumn(self.nTop_CR, "nTop_CR")
+        else:
+            self.nTop_SR = self.getNweighted()
+            self.AddCutflowColumn(self.nTop_SR, "nTop_SR")
+
         # at this point, rename Dijet -> Top/Higgs based on its index determined above
         self.a.ObjectFromCollection('Top','Dijet','tIdx',skip=['msoftdrop_corrH'])
         self.a.ObjectFromCollection('Higgs','Dijet','hIdx',skip=['msoftdrop_corrT'])
-
         self.a.Define('Top_vect','hardware::TLvector(Top_pt_corr, Top_eta, Top_phi, Top_msoftdrop_corrT)')
         self.a.Define('Higgs_vect','hardware::TLvector(Higgs_pt_corr, Higgs_eta, Higgs_phi, Higgs_msoftdrop_corrH)')
         self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
@@ -346,19 +354,9 @@ class THClass:
 	# at this point, rename Dijet -> Top/Higgs based on its index determined above
         self.a.ObjectFromCollection('Top','Dijet','tIdx',skip=['msoftdrop_corrH'])
         self.a.ObjectFromCollection('Higgs','Dijet','hIdx',skip=['msoftdrop_corrT'])
-
-	#self.a.Define('Dummy1','Top_pt_corr')
-	#self.a.Define('Dummy2','Top_eta')
-	#self.a.Define('Dummy3','Top_phi')
-	#self.a.Define('Dummy4','Top_msoftdrop_corrT')
-	#self.a.Define('Top_vect','hardware::TLvector(Dummy1,Dummy2,Dummy3,Dummy4)')
-	# DEBUG
-	#print('\n'.join([self.a.DataFrame.GetColumnType(c)+' '+c for c in self.a.GetColumnNames() if c.startswith('Top_')]))
         self.a.Define('Top_vect','hardware::TLvector(Top_pt_corr, Top_eta, Top_phi, Top_msoftdrop_corrT)')
         self.a.Define('Higgs_vect','hardware::TLvector(Higgs_pt_corr, Higgs_eta, Higgs_phi, Higgs_msoftdrop_corrH)')
         self.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
-        # self.c_top = Correction('TopTagSF','TIMBER/Framework/include/TopTagDAK8_SF.h',[self.year,'0p5',True],corrtype='weight')
-        # self.a.AddCorrection(self.c_top, evalArgs={"pt":"Top_pt"})
         return self.a.GetActiveNode()
 
     def ApplyNewTrigs(self, subyear, corr=None):
