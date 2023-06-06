@@ -11,6 +11,7 @@ THselection*.root
 THtrigger*.root
 CondorHelper.py
 dijet_nano/*.txt
+dijet_nano/NMinus1/*.root
 THpileup.root
 rootfiles*
 plots

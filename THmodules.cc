@@ -216,6 +216,25 @@ RVec<int> PickTopWithSFs(RVec<float> TvsQCD,
     return out;
 }
 
+RVec<int> PickDijetsNminus1(RVec<float> phi) {
+    // used for Nminus1 testing (only kinematic cut here will be deltaPhi)
+    int jet0Idx = -1;
+    int jet1Idx = -1;
+    for (int ijet=0; ijet<phi.size(); ijet++) {
+	if (jet1Idx == -1) {
+	    if (jet0Idx == -1) {
+		jet0Idx = ijet;
+	    } else {
+	    if (abs(hardware::DeltaPhi(phi[jet0Idx], phi[ijet])) > M_PI/2) {
+		jet1Idx = ijet;
+		break;
+	    }
+	    }
+	}
+    }
+    return {jet0Idx,jet1Idx};
+}
+
 RVec<int> PickDijets(RVec<float> pt, RVec<float> eta, RVec<float> phi, RVec<float> mass) {
     int jet0Idx = -1;
     int jet1Idx = -1;

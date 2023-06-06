@@ -117,6 +117,11 @@ class THClass:
 
         self.a.SubCollection('Dijet','FatJet','DijetIdxs',useTake=True)
         self.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt, Dijet_eta, Dijet_phi, Dijet_msoftdrop)')
+
+	self.a.Define('deltaEta','abs(Dijet_eta[0]-Dijet_eta[1])')
+	self.a.Cut('deltaEta_cut','deltaEta < 1.6')
+	self.NDELTAETA = self.getNweighted()
+	self.AddCutflowColumn(self.NDELTAETA,'NDELTAETA')
         return self.a.GetActiveNode()
 
     def ApplyStandardCorrections(self,snapshot=False):
@@ -237,7 +242,7 @@ class THClass:
             'Dijet_jetId', 'nFatJet', 'Dijet_JES_nom',
             'HLT_PFHT.*', 'HLT_PFJet.*', 'HLT_AK8.*', 'HLT_Mu50', 'HLT_IsoMu*', 'HLT_Ele27_WPTight_Gsf', 'HLT_Ele35_WPTight_Gsf',
             'event', 'eventWeight', 'luminosityBlock', 'run',
-	    'NPROC', 'NFLAGS', 'NJETID', 'NJETS', 'NPT', 'NKIN', 'NTightMu', 'NTightEl', 'NGoodMu', 'NGoodEl', 'PreLepVeto', 'PostLepVeto'
+	    'NPROC', 'NFLAGS', 'NJETID', 'NJETS', 'NPT', 'NKIN', 'NDELTAETA', 'NTightMu', 'NTightEl', 'NGoodMu', 'NGoodEl', 'PreLepVeto', 'PostLepVeto'
         ]
 
         if not self.a.isData:
