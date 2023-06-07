@@ -143,6 +143,7 @@ int getNewTopCat(float SF, int oldCat, float eff, double rand, bool invert) {
 RVec<int> PickTopWithSFs(RVec<float> TvsQCD, 
                   RVec<float> HbbvsQCD, 
                   RVec<float> pt, 
+		  RVec<float> mass,
                   RVec<int> idxs, 
                   float scoreCut, 
                   float eff0,
@@ -178,7 +179,8 @@ RVec<int> PickTopWithSFs(RVec<float> TvsQCD,
         isTop1 = (new_score1 == 1);
     }
     else {// higgs veto, use raw HbbvsQCD score.
-        isTop0 = (new_score0 == 0) && (HbbvsQCD[idx0] < 0.2);
+	// NEW 6/7/23 - implement top mass window on 'lead' jet
+        isTop0 = (new_score0 == 0) && (HbbvsQCD[idx0] < 0.2) && (mass[idx0]>150) && (mass[idx0]<200);
         isTop1 = (new_score1 == 0) && (HbbvsQCD[idx1] < 0.2);
     }
     // determine which is which 
@@ -272,10 +274,8 @@ std::vector<int> PickTop(RVec<float> mass, RVec<float> tagScore, RVec<int> idxs,
 	// if inverted, only accept jets meeting the loose score (>0.2) and not those meeting the tight cut (< WP)
         isTop0 = (tagScore[idx0] < WP) && (0.2 < tagScore[idx0]);
 	isTop1 = (tagScore[idx1] < WP) && (0.2 < tagScore[idx1]);
-        //isTop0 = (mass[idx0] > massCut.first) && (mass[idx0] < massCut.second) && (tagScore[idx0] < WP);
-        //isTop1 = (mass[idx1] > massCut.first) && (mass[idx1] < massCut.second) && (tagScore[idx1] < WP);
     }
-    
+
     if (isTop0 && isTop1) {
         if (tagScore[idx0] > tagScore[idx1]) {
             out[0] = idx0;
@@ -311,7 +311,8 @@ std::vector<int> PickTopCRv2(RVec<float> mass, RVec<float> tagScore, RVec<float>
         isTop1 = (mass[idx1] > massCut.first) && (mass[idx1] < massCut.second) && (tagScore[idx1] > WP);
     } else {	// control region - anti-top tag and Higgs veto on the top jet
 	// same as CR_v1, but also require the top candidate jet to have Higgs tag < loose WP
-	isTop0 = (tagScore[idx0] < WP) && (0.2 < tagScore[idx0]) && (HiggsScore[idx0] < 0.2);
+	// NEW 6/7/23 - add top mass window cut to leading jet
+	isTop0 = (tagScore[idx0] < WP) && (0.2 < tagScore[idx0]) && (HiggsScore[idx0] < 0.2) && (mass[idx0]>150) && (mass[idx0]<200);
         isTop1 = (tagScore[idx1] < WP) && (0.2 < tagScore[idx1]) && (HiggsScore[idx1] < 0.2);
     }
     if (isTop0 && isTop1) {	// if both jets meet top (anti)tag, then choose the one with higher top score as top jet

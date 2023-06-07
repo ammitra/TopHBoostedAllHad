@@ -19,9 +19,9 @@ def generateCutflow(setName, HT=750, selection=False):
 	selection [bool] = False if only snapshot, True if both
     '''
     if selection:
-	snapVars = OrderedDict([('NPROC',0.),('NFLAGS',0.),('NJETS',0.),('NJETID',0),('NPT',0.),('NKIN',0.),('PreLepVeto',0.),('PostLepVeto',0.),('nTop_CR',0.),('higgsF_CR',0.),('higgsL_CR',0.),('higgsP_CR',0.),('nTop_SR',0.),('higgsF_SR',0.),('higgsL_SR',0.),('higgsP_SR',0.)])
+	snapVars = OrderedDict([('NPROC',0.),('NFLAGS',0.),('NJETS',0.),('NJETID',0),('NPT',0.),('NKIN',0.),('NDELTAETA',0.),('PreLepVeto',0.),('PostLepVeto',0.),('nTop_CR',0.),('higgsF_CR',0.),('higgsL_CR',0.),('higgsP_CR',0.),('nTop_SR',0.),('higgsF_SR',0.),('higgsL_SR',0.),('higgsP_SR',0.)])
     else:
-	snapVars = OrderedDict([('NPROC',0.),('NFLAGS',0.),('NJETS',0.),('NJETID',0),('NPT',0.),('NKIN',0.),('PreLepVeto',0.),('PostLepVeto',0.)])
+	snapVars = OrderedDict([('NPROC',0.),('NFLAGS',0.),('NJETS',0.),('NJETID',0),('NPT',0.),('NKIN',0.),('NDELTAETA',0.),('PreLepVeto',0.),('PostLepVeto',0.)])
 
     years = OrderedDict([('16',snapVars.copy()), ('16APV', snapVars.copy()), ('17', snapVars.copy()), ('18', snapVars.copy())])
 
@@ -75,7 +75,7 @@ def generateCutflow(setName, HT=750, selection=False):
 
 def printYields(selection=False):
     '''prints the yields for bkg and data in Latex form'''
-    labels = ["Sample","nProc","nFlags","nJets","nJetID","p_{t}","nKin"]
+    labels = ["Sample","nProc","nFlags","nJets","nJetID","p_{t}","nKin","$|\Delta\eta|$"]
     if selection:
 	labels.extend(["CR_topCut","CR_F","CR_L","CR_P","SR_topCut","SR_F","SR_L","SR_P"])
     sets = ["ttbar", "QCD", "WJets", "ZJets", "Data"]
@@ -106,7 +106,7 @@ def printEfficiencies(selection=False):
 	First, for mT = 1800, mPhi = 75, 100, 125, 250, 500
 	Then, for mPhi = 125, mT = 1400, 1500, 1600, 1700, 1800  (SKIP 1700 - it's missing 2018)
     '''
-    labels = ["Sample","nProc","nFlags","nJets","nJetID","p_{t}","nKin","preLeptonVeto","postLeptonVeto"]
+    labels = ["Sample","nProc","nFlags","nJets","nJetID","p_{t}","nKin","$|\Delta\eta|$","preLeptonVeto","postLeptonVeto"]
     if selection:
 	labels.extend(["CR_topCut","CR_F","CR_L","CR_P","SR_topCut","SR_F","SR_L","SR_P"])
     # first keep constant mT
