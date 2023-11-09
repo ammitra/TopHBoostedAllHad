@@ -276,7 +276,7 @@ class THClass:
         self.ApplyStandardCorrections(snapshot=False)
         self.a.Define('Dijet_vect_trig','hardware::TLvector(Dijet_pt, Dijet_eta, Dijet_phi, Dijet_msoftdrop)')
         self.a.Define('mth_trig','hardware::InvariantMass(Dijet_vect_trig)')
-        self.a.Define('m_javg','(Dijet_msoftdrop[0]+Dijet_msoftdrop[0])/2')
+        self.a.Define('m_javg','(Dijet_msoftdrop[0]+Dijet_msoftdrop[1])/2')
         # JME variations
         if not self.a.isData:
             pt_calibs, top_mass_calibs = JMEvariationStr('Top',variation)     # the pt calibs are the same for

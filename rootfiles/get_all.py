@@ -17,7 +17,7 @@ def GetProcYearFromTxt(filename):
     else:
 	print('ERROR')
 
-def CombineCommonSets(groupname,doStudies=False,modstr='',HT=''):
+def CombineCommonSets(groupname,doStudies=False,ttbarCR=False,modstr='',HT='',remote=False):
     '''Which stitch together either QCD or ttbar (ttbar-allhad+ttbar-semilep)
     @param groupname (str, optional): "QCD" or "ttbar".
     '''
@@ -26,7 +26,10 @@ def CombineCommonSets(groupname,doStudies=False,modstr='',HT=''):
         raise ValueError('Can only combine QCD or ttbar or W/Z')
     
     for y in ['16','16APV','17','18']:
-        baseStr = 'rootfiles/TH%s_HT%s_{0}{2}_{1}{3}.root'%(HT,'studies' if doStudies else 'selection')
+	if not remote:
+            baseStr = 'rootfiles/TH%s_HT%s_%s{0}{2}_{1}{3}.root'%('studies' if doStudies else 'selection',HT,'ttbarCR_' if ttbarCR else '')
+	else:
+	    baseStr = 'root://cmseos.fnal.gov//store/user/ammitra/topHBoostedAllHad/selection/TH%s_HT%s_%s{0}{2}_{1}{3}.root'%('studies' if doStudies else 'selection',HT,'ttbarCR_' if ttbarCR else '')
         if groupname == 'ttbar':
             to_loop = [''] if doStudies else ['','JES','JER','JMS','JMR']
             for v in to_loop:
@@ -75,20 +78,19 @@ def CombineCommonSets(groupname,doStudies=False,modstr='',HT=''):
 
 def MakeRun2(setname,doStudies=False,modstr='',HT=''):
     t = 'studies' if doStudies else 'selection'
-    ExecuteCmd('hadd -f -k rootfiles/TH{1}_HT{3}_{0}{2}_Run2.root rootfiles/TH{1}_{0}{2}_16.root rootfiles/TH{1}_{0}{2}_17.root rootfiles/TH{1}_{0}{2}_18.root'.format(setname,t,modstr,HT))
-
+    ExecuteCmd('hadd -f -k rootfiles/TH{1}_HT{3}_{2}{0}_Run2.root rootfiles/TH{1}_{2}{0}_16.root rootfiles/TH{1}_{2}{0}_17.root rootfiles/TH{1}_{2}{0}_18.root'.format(setname,t,modstr,HT))
 
 # ------------------------------------------------------------------------------------------
 if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('--HT', type=str, dest='HT',
-			action='store', default='0',
+			action='store', default='750',
 			 help='Value of HT to cut on')
     args = parser.parse_args()
 
     redirector = 'root://cmseos.fnal.gov/'
-    eos_path = '/store/user/ammitra/topHBoostedAllHad/selection/THselection_HT{}*'.format(args.HT)
+    eos_path = '/store/user/ammitra/topHBoostedAllHad/selection/'
 
     rawFiles = subprocess.check_output('eos {} ls {}'.format(redirector,eos_path), shell=True)
     files = rawFiles.split('\n')
@@ -97,12 +99,18 @@ if __name__ == '__main__':
 	if (fName == '') or ('Muon' in fName):
 	    pass
     	else:
-            ExecuteCmd('xrdcp {}{}{} rootfiles/'.format(redirector, eos_path, fName))
+	    print(fName)
+            ExecuteCmd('xrdcp -f {}{}{} rootfiles/'.format(redirector, eos_path, fName))
 
     # now that we have all files, perform housekeeping
-    CombineCommonSets('QCD', False, args.HT)
-    CombineCommonSets('ttbar', False, args.HT)
-    CombineCommonSets('W', False, args.HT)
-    CombineCommonSets('Z', False, args.HT)
-    MakeRun2('Data', False, args.HT)
+    CombineCommonSets('QCD', doStudies=False, ttbarCR=False, modstr='', HT=args.HT)
+    CombineCommonSets('ttbar', doStudies=False, ttbarCR=False, modstr='', HT=args.HT)
+    CombineCommonSets('W', doStudies=False, ttbarCR=False, modstr='', HT=args.HT)
+    CombineCommonSets('Z', doStudies=False, ttbarCR=False, modstr='', HT=args.HT)
+    MakeRun2('Data', False, '', args.HT)	 # combine regular data
 
+    # combine the ttbar on EOS as well, using the remote flag
+    CombineCommonSets('QCD',doStudies=False,HT=args.HT,remote=True)
+    CombineCommonSets('ttbar',doStudies=False,HT=args.HT,remote=True)
+    CombineCommonSets('W',doStudies=False,HT=args.HT,remote=True)
+    CombineCommonSets('Z',doStudies=False,HT=args.HT,remote=True)
