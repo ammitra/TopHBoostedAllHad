@@ -81,7 +81,14 @@ def GetEfficiencies(year):
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
     for i in range(len(TMasses)):
 	for j in range(len(PhiMasses)):
-	    text = ax.text(j, i, '{}%'.format(round(effArr[i, j]*100.,1)),ha="center", va="center", color="w", fontsize='medium')
+            efficiency = round(effArr[i, j]*100.,1)
+            if efficiency == 0.0: continue
+            if efficiency < 50.:
+                textcolor='white'
+            else:
+                textcolor='grey'
+	    text = ax.text(i, j, '{}%'.format(round(effArr[i, j]*100.,1)),ha="center", va="center", color=textcolor, fontsize='small', rotation=45, rotation_mode='anchor')
+
     cbar = ax.figure.colorbar(im, ax=ax)
     cbar.ax.set_ylabel('Signal Efficiency (%)', rotation=-90, va="bottom",fontsize='large')
     ax.set_title("Signal Efficiency 20{}".format(year))
