@@ -142,7 +142,12 @@ def THselection(args):
             applyScaleFactors(selection.a, higgs_tagger, XbbVar, 'ttbarCR', eff_L_ttbarCR, eff_T_ttbarCR, 0.8, 0.95)
             #passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=signal)
 	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
-
+            print('-----------------------------------------------------------------------------------------------------')
+            print('              SR WITHOUT SCALE FACTORS                                                               ')
+            print('-----------------------------------------------------------------------------------------------------')
+            selection.a.SetActiveNode(kinOnly)
+            selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger)
+            passfailSR_noSFs = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=False) # pretend this isn't signal so we don't apply SFs
 
 	# EVERYTHING ELSE
 	else:
@@ -162,10 +167,14 @@ def THselection(args):
             print('-----------------------------------------------------------------------------------------------------')
             selection.a.SetActiveNode(kinOnly)
             selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger,ttbarCR=True)
-	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
+	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signa=signal, loose=False)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
-        for rkey,rpair in {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFail}.items():
+	if signal:
+	    region_selection_dict = {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFail,"SR_noSFs":passfailSR_noSFs}
+	else:
+	    region_selection_dict = {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFail}
+        for rkey,rpair in region_selection_dict.items():
             for pfkey,n in rpair.items():
                 mod_name = "%s_%s_%s"%(t,rkey,pfkey)
                 mod_title = "%s %s"%(rkey,pfkey)

@@ -240,6 +240,11 @@ To do so, first create the `selection` directory on your EOS under `/store/user/
 4. Run `source condor/selection_args.py` to generate the arguments for selection
 5. Send the jobs to condor via the command `python CondorHelper.py -r condor/run_selection.sh -a condor/selection_args.txt -i "THselection.py"`
 6. Run the script `rootfiles/get_all.py` to gather all the rootfiles locally, and automatically combine common sets (V+Jets, ttbar, QCD, Data) for 2Dalphabet. 
+**NEW: (13 Nov 2023)**
+The script `rootfiles/get_all.py` can now combine/gather common sets remotely on the EOS where they're stored. This is so that TwoDAlphabet can read the files remotely, which saves a lot of space locally (no need to copy files to local directory). In this case, the Data files can be combined using a utility like `xrdfsls`, e.g.:
+```
+hadd -f root://cmseosmgm01.fnal.gov:1094//store/user/ammitra/topHBoostedAllHad/selection/THselection_HT750_Data_Run2.root `xrdfsls -u /store/user/ammitra/topHBoostedAllHad/selection/ | grep Data | grep -v Muon | grep -v B_17 | grep -v Data_`
+```
 
 ## 8. Gathering Cutflow Information
 To get information on yields after all important cuts, run `python cutflowSummary.py`. If you pass the optional `--selection` flag, then the script will calculate the yields after the selection criteria as well. One can also calculate the signal efficiencies for select signals by adding calling `printEfficiencies()` in the main function. **(TODO: implement this option via flag arg)**

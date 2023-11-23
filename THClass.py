@@ -474,10 +474,11 @@ class THClass:
         return self.a.GetActiveNode()
 
     def GetXsecScale(self):
-        lumi = self.config['lumi{}'.format(self.year if 'APV' not in self.year else 16)]
+        lumi = self.config['lumi{}'.format(self.year)]
         xsec = self.config['XSECS'][self.setname]
         if self.a.genEventSumw == 0:
             raise ValueError('%s %s: genEventSumw is 0'%(self.setname, self.year))
+	print('Normalizing by lumi*xsec/genEventSumw:\n\t{} * {} / {} = {}'.format(lumi,xsec,self.a.genEventSumw,lumi*xsec/self.a.genEventSumw))
         return lumi*xsec/self.a.genEventSumw
 
     def GetNminus1Group(self,tagger):
