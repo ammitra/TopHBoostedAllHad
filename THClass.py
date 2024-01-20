@@ -400,18 +400,19 @@ class THClass:
 	else:
 	    WP = 0.685 if loose else 0.92
 	checkpoint = self.a.GetActiveNode()
-	passFail = {}
-	# for the ttbar CR, we start same as SR fail. Then we want to operate on the Hbb candidate jet, since we've already ID'd the top
-	passFail['SRfail'] = self.a.Cut('ttbarCR_Hbb_fail','Higgs_{0} < 0.8'.format(tagger) if not signal else 'NewTagCats==0')
-	# the Fail region is then a failing deepAK8 tagger 
-	passFail['fail'] = self.a.Cut('ttbarCR_top_fail','Higgs_{0} < {1}'.format(topTagger,WP))
-	self.a.SetActiveNode(checkpoint)
-	# the Pass region is then a deepAK8 MD top tagger > some working point 
-	passFail['pass'] = self.a.Cut('ttbarCR_top_pass','Higgs_{0} > {1}'.format(topTagger,WP))
-	# reset active node, return dict
-	self.a.SetActiveNode(checkpoint)
-	return passFail
+	passFail = {'SRloose':None,'fail':None,'pass':None}
 
+	# Start out with SR loose definition (since we don't use Fail due to high statistics). 
+	# The SR loose will be the starting point for both the SR and ttbarCR in the joint fit:
+	# 	SR_loose -> SR_pass      &&      SR_loose -> ttbarCR_pass
+	passFail['SRloose'] = self.a.Cut('ttbarCR_Hbb_loose','Higgs_{0} > 0.8 && Higgs_{0} < {1}'.format(tagger,0.98) if not signal else 'NewTagCats==1')
+	# The Fail region is then a failing deepAK8MD tagger (won't be used in fit, just for reference)
+	passFail['fail'] = self.a.Cut('ttbarCR_top_fail','Higgs_{0} < {1}'.format(topTagger,WP))
+	# the Pass region is then a deepAK8 MD top tagger > some working point
+	passFail['pass'] = self.a.Cut('ttbarCR_top_pass','Higgs_{0} > {1}'.format(topTagger,WP))
+        # reset active node, return dict
+        self.a.SetActiveNode(checkpoint)
+        return passFail
 
     def ApplyHiggsTag(self, SRorCR, tagger='deepTagMD_HbbvsQCD', signal=False):
 	'''
