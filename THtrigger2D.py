@@ -35,10 +35,10 @@ def MakeEfficiency(year, HT=0):
     noTag = selection.a.Cut('pretrig','HLT_Mu50==1')
 
     # Baseline - no tagging
-    hists.Add('preTagDenominator',selection.a.DataFrame.Histo2D(('preTagDenominator','',20,60,260,22,800,3000),'m_javg','mth_trig'))
+    hists.Add('preTagDenominator',selection.a.DataFrame.Histo2D(('preTagDenominator','',50,60,560,27,800,3500),'m_javg','mth_trig'))
     hists.Add('preTagDenominatorZoomed', selection.a.DataFrame.Histo2D(('preTagDenominatorZoomed','',20,60,260,22,800,2000),'m_javg','mth_trig'))
     selection.ApplyTrigs()
-    hists.Add('preTagNumerator',selection.a.DataFrame.Histo2D(('preTagNumerator','',20,60,260,22,800,3000),'m_javg','mth_trig'))
+    hists.Add('preTagNumerator',selection.a.DataFrame.Histo2D(('preTagNumerator','',50,60,560,27,800,3500),'m_javg','mth_trig'))
     hists.Add('preTagNumeratorZoomed', selection.a.DataFrame.Histo2D(('preTagNumeratorZoomed','',20,60,260,22,800,2000),'m_javg','mth_trig'))
 
     # make efficiencies
@@ -56,13 +56,14 @@ def MakeEfficiency(year, HT=0):
         g.GetXaxis().SetTitle('m_{j}^{avg} (GeV)')
         g.GetYaxis().SetTitle('m_{jj} (GeV)')
         g.GetZaxis().SetTitle('Efficiency')
-        g.SetMinimum(0.6)
+        g.SetMinimum(0.1)
         g.SetMaximum(1.0)
-        f = ROOT.TF2("eff_func","1-[0]/10*exp([1]*y/1000)*exp([2]*x/200)",60,260,800,2600)
+        f = ROOT.TF2("eff_func","1-[0]/10*exp([1]*y/1000)*exp([2]*x/200)",60,560,800,3500)
 	#f = ROOT.TF2("eff_func","1-[0]*exp([1]*y/1000)*exp([2]*x/200)",60,260,800,2600)
         f.SetParameter(0,1)
         f.SetParameter(1,-2)
         f.SetParameter(2,-2)
+	#f.Write()
         g.Fit(f)
         g.Write()
         eff.SetName(name)
