@@ -249,13 +249,13 @@ if __name__ == '__main__':
         rand = TRand.Uniform(0.0, 1.0)
         if rand < cutoff:       # apply the 2017B trigger efficiency to this MC
             print('Applying 2017B trigger efficiency')
-            args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader_2DfittedHist.h',['out_Eff_2017B.root','Eff_2017B'],corrtype='weight')
+            args.trigEff = Correction("TriggerEff17",'EffLoader_2DfittedHist.cc',['out_Eff_2017B.root','Eff_2017B'],corrtype='weight')
         else:
-            args.trigEff = Correction("TriggerEff17",'TIMBER/Framework/include/EffLoader_2DfittedHist.h',['out_Eff_2017.root','Eff_2017'],corrtype='weight')
-    #elif ('16' in args.era):
-        #args.trigEff = Correction("TriggerEff"+args.era,'TIMBER/Framework/include/EffLoader.h',['THtrigger2D_HT{}_{}.root'.format(args.HT,args.era if 'APV' not in args.era else 16),'Pretag'], corrtype='weight')
+            args.trigEff = Correction("TriggerEff17",'EffLoader_2DfittedHist.cc',['out_Eff_2017.root','Eff_2017'],corrtype='weight')
     else:
-        args.trigEff = Correction("TriggerEff%s"%args.era,'EffLoader_2DfittedHist.cc',['out_Eff_20%s.root'%args.era,'Eff_20%s'%args.era],corrtype='weight')
+	if args.era == '16APV': era = '16'
+	else: era = args.era
+        args.trigEff = Correction("TriggerEff%s"%era,'EffLoader_2DfittedHist.cc',['out_Eff_20%s.root'%era,'Eff_20%s'%era],corrtype='weight')
 
     CompileCpp('THmodules.cc')
     if ('Tprime' in args.setname):
