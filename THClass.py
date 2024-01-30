@@ -405,10 +405,13 @@ class THClass:
 	# Start out with SR loose definition (since we don't use Fail due to high statistics). 
 	# The SR loose will be the starting point for both the SR and ttbarCR in the joint fit:
 	# 	SR_loose -> SR_pass      &&      SR_loose -> ttbarCR_pass
+	self.a.SetActiveNode(checkpoint)
 	passFail['SRloose'] = self.a.Cut('ttbarCR_Hbb_loose','Higgs_{0} > 0.8 && Higgs_{0} < {1}'.format(tagger,0.98) if not signal else 'NewTagCats==1')
 	# The Fail region is then a failing deepAK8MD tagger (won't be used in fit, just for reference)
+	self.a.SetActiveNode(checkpoint)
 	passFail['fail'] = self.a.Cut('ttbarCR_top_fail','Higgs_{0} < {1}'.format(topTagger,WP))
 	# the Pass region is then a deepAK8 MD top tagger > some working point
+	self.a.SetActiveNode(checkpoint)
 	passFail['pass'] = self.a.Cut('ttbarCR_top_pass','Higgs_{0} > {1}'.format(topTagger,WP))
         # reset active node, return dict
         self.a.SetActiveNode(checkpoint)
