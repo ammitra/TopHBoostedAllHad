@@ -387,9 +387,14 @@ class THClass:
 
     def ApplyTopTag_ttbarCR(self, tagger='deepTagMD_HbbvsQCD', topTagger='deepTagMD_TvsQCD', signal=False, loose=True):
 	'''
-	Used to create the Fail and Pass regions of the ttbar control region. 
-	The ttbar CR Fail is defined identically to the SR fail, that is, one jet PNet top-tagged and the other jet failing an Hbb score. 
-	The ttbar CR Pass region is then defined by one jet PNet top-tagged and the other jet passing the deepAK8 MD top tagging.
+	Used to create the Fail and Pass regions of the ttbar control region:
+		1. Identify the top-candidate jet using ParticleNet_TvsQCD tagger (just like the SR)
+		2. Apply (Xbb < 0.8) cut on the phi-candidate jet (just like SR Fail, to ensure orthog. w/ SR)
+		3. Form the Fail and Pass regions from the above checkpoint:
+		    - Fail: DAK8MD < (loose/tight WP)
+		    - Pass: DAK8MD > (loose/tight WP)
+	It has been determined that the tight WP provides the best ttbar ditributions in the ttCR
+
 	WPs: https://twiki.cern.ch/twiki/bin/view/CMS/DeepAK8Tagging2018WPsSFs#Working_Points
 	'''
 	# 0.5% WP = loose, 0.1% = tight
@@ -400,19 +405,29 @@ class THClass:
 	else:
 	    WP = 0.685 if loose else 0.92
 	checkpoint = self.a.GetActiveNode()
-	passFail = {'SRloose':None,'fail':None,'pass':None}
+	passFail = {'SRloose':None,'fail':None,'pass':None,'fail_notorthog':None,'pass_notorthog':None}
 
-	# Start out with SR loose definition (since we don't use Fail due to high statistics). 
-	# The SR loose will be the starting point for both the SR and ttbarCR in the joint fit:
-	# 	SR_loose -> SR_pass      &&      SR_loose -> ttbarCR_pass
+	# NOT ORTHOGONAL TO SR
 	self.a.SetActiveNode(checkpoint)
 	passFail['SRloose'] = self.a.Cut('ttbarCR_Hbb_loose','Higgs_{0} > 0.8 && Higgs_{0} < {1}'.format(tagger,0.98) if not signal else 'NewTagCats==1')
-	# The Fail region is then a failing deepAK8MD tagger (won't be used in fit, just for reference)
+	# The Fail region is then a failing deepAK8MD tagger
 	self.a.SetActiveNode(checkpoint)
-	passFail['fail'] = self.a.Cut('ttbarCR_top_fail','Higgs_{0} < {1}'.format(topTagger,WP))
+	passFail['fail_notorthog'] = self.a.Cut('ttbarCR_notorthog_fail','Higgs_{0} < {1}'.format(topTagger,WP))
 	# the Pass region is then a deepAK8 MD top tagger > some working point
 	self.a.SetActiveNode(checkpoint)
-	passFail['pass'] = self.a.Cut('ttbarCR_top_pass','Higgs_{0} > {1}'.format(topTagger,WP))
+	passFail['pass_notorthog'] = self.a.Cut('ttbarCR_notorthog_pass','Higgs_{0} > {1}'.format(topTagger,WP))
+
+	# ORTHOGONAL TO SR
+	self.a.SetActiveNode(checkpoint)
+	# In order to ensure orthogonality between the ttbarCR and the SR, construct the ttbarCR from the SR Fail cut (Xbb < 0.8)
+	self.a.Cut('ttbarCR_base_cut','Higgs_{0} < 0.8'.format(tagger))
+	ttCR_checkpoint = self.a.GetActiveNode()
+	# The Fail region is then a deepAK8 MD top tagger < some working point 
+	self.a.SetActiveNode(ttCR_checkpoint)
+	passFail['fail'] = self.a.Cut('ttbarCR_fail','Higgs_{0} < {1}'.format(topTagger,WP))
+	# the Pass region is then a deepAK8 MD top tagger > some working point
+	self.a.SetActiveNode(ttCR_checkpoint)
+	passFail['pass'] = self.a.Cut('ttbarCR_pass','Higgs_{0} > {1}'.format(topTagger,WP))
         # reset active node, return dict
         self.a.SetActiveNode(checkpoint)
         return passFail
