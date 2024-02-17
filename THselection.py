@@ -167,9 +167,11 @@ def THselection(args):
             print('-----------------------------------------------------------------------------------------------------')
             selection.a.SetActiveNode(kinOnly)
             selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger,ttbarCR=True)
+	    # not orthogonal to SR
 	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
+	# When adding a new ttbarCR key for the orthogonal selection, make sure to rename the current ttbarCR entry so the histnames are the same as the other regions
 	if signal:
 	    region_selection_dict = {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFail,"SR_noSFs":passfailSR_noSFs}
 	else:

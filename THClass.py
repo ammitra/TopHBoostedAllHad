@@ -387,14 +387,7 @@ class THClass:
 
     def ApplyTopTag_ttbarCR(self, tagger='deepTagMD_HbbvsQCD', topTagger='deepTagMD_TvsQCD', signal=False, loose=True):
 	'''
-	Used to create the Fail and Pass regions of the ttbar control region:
-		1. Identify the top-candidate jet using ParticleNet_TvsQCD tagger (just like the SR)
-		2. Apply (Xbb < 0.8) cut on the phi-candidate jet (just like SR Fail, to ensure orthog. w/ SR)
-		3. Form the Fail and Pass regions from the above checkpoint:
-		    - Fail: DAK8MD < (loose/tight WP)
-		    - Pass: DAK8MD > (loose/tight WP)
-	It has been determined that the tight WP provides the best ttbar ditributions in the ttCR
-
+	Used to create the Fail and Pass regions of the ttbar control region. NOT ORTHOGONAL
 	WPs: https://twiki.cern.ch/twiki/bin/view/CMS/DeepAK8Tagging2018WPsSFs#Working_Points
 	'''
 	# 0.5% WP = loose, 0.1% = tight
@@ -405,7 +398,7 @@ class THClass:
 	else:
 	    WP = 0.685 if loose else 0.92
 	checkpoint = self.a.GetActiveNode()
-	passFail = {'SRloose':None,'fail':None,'pass':None}
+	passFail = {'SRloose':None,'fail_notorthog':None,'pass_notorthog':None}
 
 	# Start out with SR loose definition (since we don't use Fail due to high statistics). 
 	# The SR loose will be the starting point for both the SR and ttbarCR in the joint fit:
@@ -421,6 +414,37 @@ class THClass:
         # reset active node, return dict
         self.a.SetActiveNode(checkpoint)
         return passFail
+
+    def Create_ttbarCR(self, higgsTagger, topTagger, signal=False, loose=False):
+	'''Create a ttbarCR which is orthogonal to the SR using the following steps:
+                1. Identify the top-candidate jet using ParticleNet_TvsQCD tagger (just like the SR)
+                2. Apply (Xbb < 0.8) cut on the phi-candidate jet (just like SR Fail, to ensure orthog. w/ SR)
+                3. Form the Fail and Pass regions from the above checkpoint:
+                    - Fail: DAK8MD < (loose/tight WP)
+                    - Pass: DAK8MD > (loose/tight WP)
+        It has been determined that the tight WP provides the best ttbar ditributions in the ttCR
+	'''
+        # 0.5% WP = loose, 0.1% = tight
+        if ('16' in self.year):
+            WP = 0.632 if loose else 0.889
+        elif (self.year == '17'):
+            WP = 0.554 if loose else 0.863
+        else:
+            WP = 0.685 if loose else 0.92
+	passFail = {'fail':None,'pass':None}
+        checkpoint = self.a.GetActiveNode()
+	self.a.SetActiveNode(checkpoint)
+	# Xbb < 0.8 on Higgs candidate to ensure orthogonality
+	self.a.Cut('ttbarCR_orthogonality_cut','Higgs_{} < 0.8'.format(higgsTagger) if not signal else 'NewTagCats==0')
+	checkpoint_ttCR = self.a.GetActiveNode()
+	# TTCR Fail
+	self.a.SetActiveNode(checkpoint_ttCR)
+	passFail['fail_orthog'] = self.a.Cut('ttbarCR_fail','Higgs_{0} < {1}'.format(topTagger,WP))
+	# TTCR Pass
+	self.a.SetActiveNode(checkpoint_ttCR)
+	passFail['pass_orthog'] = self.a.Cut('ttbarCR_top_pass','Higgs_{0} > {1}'.format(topTagger,WP))
+	self.a.SetActiveNode(checkpoint)
+	return passFail
 
     def ApplyHiggsTag(self, SRorCR, tagger='deepTagMD_HbbvsQCD', signal=False):
 	'''
