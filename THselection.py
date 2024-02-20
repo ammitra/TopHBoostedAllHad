@@ -56,7 +56,8 @@ def applyScaleFactors(analyzer, tagger, variation, SRorCR, eff_loose, eff_tight,
     # now create the column with original tagger category values (0: fail, 1: loose, 2: tight)
     analyzer.Define("OriginalTagCats","p_{}.createTag({})".format(SRorCR, tagger))
     # now create the column with *new* tagger categories, after applying logic. MUST feed in the original column (created in last step)
-    analyzer.Define("NewTagCats","p_{}.updateTag(OriginalTagCats, Higgs_pt_corr, {})".format(SRorCR, tagger))
+    checkpoint = analyzer.Define("NewTagCats","p_{}.updateTag(OriginalTagCats, Higgs_pt_corr, {})".format(SRorCR, tagger))
+    return checkpoint
 
 def THselection(args):
     ROOT.ROOT.EnableImplicitMT(args.threads)
@@ -137,11 +138,16 @@ def THselection(args):
             selection.a.SetActiveNode(kinOnly)
             e0ttbarCR = getTopEfficiencies(analyzer=selection.a, tagger='Dijet_'+top_tagger+'[0]', wp=0.94, idx=0, tag='ttbarCR1')
             e1ttbarCR = getTopEfficiencies(analyzer=selection.a, tagger='Dijet_'+top_tagger+'[1]', wp=0.94, idx=1, tag='ttbarCR2')
-            selection.ApplyTopPick_Signal(TopTagger='Dijet_'+top_tagger, XbbTagger='Dijet_'+higgs_tagger, pt='Dijet_pt_corr', mass='Dijet_msoftdrop_corrT', TopScoreCut=0.94, eff0=e0ttbarCR, eff1=e1ttbarCR, year=args.era, TopVariation=TopVar, invert=False, ttbarCR=True)
+            checkpoint_topPick = selection.ApplyTopPick_Signal(TopTagger='Dijet_'+top_tagger, XbbTagger='Dijet_'+higgs_tagger, pt='Dijet_pt_corr', mass='Dijet_msoftdrop_corrT', TopScoreCut=0.94, eff0=e0ttbarCR, eff1=e1ttbarCR, year=args.era, TopVariation=TopVar, invert=False, ttbarCR=True)
             eff_L_ttbarCR, eff_T_ttbarCR = getXbbEfficiencies(selection.a, higgs_tagger, 'ttbarCR', 0.8, 0.98)
-            applyScaleFactors(selection.a, higgs_tagger, XbbVar, 'ttbarCR', eff_L_ttbarCR, eff_T_ttbarCR, 0.8, 0.95)
-            #passfailSR = selection.ApplyHiggsTag('SR', tagger=higgs_tagger, signal=signal)
-	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
+            checkpoint_phiSFs = applyScaleFactors(selection.a, higgs_tagger, XbbVar, 'ttbarCR', eff_L_ttbarCR, eff_T_ttbarCR, 0.8, 0.95)
+	    selection.a.SetActiveNode(checkpoint_phiSFs)
+	    # not orthogonal to SR
+	    passFailNotOrthog = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
+	    # ttbarCR orthogonal to SR
+	    selection.a.SetActiveNode(checkpoint_phiSFs)
+	    passFailttCR = selection.Create_ttbarCR(higgsTagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
+
             print('-----------------------------------------------------------------------------------------------------')
             print('              SR WITHOUT SCALE FACTORS                                                               ')
             print('-----------------------------------------------------------------------------------------------------')
@@ -165,27 +171,58 @@ def THselection(args):
             print('-----------------------------------------------------------------------------------------------------')
             print('              TTBAR CR                                                                               ')
             print('-----------------------------------------------------------------------------------------------------')
+	     # not orthogonal to SR
             selection.a.SetActiveNode(kinOnly)
-            selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger,ttbarCR=True)
-	    # not orthogonal to SR
-	    passFail = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
+            checkpoint_topPick = selection.ApplyTopPick(tagger=top_tagger,invert=False,CRv2=higgs_tagger,ttbarCR=True)
+	    selection.a.SetActiveNode(checkpoint_topPick)
+	    passFailNotOrthog = selection.ApplyTopTag_ttbarCR(tagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
+	    # ttbarCR orthogonal to SR
+	    selection.a.SetActiveNode(checkpoint_topPick)
+	    passFailttCR = selection.Create_ttbarCR(higgsTagger=higgs_tagger, topTagger='deepTagMD_TvsQCD', signal=signal, loose=False)
 
 	# rkey: SR/CR, pfkey: pass/loose/fail
 	# When adding a new ttbarCR key for the orthogonal selection, make sure to rename the current ttbarCR entry so the histnames are the same as the other regions
 	if signal:
-	    region_selection_dict = {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFail,"SR_noSFs":passfailSR_noSFs}
+	    region_selection_dict = {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFailttCR,"SR_noSFs":passfailSR_noSFs,"ttbarCR_notorthog":passFailNotOrthog}
 	else:
-	    region_selection_dict = {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFail}
+	    region_selection_dict = {"SR":passfailSR,"CR":passfailCR,"ttbarCR":passFailttCR,"ttbarCR_notorthog":passFailNotOrthog}
         for rkey,rpair in region_selection_dict.items():
             for pfkey,n in rpair.items():
                 mod_name = "%s_%s_%s"%(t,rkey,pfkey)
                 mod_title = "%s %s"%(rkey,pfkey)
+		print('Doing {}'.format(mod_name))
+		print('title: {}'.format(mod_title))
                 selection.a.SetActiveNode(n)
 		# MakeTemplateHistos takes in the template histogram and then the variables which to plot in the form [x, y]
 		# in this case, 'Higgs_msoftdrop_corrH' is the x axis (phi mass) and 'mth' is the y axis (dijet mass)
 		# both of these variables were created/defined during the ApplyTopPick() and ApplyHiggsTag() steps above (see THClass)
                 templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MthvMh_%s'%mod_name,'MthvMh %s with %s'%(mod_title,t),50,60,560,27,800,3500),['Higgs_msoftdrop_corrH','mth'])
                 templates.Do('Write')
+
+		# Check the kinematics of ttbar (and signal) in the ttbarCR and SR
+		if (('ttbar' in args.setname) or ('1800-125' in args.setname)) and (args.variation == 'None'):
+		    if (rkey == 'SR') or (rkey == 'ttbarCR'):
+			for jet in ['Higgs','Top']: # Higgs == Phi, just an old naming convention
+			    for kinvar in ['pt','eta','phi','msoftdrop_corr{}'.format('T' if jet=='Top' else 'H')]:
+				histname = '%s_%s_%s_%s'%(jet,kinvar,rkey,pfkey)
+				print('Plotting {}'.format(histname))
+				if (kinvar == 'pt'):
+				    hist_tuple = (histname,histname,100,350,2350)
+				elif (kinvar == 'eta'):
+				    hist_tuple = (histname,histname,48,-2.4,2.4)
+				elif (kinvar == 'phi'):
+				    hist_tuple = (histname,histname,64,-3.14,3.14)
+				else:
+				    hist_tuple = (histname,histname,100,50,550)
+				colName = '{}_{}'.format(jet,kinvar)
+				name, title, nbins, xlow, xup = hist_tuple
+				kinematic_template = selection.a.MakeTemplateHistos(ROOT.TH1F(name,title,nbins,xlow,xup),[colName])
+				#kinematic_template.Do('Write')
+				# Get only the nominal and TpT variations
+				for variation in ['nominal','TptReweight_up','TptReweight_down']:
+				    outhist = kinematic_template.__getitem__(histname+'__%s'%variation)
+				    outhist.Write()
+
 
     # now process cutflow information
     cutflowInfo = OrderedDict([

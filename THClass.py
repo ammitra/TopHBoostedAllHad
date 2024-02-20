@@ -398,7 +398,7 @@ class THClass:
 	else:
 	    WP = 0.685 if loose else 0.92
 	checkpoint = self.a.GetActiveNode()
-	passFail = {'SRloose':None,'fail_notorthog':None,'pass_notorthog':None}
+	passFail = {'SRloose':None,'fail':None,'pass':None}
 
 	# Start out with SR loose definition (since we don't use Fail due to high statistics). 
 	# The SR loose will be the starting point for both the SR and ttbarCR in the joint fit:
@@ -439,10 +439,10 @@ class THClass:
 	checkpoint_ttCR = self.a.GetActiveNode()
 	# TTCR Fail
 	self.a.SetActiveNode(checkpoint_ttCR)
-	passFail['fail_orthog'] = self.a.Cut('ttbarCR_fail','Higgs_{0} < {1}'.format(topTagger,WP))
+	passFail['fail'] = self.a.Cut('ttbarCR_fail','Higgs_{0} < {1}'.format(topTagger,WP))
 	# TTCR Pass
 	self.a.SetActiveNode(checkpoint_ttCR)
-	passFail['pass_orthog'] = self.a.Cut('ttbarCR_top_pass','Higgs_{0} > {1}'.format(topTagger,WP))
+	passFail['pass'] = self.a.Cut('ttbarCR_top_pass','Higgs_{0} > {1}'.format(topTagger,WP))
 	self.a.SetActiveNode(checkpoint)
 	return passFail
 
