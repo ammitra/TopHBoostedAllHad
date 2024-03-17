@@ -1,0 +1,99 @@
+// Particle tree for event 11
+digraph {
+	idx_1 [label="d
+fromHardProcess = True"]
+	idx_2 [label="t
+fromHardProcess = True"]
+	idx_2 -> idx_8
+	idx_3 [label="t
+fromHardProcess = True"]
+	idx_3 -> idx_9
+	idx_4 [label="d
+fromHardProcess = True"]
+	idx_4 -> idx_63
+	idx_5 [label="c
+fromHardProcess = False"]
+	idx_5 -> idx_6
+	idx_6 [label="c
+fromHardProcess = False"]
+	idx_6 -> idx_7
+	idx_7 [label="c
+fromHardProcess = False"]
+	idx_8 [label="t
+fromHardProcess = True"]
+	idx_8 -> idx_10
+	idx_8 -> idx_11
+	idx_9 [label="t
+fromHardProcess = True"]
+	idx_9 -> idx_14
+	idx_9 -> idx_15
+	idx_10 [label="W
+fromHardProcess = True"]
+	idx_10 -> idx_12
+	idx_11 [label="b
+fromHardProcess = True
+dR = 1.92" fillcolor="#FF0000" style=filled]
+	idx_12 [label="W
+fromHardProcess = True"]
+	idx_12 -> idx_18
+	idx_12 -> idx_19
+	idx_14 [label="W
+fromHardProcess = True"]
+	idx_14 -> idx_16
+	idx_15 [label="b
+fromHardProcess = True"]
+	idx_15 -> idx_67
+	idx_16 [label="W
+fromHardProcess = True"]
+	idx_16 -> idx_20
+	idx_16 -> idx_21
+	idx_18 [label="d
+fromHardProcess = True"]
+	idx_18 -> idx_43
+	idx_19 [label="c
+fromHardProcess = True"]
+	idx_19 -> idx_42
+	idx_20 [label="d
+fromHardProcess = True"]
+	idx_20 -> idx_45
+	idx_21 [label="u
+fromHardProcess = True"]
+	idx_21 -> idx_46
+	idx_28 [label="s
+fromHardProcess = False"]
+	idx_29 [label="s
+fromHardProcess = False"]
+	idx_33 [label="s
+fromHardProcess = False"]
+	idx_36 [label="s
+fromHardProcess = False"]
+	idx_40 [label="s
+fromHardProcess = False"]
+	idx_42 [label="c
+fromHardProcess = True
+dR = 0.88" fillcolor="#FF0000" style=filled]
+	idx_43 [label="d
+fromHardProcess = True
+dR = 1.10" fillcolor="#FF0000" style=filled]
+	idx_45 [label="d
+fromHardProcess = True
+dR = 0.82" fillcolor="#FF0000" style=filled]
+	idx_46 [label="u
+fromHardProcess = True
+dR = 0.47" fillcolor="#00FF00" style=filled]
+	idx_55 [label="u
+fromHardProcess = False"]
+	idx_56 [label="u
+fromHardProcess = False"]
+	idx_57 [label="s
+fromHardProcess = False"]
+	idx_62 [label="u
+fromHardProcess = False"]
+	idx_63 [label="d
+fromHardProcess = True"]
+	idx_67 [label="d
+fromHardProcess = False"]
+	label="Top merged: 0
+W merged: 0
+Unmerged: 2"
+}

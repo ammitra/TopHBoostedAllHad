@@ -1,0 +1,68 @@
+// Particle tree for event 4
+digraph {
+	idx_2 [label="t
+fromHardProcess = True"]
+	idx_2 -> idx_5
+	idx_3 [label="t
+fromHardProcess = True"]
+	idx_3 -> idx_6
+	idx_5 [label="t
+fromHardProcess = True"]
+	idx_5 -> idx_7
+	idx_5 -> idx_8
+	idx_6 [label="t
+fromHardProcess = True"]
+	idx_6 -> idx_10
+	idx_6 -> idx_11
+	idx_7 [label="W
+fromHardProcess = True"]
+	idx_7 -> idx_9
+	idx_8 [label="b
+fromHardProcess = True
+dR = 1.25" fillcolor="#FF0000" style=filled]
+	idx_9 [label="W
+fromHardProcess = True"]
+	idx_9 -> idx_13
+	idx_9 -> idx_14
+	idx_10 [label="W
+fromHardProcess = True"]
+	idx_10 -> idx_12
+	idx_11 [label="b
+fromHardProcess = True
+dR = 0.58" fillcolor="#00FF00" style=filled]
+	idx_12 [label="W
+fromHardProcess = True"]
+	idx_12 -> idx_15
+	idx_12 -> idx_16
+	idx_13 [label="d
+fromHardProcess = True"]
+	idx_13 -> idx_31
+	idx_14 [label="u
+fromHardProcess = True"]
+	idx_14 -> idx_29
+	idx_15 [label="d
+fromHardProcess = True"]
+	idx_15 -> idx_21
+	idx_16 [label="u
+fromHardProcess = True"]
+	idx_16 -> idx_20
+	idx_20 [label="u
+fromHardProcess = True
+dR = 0.11" fillcolor="#00FF00" style=filled]
+	idx_21 [label="d
+fromHardProcess = True
+dR = 0.32" fillcolor="#00FF00" style=filled]
+	idx_29 [label="u
+fromHardProcess = True
+dR = 0.43" fillcolor="#00FF00" style=filled]
+	idx_31 [label="d
+fromHardProcess = True
+dR = 0.36" fillcolor="#00FF00" style=filled]
+	idx_32 [label="u
+fromHardProcess = False"]
+	idx_47 [label="d
+fromHardProcess = False"]
+	label="Top merged: 1
+W merged: 1
+Unmerged: 0"
+}

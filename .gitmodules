@@ -1,0 +1,3 @@
+[submodule "GenParticleTesting/NanoAODTools"]
+	path = GenParticleTesting/NanoAODTools
+	url = https://github.com/cms-nanoAOD/nanoAOD-tools.git

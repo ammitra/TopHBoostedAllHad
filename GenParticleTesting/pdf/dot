@@ -1,0 +1,89 @@
+// Particle tree for event 0
+digraph {
+	idx_0 [label="u
+status=21
+fromHardProcess=True"]
+	idx_0 -> idx_2
+	idx_0 -> idx_3
+	idx_1 [label="u
+status=21
+fromHardProcess=True"]
+	idx_2 [label="t
+status=22
+fromHardProcess=True"]
+	idx_2 -> idx_6
+	idx_3 [label="t
+status=22
+fromHardProcess=True"]
+	idx_3 -> idx_7
+	idx_6 [label="t
+status=62
+fromHardProcess=True"]
+	idx_6 -> idx_8
+	idx_6 -> idx_9
+	idx_7 [label="t
+status=62
+fromHardProcess=True"]
+	idx_7 -> idx_11
+	idx_7 -> idx_12
+	idx_8 [label="W
+status=22
+fromHardProcess=True"]
+	idx_8 -> idx_10
+	idx_9 [label="b
+status=23
+fromHardProcess=True"]
+	idx_10 [label="W
+status=52
+fromHardProcess=True"]
+	idx_10 -> idx_14
+	idx_10 -> idx_15
+	idx_11 [label="W
+status=22
+fromHardProcess=True"]
+	idx_11 -> idx_13
+	idx_12 [label="b
+status=23
+fromHardProcess=True"]
+	idx_13 [label="W
+status=52
+fromHardProcess=True"]
+	idx_13 -> idx_16
+	idx_13 -> idx_17
+	idx_14 [label="s
+status=23
+fromHardProcess=True"]
+	idx_14 -> idx_51
+	idx_15 [label="c
+status=23
+fromHardProcess=True"]
+	idx_15 -> idx_45
+	idx_16 [label="d
+status=23
+fromHardProcess=True"]
+	idx_16 -> idx_39
+	idx_17 [label="u
+status=23
+fromHardProcess=True"]
+	idx_17 -> idx_18
+	idx_17 -> idx_24
+	idx_17 -> idx_25
+	idx_18 [label="u
+status=52
+fromHardProcess=True"]
+	idx_24 [label="s
+status=71
+fromHardProcess=False"]
+	idx_25 [label="d
+status=71
+fromHardProcess=False"]
+	idx_39 [label="d
+status=71
+fromHardProcess=True"]
+	idx_45 [label="c
+status=71
+fromHardProcess=True"]
+	idx_51 [label="s
+status=71
+fromHardProcess=True"]
+}
