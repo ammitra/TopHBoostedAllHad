@@ -24,7 +24,13 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.JetSysColl import JetSysColl, JetSysObj
 from PhysicsTools.NanoAODTools.postprocessing.framework.preskimming import preSkim
 
-infile = TFile.Open('ttbar-allhad_16_1of36_first100Events.root')
+import matplotlib.pyplot as plt
+import numpy as np
+
+#infile = TFile.Open('ttbar-allhad_16_1of36_first100Events.root')
+
+fname = 'THsnapshot_ttbar-allhad_18_9of84.root'
+infile = TFile.Open(fname)
 
 ################################
 # Grab event tree from nanoAOD #
@@ -39,7 +45,20 @@ count = 0
 ##############
 # Begin Loop #
 ##############
-nevents = 50
+nevents = treeEntries
+#nevents = 2500
+
+
+def plot_normalized(data=[], labels=[], filename=''):
+    total = sum(data)
+    normalized_data = [float(value) / float(total) for value in data]
+    
+    plt.bar(labels, normalized_data)
+    plt.xlabel('Merging categories')
+    plt.ylabel('Fraction of generated top quarks')
+    plt.title('Top-merging studies: %s'%fname)
+    plt.savefig(filename + '.jpg')  # Save the plot to a JPG file
+
 
 def get_final_chain(gen_particle_tree, chain_str, verbose=False):
     '''Obtains the final decay chain given a requested decay
@@ -96,6 +115,13 @@ def get_final_chain(gen_particle_tree, chain_str, verbose=False):
     return final_decay_chains, top_n_chain, top_n_deltaR
 
 
+unmerged = 0
+wmerged = 0
+topmerged = 0
+bonly = 0
+qonly = 0
+bqonly = 0
+
 for entry in range(0,nevents):
     count   =   count + 1
     #sys.stdout.write("%i / %i ... \r" % (count,nevents))
@@ -144,6 +170,9 @@ for entry in range(0,nevents):
     n_topMerged = 0	# bqq
     n_Wmerged   = 0	# qq(+)
     n_unmerged  = 0	# no b,qs
+    n_b		= 0	# only b
+    n_q 	= 0	# only q
+    n_bq	= 0	# bq
 
     for top, dRs in dRs_tW.items():
 	AreWsMerged = []
@@ -172,8 +201,15 @@ for entry in range(0,nevents):
 	    n_topMerged += 1
 	elif (sum(AreWsMerged) >= 2) and not (isBmerged):
 	    n_Wmerged += 1
-	elif (sum(AreWsMerged) < 2):
+	elif (sum(AreWsMerged) == 0) and not (isBmerged):
 	    n_unmerged += 1
+	elif (sum(AreWsMerged) == 0) and (isBmerged):
+	    n_b += 1
+	elif (sum(AreWsMerged) == 1) and not (isBmerged):
+	    n_q += 1
+	elif (sum(AreWsMerged) == 1) and (isBmerged):
+	    n_bq += 1
+
 
     if verbose:
 	print('---------------------------------------------')
@@ -190,4 +226,21 @@ for entry in range(0,nevents):
     nmerged = [n_topMerged,n_Wmerged,n_unmerged]
     if verbose: particle_tree.PrintTree(entry,options=['statusFlags:fromHardProcess'],dRs=all_dRs,nmerged=nmerged)
 
-    raw_input('')
+    # now update the total numbers
+    if n_unmerged:
+	unmerged += 1
+    if n_Wmerged:
+	wmerged += 1
+    if n_topMerged:
+	topmerged += 1	
+    if n_b:
+	bonly += 1
+    if n_q:
+	qonly += 1
+    if n_bq:
+	bqonly += 1
+
+    #raw_input('')
+
+print(unmerged)
+plot_normalized(data=[unmerged,bonly,qonly,bqonly,wmerged,topmerged], labels=['Unmerged','b-only','q-only','bq','W-merged','Top-merged'], filename='test')
