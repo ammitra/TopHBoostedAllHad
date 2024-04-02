@@ -65,10 +65,13 @@ class THClass:
 	
 
     def getNweighted(self):
+	# Avoid executing the event loop via GetValue(), instead just get the RResultPtr and call it later
 	if not self.a.isData:
-	    return self.a.DataFrame.Sum("genWeight").GetValue()
+	    #return self.a.DataFrame.Sum("genWeight").GetValue()
+	    return self.a.DataFrame.Sum("genWeight")
 	else:
-	    return self.a.DataFrame.Count().GetValue()
+	    #return self.a.DataFrame.Count().GetValue()
+	    return self.a.DataFrame.Count()
 
     ####################
     # Snapshot related #
@@ -77,7 +80,7 @@ class THClass:
 	# total number processed
 	#self.NPROC = self.a.genEventSumw	# follow Matej https://github.com/mroguljic/X_YH_4b/blob/9602da767d1c1cf0e9fc19bade7b104b1da40212/eventSelection.py#L90
 	self.NPROC = self.getNweighted()
-	self.AddCutflowColumn(self.NPROC, "NPROC")
+	#self.AddCutflowColumn(self.NPROC, "NPROC")
 
 	flags = [
 	    'Flag_goodVertices',
@@ -94,34 +97,36 @@ class THClass:
 	MET_filters = self.a.GetFlagString(flags)	# string valid (existing in RDataFrame node) flags together w logical and
 	self.a.Cut('flags', MET_filters)
 	self.NFLAGS = self.getNweighted()
-	self.AddCutflowColumn(self.NFLAGS, "NFLAGS")
+	#self.AddCutflowColumn(self.NFLAGS, "NFLAGS")
 
         self.a.Cut('njets','nFatJet >= 2')
 	self.NJETS = self.getNweighted()
-	self.AddCutflowColumn(self.NJETS, "NJETS")
+	#self.AddCutflowColumn(self.NJETS, "NJETS")
 
         # jetId cut: https://cms-pub-talk.web.cern.ch/t/jme-or/6547
         # INFO: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#nanoAOD_Flags
         self.a.Cut('jetId', 'Jet_jetId[0] > 1 && Jet_jetId[1] > 1')    # drop any events whose dijets did not both pass tight jetId requirement
         self.NJETID = self.getNweighted()
-        self.AddCutflowColumn(self.NJETID, "NJETID")
+        #self.AddCutflowColumn(self.NJETID, "NJETID")
 
         self.a.Cut('pT', 'FatJet_pt[0] > {0} && FatJet_pt[1] > {0}'.format(self.cuts['pt']))
 	self.NPT = self.getNweighted()
-	self.AddCutflowColumn(self.NPT, "NPT")
+	#self.AddCutflowColumn(self.NPT, "NPT")
 
         self.a.Define('DijetIdxs','PickDijets(FatJet_pt, FatJet_eta, FatJet_phi, FatJet_msoftdrop)')
         self.a.Cut('dijetsExist','DijetIdxs[0] > -1 && DijetIdxs[1] > -1')
 	self.NKIN = self.getNweighted()
-	self.AddCutflowColumn(self.NKIN, "NKIN")
+	#self.AddCutflowColumn(self.NKIN, "NKIN")
 
         self.a.SubCollection('Dijet','FatJet','DijetIdxs',useTake=True)
         self.a.Define('Dijet_vect','hardware::TLvector(Dijet_pt, Dijet_eta, Dijet_phi, Dijet_msoftdrop)')
 
+	#print(self.a.GetCollectionNames())
+
 	self.a.Define('deltaEta','abs(Dijet_eta[0]-Dijet_eta[1])')
 	self.a.Cut('deltaEta_cut','deltaEta < 1.6')
 	self.NDELTAETA = self.getNweighted()
-	self.AddCutflowColumn(self.NDELTAETA,'NDELTAETA')
+	#self.AddCutflowColumn(self.NDELTAETA,'NDELTAETA')
         return self.a.GetActiveNode()
 
     def ApplyStandardCorrections(self,snapshot=False):
@@ -135,6 +140,37 @@ class THClass:
                     self.a.Cut('HEM','%s[0] > 0'%(HEM_worker.GetCall(evalArgs={"FatJet_eta":"Dijet_eta","FatJet_phi":"Dijet_phi"})))
 
             else:
+                # Parton shower weights
+                #       - https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopSystematics#Parton_shower_uncertainties
+                #       - "Default" variation: https://twiki.cern.ch/twiki/bin/view/CMS/HowToPDF#Which_set_of_weights_to_use
+                #       - https://github.com/mroguljic/Hgamma/blob/409622121e8ab28bc1072c6d8981162baf46aebc/templateMaker.py#L210
+                self.a.Define("ISR__up","PSWeight[2]")
+                self.a.Define("ISR__down","PSWeight[0]")
+                self.a.Define("FSR__up","PSWeight[3]")
+                self.a.Define("FSR__down","PSWeight[1]")
+		# Add the genWeight branch as a correction to all event weights
+                genWCorr    = Correction('genW','TIMBER/Framework/TopPhi_modules/BranchCorrection.cc',corrtype='corr',mainFunc='evalCorrection') # workaround so we can have multiple BCs
+                self.a.AddCorrection(genWCorr, evalArgs={'val':'genWeight'})
+                ISRcorr = genWCorr.Clone("ISRunc",newMainFunc="evalUncert",newType="uncert")
+                FSRcorr = genWCorr.Clone("FSRunc",newMainFunc="evalUncert",newType="uncert")
+                self.a.AddCorrection(ISRcorr, evalArgs={'valUp':'ISR__up','valDown':'ISR__down'})
+                self.a.AddCorrection(FSRcorr, evalArgs={'valUp':'FSR__up','valDown':'FSR__down'})
+		# QCD factorization and renormalization corrections (only to non-signal MC)
+		if 'Tprime' not in self.setname:
+                    # First instatiate a correction module for the factorization correction
+                    facCorr = Correction('QCDscale_factorization','LHEScaleWeights.cc',corrtype='weight',mainFunc='evalFactorization')
+                    self.a.AddCorrection(facCorr, evalArgs={'LHEScaleWeights':'LHEScaleWeight'})
+                    # Now clone it and call evalRenormalization for the renormalization correction
+                    renormCorr = facCorr.Clone('QCDscale_renormalization',newMainFunc='evalRenormalization',newType='weight')
+                    self.a.AddCorrection(renormCorr, evalArgs={'LHEScaleWeights':'LHEScaleWeight'})
+                    # Now do one for the combined correction
+                    combCorr = facCorr.Clone('QCDscale_combined',newMainFunc='evalCombined',newType='weight')
+		    self.a.AddCorrection(combCorr, evalArgs={'LHEScaleWeights':'LHEScaleWeight'})
+                    # And finally, do one for the uncertainty
+		    # See: https://indico.cern.ch/event/938672/contributions/3943718/attachments/2073936/3482265/MC_ContactReport_v3.pdf (slide 27)
+                    QCDScaleUncert = facCorr.Clone('QCDscale_uncert',newMainFunc='evalUncert',newType='uncert')
+                    self.a.AddCorrection(QCDScaleUncert, evalArgs={'LHEScaleWeights':'LHEScaleWeight'})
+
                 self.a = ApplyPU(self.a, 'THpileup.root', self.year, ULflag=True, histname='{}_{}'.format(self.setname,self.year))
                 self.a.AddCorrection(
                     Correction('Pdfweight','TIMBER/Framework/include/PDFweight_uncert.h',[self.a.lhaid],corrtype='uncert')
@@ -147,8 +183,10 @@ class THClass:
                     )
 		    '''
 		    # The column names are: L1PreFiringWeight_Up, L1PreFiringWeight_Dn, L1PreFiringWeight_Nom
-		    L1PreFiringWeight = Correction("L1PreFiringWeight","TIMBER/Framework/TopPhi_modules/BranchCorrection.cc",constructor=[],mainFunc='evalWeight',corrtype='weight',columnList=['L1PreFiringWeight_Nom','L1PreFiringWeight_Up','L1PreFiringWeight_Dn'])
-		    self.a.AddCorrection(L1PreFiringWeight, evalArgs={'val':'L1PreFiringWeight_Nom','valUp':'L1PreFiringWeight_Up','valDown':'L1PreFiringWeight_Dn'})	
+		    #L1PreFiringWeight = Correction("L1PreFiringWeight","TIMBER/Framework/TopPhi_modules/BranchCorrection.cc",constructor=[],mainFunc='evalWeight',corrtype='weight',columnList=['L1PreFiringWeight_Nom','L1PreFiringWeight_Up','L1PreFiringWeight_Dn'])
+		    #self.a.AddCorrection(L1PreFiringWeight, evalArgs={'val':'L1PreFiringWeight_Nom','valUp':'L1PreFiringWeight_Up','valDown':'L1PreFiringWeight_Dn'})	
+		    L1PreFiringWeight = genWCorr.Clone('L1PreFireCorr',newMainFunc='evalWeight',newType='weight')
+		    self.a.AddCorrection(L1PreFiringWeight, evalArgs={'val':'L1PreFiringWeight_Nom','valUp':'L1PreFiringWeight_Up','valDown':'L1PreFiringWeight_Dn'})
 
                 elif self.year == '18':
                     self.a.AddCorrection(
@@ -167,14 +205,20 @@ class THClass:
                     )
 	    # need to account for Single Muon datasets having a differnt setname, i.e. SingleMuonDataX_year
 	    if ('Muon' in self.setname):
-		self.a = AutoJME.AutoJME(self.a, 'Dijet', self.year, self.setname[10:])
+		self.a = AutoJME.AutoJME(self.a, 'Dijet', '20'+self.year, self.setname[10:])
 	    else:
 		# regardless of passing self.setname, the AutoJME function will check if input is data or not
-		self.a = AutoJME.AutoJME(self.a, 'Dijet', self.year, self.setname)
-            self.a.MakeWeightCols(extraNominal='genWeight' if not self.a.isData else '')
-        
+		self.a = AutoJME.AutoJME(self.a, 'Dijet', '20'+self.year, self.setname)
+
+            #self.a.MakeWeightCols(extraNominal='genWeight' if not self.a.isData else '')
+	    # since we added genWcorr we do not have to do anything else with extraNominal genWeight correction
+	    self.a.MakeWeightCols() # this is actually not necessary for the snapshot stage, but just do it to check the stdout that all makes sense. 
+
         else:
             if not self.a.isData:
+                self.a.AddCorrection(Correction('Pileup',corrtype='weight'))
+                self.a.AddCorrection(Correction('ISRunc',corrtype='uncert'))
+                self.a.AddCorrection(Correction('FSRunc',corrtype='uncert'))
                 self.a.AddCorrection(Correction('Pileup',corrtype='weight'))
                 self.a.AddCorrection(Correction('Pdfweight',corrtype='uncert'))
                 if self.year == '16' or self.year == '17' or self.year == '16APV':
@@ -184,6 +228,11 @@ class THClass:
                     self.a.AddCorrection(Correction('HEM_drop',corrtype='corr'))
                 if 'ttbar' in self.setname:
                     self.a.AddCorrection(Correction('TptReweight',corrtype='weight'))
+		if 'Tprime' not in self.setname:
+                    self.a.AddCorrection(Correction('QCDscale_factorization',corrtype='weight'))
+                    self.a.AddCorrection(Correction('QCDscale_renormalization',corrtype='weight'))
+                    self.a.AddCorrection(Correction('QCDscale_combined',corrtype='weight'))
+		    self.a.AddCorrection(Correction('QCDscale_uncert',corrtype='uncert'))
                 
         return self.a.GetActiveNode()
 
@@ -204,26 +253,26 @@ class THClass:
 	immediately return true if a lepton in the event meets the veto criteria. See THmodules.cc for implementation.
 	'''
 	self.PreLeptonVeto = self.getNweighted()
-	self.AddCutflowColumn(self.PreLeptonVeto,'PreLepVeto')
+	#self.AddCutflowColumn(self.PreLeptonVeto,'PreLepVeto')
 	# tightMu inversion
 	self.a.Cut('tightMu_veto','TightMuVeto(nMuon, Muon_tightId, Muon_pt, Muon_pfRelIso04_all, Muon_eta)==0')
 	self.NTightMu = self.getNweighted()
-	self.AddCutflowColumn(self.NTightMu, "NTightMu")
+	#self.AddCutflowColumn(self.NTightMu, "NTightMu")
 	# tightEl inversion
 	self.a.Cut('tightEl_veto','TightElVeto(nElectron, Electron_mvaFall17V2Iso_WP80, Electron_pt, Electron_eta)==0')
 	self.NTightEl = self.getNweighted()
-	self.AddCutflowColumn(self.NTightEl, "NTightEl")
+	#self.AddCutflowColumn(self.NTightEl, "NTightEl")
 	# goodMu inversion
 	self.a.Cut('goodMu_veto','GoodMuVeto(nMuon, Muon_pt, Muon_looseId, Muon_dxy, Muon_eta)==0')
 	self.NGoodMu = self.getNweighted()
-	self.AddCutflowColumn(self.NGoodMu, "NGoodMu")
+	#self.AddCutflowColumn(self.NGoodMu, "NGoodMu")
 	# goodEl inversion
 	self.a.Cut('goodEl_veto','GoodElVeto(nElectron, Electron_pt, Electron_mvaFall17V2noIso_WP90, Electron_dxy, Electron_eta)==0')
 	self.NGoodEl = self.getNweighted()
-	self.AddCutflowColumn(self.NGoodEl, "NGoodEl")
+	#self.AddCutflowColumn(self.NGoodEl, "NGoodEl")
 
 	self.PostLeptonVeto = self.getNweighted()
-	self.AddCutflowColumn(self.PostLeptonVeto,'PostLepVeto')
+	#self.AddCutflowColumn(self.PostLeptonVeto,'PostLepVeto')
 	return self.a.GetActiveNode()
 
     def Snapshot(self,node=None, colNames=[]):
@@ -242,16 +291,22 @@ class THClass:
             'Dijet_jetId', 'nFatJet', 'Dijet_JES_nom',
             'HLT_PFHT.*', 'HLT_PFJet.*', 'HLT_AK8.*', 'HLT_Mu50', 'HLT_IsoMu*', 'HLT_Ele27_WPTight_Gsf', 'HLT_Ele35_WPTight_Gsf',
             'event', 'eventWeight', 'luminosityBlock', 'run',
-	    'NPROC', 'NFLAGS', 'NJETID', 'NJETS', 'NPT', 'NKIN', 'NDELTAETA', 'NTightMu', 'NTightEl', 'NGoodMu', 'NGoodEl', 'PreLepVeto', 'PostLepVeto'
+	    'NPROC', 'NFLAGS', 'NJETID', 'NJETS', 'NPT', 'NKIN', 'NDELTAETA', 'NTightMu', 'NTightEl', 'NGoodMu', 'NGoodEl', 'PreLeptonVeto', 'PostLeptonVeto'
         ]
 
         if not self.a.isData:
-            columns.extend(['GenPart_.*', 'nGenPart','genWeight'])
+            columns.extend(['GenPart_.*', 'nGenPart','genWeight','GenModel*'])
+	    columns.extend(['PSWeight', 'LHEScaleWeight'])
             columns.extend(['Dijet_JES_up','Dijet_JES_down',
                             'Dijet_JER_nom','Dijet_JER_up','Dijet_JER_down',
                             'Dijet_JMS_nom','Dijet_JMS_up','Dijet_JMS_down',
                             'Dijet_JMR_nom','Dijet_JMR_up','Dijet_JMR_down'])
-            columns.extend(['Pileup__nom','Pileup__up','Pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down'])
+            columns.extend(['Pileup__nom','Pileup__up','Pileup__down','Pdfweight__nom','Pdfweight__up','Pdfweight__down','ISR__up','ISR__down','FSR__up','FSR__down'])
+	    if 'Tprime' not in self.setname:
+                columns.extend(['QCDscale_factorization__nom','QCDscale_factorization__up','QCDscale_factorization__down'])
+                columns.extend(['QCDscale_renormalization__nom','QCDscale_renormalization__up','QCDscale_renormalization__down'])
+                columns.extend(['QCDscale_combined__nom','QCDscale_combined__up','QCDscale_combined__down'])
+		columns.extend(['QCDscale_uncert__up','QCDscale_uncert__down'])
             if self.year == '16' or self.year == '17' or self.year == '16APV':
                 #columns.extend(['Prefire__nom','Prefire__up','Prefire__down'])					# these are the TIMBER prefire calculations (don't include)
 		columns.extend(['L1PreFiringWeight_Nom', 'L1PreFiringWeight_Up', 'L1PreFiringWeight_Dn'])	# keep the TIMBER Prefire calculations, but also include these from NanoAODv9
@@ -296,6 +351,15 @@ class THClass:
         self.a.Define('pt0','Dijet_pt_corr[0]')
         self.a.Define('pt1','Dijet_pt_corr[1]')
         self.a.Define('HT','pt0+pt1')
+
+	# Apply an ID tag to MC jets from truth matching:
+            # 0: Merged top jet
+            # 1: Merged W jet
+            # 2: Merged Higgs jet
+            # 3: Unmerged jet (other)
+	if not self.a.isData:
+            self.a.Define('Dijet_jetFlavor', 'JetFlavor_{}(Dijet_eta, Dijet_phi, GenPart_eta, GenPart_phi, GenPart_pdgId, GenPart_genPartIdxMother)'.format('signal' if 'Tprime' in self.setname else 'ttbar'))
+
         return self.a.GetActiveNode()
 
     def ApplyTopPick_Signal(self, TopTagger, XbbTagger, pt, mass, TopScoreCut, eff0, eff1, year, TopVariation, invert, ttbarCR=False):
@@ -317,10 +381,10 @@ class THClass:
         # now get the cutflow information after top tag
         if (invert == True):    # control region
             self.nTop_CR = self.getNweighted()
-            self.AddCutflowColumn(self.nTop_CR, "nTop_CR")
+            #self.AddCutflowColumn(self.nTop_CR, "nTop_CR")
         else:
             self.nTop_SR = self.getNweighted()
-            self.AddCutflowColumn(self.nTop_SR, "nTop_SR")
+            #self.AddCutflowColumn(self.nTop_SR, "nTop_SR")
 
         # at this point, rename Dijet -> Top/Higgs based on its index determined above
         self.a.ObjectFromCollection('Top','Dijet','tIdx',skip=['msoftdrop_corrH'])
@@ -351,10 +415,10 @@ class THClass:
 	# now get the cutflow information after top tag
 	if (invert == True):	# control region
 	    self.nTop_CR = self.getNweighted()
-	    self.AddCutflowColumn(self.nTop_CR, "nTop_CR")
+	    #self.AddCutflowColumn(self.nTop_CR, "nTop_CR")
 	else:
 	    self.nTop_SR = self.getNweighted()
-	    self.AddCutflowColumn(self.nTop_SR, "nTop_SR")
+	    #self.AddCutflowColumn(self.nTop_SR, "nTop_SR")
 
 	# at this point, rename Dijet -> Top/Higgs based on its index determined above
         self.a.ObjectFromCollection('Top','Dijet','tIdx',skip=['msoftdrop_corrH'])
@@ -463,32 +527,44 @@ class THClass:
         passLooseFail["pass"] = self.a.Cut('HbbTag_pass','Higgs_{0} > {1}'.format(tagger,self.cuts[tagger]) if not signal else 'NewTagCats==2')
 	if SRorCR == 'SR':
 	    self.higgsP_SR = self.getNweighted()
-	    self.AddCutflowColumn(self.higgsP_SR, "higgsP_SR")
+	    #self.AddCutflowColumn(self.higgsP_SR, "higgsP_SR")
 	else:
 	    self.higgsP_CR = self.getNweighted()
-	    self.AddCutflowColumn(self.higgsP_CR, "higgsP_CR")
+	    #self.AddCutflowColumn(self.higgsP_CR, "higgsP_CR")
 	# Higgs Loose + cutflow info
         self.a.SetActiveNode(checkpoint)
         passLooseFail["loose"] = self.a.Cut('HbbTag_loose','Higgs_{0} > 0.8 && Higgs_{0} < {1}'.format(tagger,self.cuts[tagger]) if not signal else 'NewTagCats==1')
         if SRorCR == 'SR':
             self.higgsL_SR = self.getNweighted()
-	    self.AddCutflowColumn(self.higgsL_SR, "higgsL_SR")
+	    #self.AddCutflowColumn(self.higgsL_SR, "higgsL_SR")
         else:
             self.higgsL_CR = self.getNweighted()
-	    self.AddCutflowColumn(self.higgsL_CR, "higgsL_CR")
+	    #self.AddCutflowColumn(self.higgsL_CR, "higgsL_CR")
 	# Higgs Fail + cutflow info
         self.a.SetActiveNode(checkpoint)
         passLooseFail["fail"] = self.a.Cut('HbbTag_fail','Higgs_{0} < 0.8'.format(tagger,self.cuts[tagger]) if not signal else 'NewTagCats==0')
         if SRorCR == 'SR':
             self.higgsF_SR = self.getNweighted()
-	    self.AddCutflowColumn(self.higgsF_SR, "higgsF_SR")
+	    #self.AddCutflowColumn(self.higgsF_SR, "higgsF_SR")
         else:
             self.higgsF_CR = self.getNweighted()
-	    self.AddCutflowColumn(self.higgsF_CR, "higgsF_CR")
+	    #self.AddCutflowColumn(self.higgsF_CR, "higgsF_CR")
 	# reset node state, return dict
         self.a.SetActiveNode(checkpoint)
         return passLooseFail
-        
+
+    def ApplyTaggerReweight(self, PNetHbb_wp=0.98, PNetTvsQCD_wp=0.96, DAK8MDTvsQCD_wp=1.00, region='SR'):
+	'''
+	Function to apply the Top and Higgs (mis)tagging scale factors
+	'''
+	# Signal, apply Hbb/top tagging efficiency weight as uncertainty
+	if 'Tprime' in self.setname:
+	    pass
+	elif 'ttbar' in self.setname:
+	    pass
+
+
+ 
     ###############
     # For studies #
     ###############

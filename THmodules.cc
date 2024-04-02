@@ -6,6 +6,87 @@
 
 using namespace ROOT::VecOps;
 
+RVec<int> JetFlavor_ttbar(RVec<float> Jet_eta, RVec<float> Jet_phi, RVec<float> Gen_eta, RVec<float> Gen_phi, RVec<int> pdgId, RVec<int> motherIdx) {
+    // EXPERIMENTAL: Assigns true flavor to ttbar MC AK8 jets based on gen particles inside the jet cone (R=0.8):
+    // To be used on an RVec collection of jets (like FatJet)
+    // Output: a number corresponding to jet flavor
+    // 0: merged top jet
+    // 1: merged W jet
+    // 2: bq jet
+    // 3: unmerged jet
+    std::vector<int> b, q; // bottom quarks from top decays, quarks from W decays
+    for (int igen = 0; igen<Gen_eta.size(); igen++) { // loop over gen particles
+        int genId = pdgId[igen];
+        int mother_genId = pdgId[motherIdx[igen]];
+        int grandmother_genId = pdgId[motherIdx[motherIdx[igen]]];
+        // Pull out all b quarks from top decays, quarks from W decays (w/ grandmother top)
+        if (std::abs(genId) == 5 && std::abs(mother_genId) == 6) {b.push_back(igen);} 
+        else if (std::abs(genId) < 6 && std::abs(genId) > 0 && std::abs(mother_genId) == 24) {
+            // make sure mother of W is not just another W
+            int greatgrandmother_genId = pdgId[motherIdx[motherIdx[motherIdx[igen]]]];
+            if (std::abs(grandmother_genId) == 6) {q.push_back(igen);}
+            else if (std::abs(grandmother_genId) == 24 && std::abs(greatgrandmother_genId) == 6) {q.push_back(igen);}           
+        }
+    }
+    RVec<int> jetId(Jet_eta.size());
+    for (int ijet = 0; ijet<Jet_eta.size(); ijet++) { // Loop through all jets in the event
+        int flav = 3; // assume unmerged jet
+        int n_bfromt = 0; // b quarks from top decay inside jet cone
+        int n_qfromW = 0; // quarks form W decay insdie jet cone
+        // Impose delta R requirements
+        for (int i : b) {
+            if (DeltaR(Jet_eta[ijet], Jet_phi[ijet], Gen_eta[i], Gen_phi[i]) < 0.8) {n_bfromt += 1;}
+        }
+        for (int i : q) {
+            if (DeltaR(Jet_eta[ijet], Jet_phi[ijet], Gen_eta[i], Gen_phi[i]) < 0.8) {n_qfromW += 1;}
+        }
+        if (n_qfromW >= 1) {
+            if (n_qfromW >= 2) {
+                if (n_bfromt >= 1) {flav = 0;} // merged top jet
+                else {flav = 1;} // merged W jet
+            }
+            else if (n_bfromt >= 1) {flav = 2;} // bq jet        
+        }
+        jetId[ijet] = flav;
+    }
+    return jetId;
+}
+
+RVec<int> JetFlavor_signal(RVec<float> Jet_eta, RVec<float> Jet_phi, RVec<float> Gen_eta, RVec<float> Gen_phi, RVec<int> pdgId, RVec<int> motherIdx) {
+    // EXPERIMENTAL: Assigns true flavor to signal MC AK8 jets based on gen particles inside the jet cone (R=0.8): 
+    // Output: an RVec of numbers corresponding to jet flavors
+    //     1: merged Wqq jet
+    //     4: merged Hbb jet
+    //     3: unmerged jet
+    std::vector<int> b, q; // bottom quarks from H decays, quarks from W decays
+    RVec<int> jetId(Jet_eta.size()); // vector of jet flavors
+    for (int igen = 0; igen<Gen_eta.size(); igen++) { // loop over gen particles
+        int genId = pdgId[igen];
+        int mother_genId = pdgId[motherIdx[igen]];
+        // First search for bottom quarks from Higgs decay
+        if (std::abs(genId) == 5 && std::abs(mother_genId) == 25) {b.push_back(igen);}
+        // Then search for quarks from W decay
+        else if (std::abs(genId) < 6 && std::abs(genId) > 0 && std::abs(mother_genId) == 24) {q.push_back(igen);}
+    }
+    for (int ijet = 0; ijet<Jet_eta.size(); ijet++) { // loop through all jets in the event
+        int flav = 3; // assume unmerged jet
+        int n_bfromH = 0; // number of b quarks from H decay inside jet cone
+        int n_qfromW = 0; // number of quarks from W decay inside jet cone
+        // Impose delta R requirements
+        for (int i : b) {
+            if (DeltaR(Jet_eta[ijet], Jet_phi[ijet], Gen_eta[i], Gen_phi[i]) < 0.8) {n_bfromH += 1;}
+        }
+        for (int i : q) {
+            if (DeltaR(Jet_eta[ijet], Jet_phi[ijet], Gen_eta[i], Gen_phi[i]) < 0.8) {n_qfromW += 1;}
+        }
+        if (n_bfromH >= 2) {flav = 4;} // First check if merged Higgs
+        else if (n_qfromW >= 2) {flav = 1;} // Merged W
+        jetId[ijet] = flav;
+    }
+    return jetId;
+}
+
+
 /*****************************************************************
  *  Lepton veto functions 
  *  ---------------------
