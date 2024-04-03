@@ -123,10 +123,13 @@ class THClass:
 
 	#print(self.a.GetCollectionNames())
 
+	# This cut might kill too much signal, just add it later if need-be
+	'''
 	self.a.Define('deltaEta','abs(Dijet_eta[0]-Dijet_eta[1])')
 	self.a.Cut('deltaEta_cut','deltaEta < 1.6')
 	self.NDELTAETA = self.getNweighted()
 	#self.AddCutflowColumn(self.NDELTAETA,'NDELTAETA')
+	'''
         return self.a.GetActiveNode()
 
     def ApplyStandardCorrections(self,snapshot=False):
@@ -353,12 +356,19 @@ class THClass:
         self.a.Define('HT','pt0+pt1')
 
 	# Apply an ID tag to MC jets from truth matching:
-            # 0: Merged top jet
-            # 1: Merged W jet
-            # 2: Merged Higgs jet
-            # 3: Unmerged jet (other)
-	if not self.a.isData:
-            self.a.Define('Dijet_jetFlavor', 'JetFlavor_{}(Dijet_eta, Dijet_phi, GenPart_eta, GenPart_phi, GenPart_pdgId, GenPart_genPartIdxMother)'.format('signal' if 'Tprime' in self.setname else 'ttbar'))
+	# Dijet_jetFlavor_ttbar:
+	#	0: merged top jet
+	#	1: merged W jet
+	#	2: bq jet
+	#	3: unmerged jet
+	# Dijet_jetFlavor_signal:
+	#	1: merged Wqq jet (not used in this analysis)
+	#	3: unmerged jet   (same as for Dijet_jetFlavor_ttbar)
+	#	4: merged Hbb jet
+	# The end result of this section will be to assign a value to each MC jet describing its truth type
+	if ('Tprime' in self.setname) or ('ttbar' in self.setname):
+            self.a.Define('Dijet_jetFlavor_ttbar', 'JetFlavor_ttbar(Dijet_eta, Dijet_phi, GenPart_eta, GenPart_phi, GenPart_pdgId, GenPart_genPartIdxMother)')
+            self.a.Define('Dijet_jetFlavor_signal', 'JetFlavor_signal(Dijet_eta, Dijet_phi, GenPart_eta, GenPart_phi, GenPart_pdgId, GenPart_genPartIdxMother)')
 
         return self.a.GetActiveNode()
 
@@ -559,7 +569,7 @@ class THClass:
 	'''
 	# Signal, apply Hbb/top tagging efficiency weight as uncertainty
 	if 'Tprime' in self.setname:
-	    pass
+	    Hbb_effmap = 'ParticleNetSFs/EfficiencyMaps/%s_%s_HiggsJets_'
 	elif 'ttbar' in self.setname:
 	    pass
 
