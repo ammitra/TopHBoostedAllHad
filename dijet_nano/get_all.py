@@ -5,7 +5,7 @@ from TIMBER.Tools.Common import ExecuteCmd
 redirector = 'root://cmseos.fnal.gov/'
 eos_path = '/store/user/ammitra/topHBoostedAllHad/snapshot/'
 
-files = subprocess.check_output('eos root://cmseos.fnal.gov ls %s'%(eos_path), shell=True)
+files = subprocess.check_output('eos root://cmseos.fnal.gov ls %s'%(eos_path), shell=True, text=True)
 org_files = {}
 for f in files.split('\n'):
     if f == '': continue
@@ -20,7 +20,8 @@ for f in files.split('\n'):
         org_files[year][setname] = []
 
     org_files[year][setname].append(file_path)
-    
+
+ 
 for y in org_files.keys():
     for s in org_files[y].keys():
         out = open('dijet_nano/%s_%s_snapshot.txt'%(s,y),'w')

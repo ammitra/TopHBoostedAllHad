@@ -13,7 +13,7 @@ for f in glob.glob('raw_nano/*.txt'):
     setname = filename.split('_')[0]
     year = filename.split('_')[1]
 
-    njobs = int(nfiles/2)
+    njobs = int(nfiles/4)
     if njobs == 0:	# this occurs when nfiles = 1
 	njobs += 1
     for i in range(1,njobs+1):

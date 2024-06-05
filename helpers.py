@@ -13,6 +13,9 @@ def SplitUp(filename,npieces,nFiles=False):
     
     if not nFiles: files_per_piece = float(nfiles)/float(npieces)
     else: files_per_piece = npieces
+
+    print('Splitting %s files into %s pieces'%(nfiles, npieces))
+    print('With %s files per piece'%files_per_piece)
     
     out = []
     iend = 0

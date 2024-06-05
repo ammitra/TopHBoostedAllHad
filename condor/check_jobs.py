@@ -48,7 +48,7 @@ def ParseCondorQ(stdout,tasknumber):
                 'schedd': currentSchedd
             }
             if info[5] == 'H':
-                taskDict[jobNumber]['holdreason'] = subprocess.check_output('condor_q %s %s.%s -name %s -af HoldReason'%(os.getenv('USER'), args.tasknumber, jobNumber, currentSchedd), shell=True)
+                taskDict[jobNumber]['holdreason'] = subprocess.check_output('condor_q %s %s.%s -name %s -af HoldReason'%(os.getenv('USER'), args.tasknumber, jobNumber, currentSchedd), shell=True, text=True)
 
     return taskDict
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     CheckLogsExist(allLogs)
 
     jobsToReRun = []
-    jobsRunning = ParseCondorQ(subprocess.check_output('condor_q %s %s'%(os.getenv('USER'), args.tasknumber), shell=True), args.tasknumber)
+    jobsRunning = ParseCondorQ(subprocess.check_output('condor_q %s %s'%(os.getenv('USER'), args.tasknumber), shell=True, text=True), args.tasknumber)
     jobsFinished = {}
     # Loop over logs to get status of each job not still running
     for f in allLogs:
@@ -82,12 +82,11 @@ if __name__ == '__main__':
             logLines = open(f,'r').readlines()
             stdoutLines = open(f.replace('.log','.stdout'),'r').readlines()
             stderrLines = open(f.replace('.log','.stderr'),'r').readlines()
-
             for lstdout in stdoutLines:
                 if stdoutArgLine in lstdout:
                     jobargs = lstdout[lstdout.find(stdoutArgLine)+len(stdoutArgLine):]
                     break
-
+                else: jobargs = 'test'
             # Check for errors and report back error and job arguments
             hasError = False
             for lstderr in stderrLines:
@@ -107,7 +106,7 @@ if __name__ == '__main__':
             # If no error, get the time to finish
             if not hasError:
                 jobsFinished[GetJobNumber(f)] = {
-                    'runtime': time.strftime('%H:%M:%S', time.gmtime(FindRuntimeLine(stdoutLines))),
+                    'runtime': 0,#time.strftime('%H:%M:%S', time.gmtime(FindRuntimeLine(stdoutLines))),
                     'args': jobargs.strip()
                 }
 
@@ -126,7 +125,7 @@ Finished: {0}, Running: {1}, Failed: {2}
     report.write('|------------|------|---------|\n')
     for jobNumber in jobsFinished.keys():
         job = jobsFinished[jobNumber]
-        report.write('|'+'|'.join([jobNumber, job['args'], job['runtime']])+'|\n')
+        #report.write('|'+'|'.join([jobNumber, job['args'], job['runtime']])+'|\n')
     
     report.write('\n')
     report.write('# JOBS RUNNING\n')

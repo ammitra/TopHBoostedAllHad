@@ -418,6 +418,14 @@ std::vector<int> PickTopCRv2(RVec<float> mass, RVec<float> tagScore, RVec<float>
     return out;
 }
 
+int Pick_H_candidate_standard(float Hbb_discriminant, float wp) {
+    if (Hbb_discriminant >= wp) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+};
 
 bool MatchToGen(int pdgID, ROOT::Math::PtEtaPhiMVector jet,
                 RVec<ROOT::Math::PtEtaPhiMVector> GenPart_vect,
