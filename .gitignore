@@ -20,3 +20,6 @@ highMassTprime/*.txt
 *.txt
 *.dot
 ParticleNetSFs/EfficiencyMaps/*.root
+*_jdl
+*.pdf
+
