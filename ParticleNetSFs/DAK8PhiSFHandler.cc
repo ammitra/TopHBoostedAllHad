@@ -20,7 +20,8 @@ class DAK8PhiSFHandler {
     private:
         std::string _year;      // "16", "16APV", "17", "18"
         TFile*      _effroot;   // store pointer to efficiency file
-        std::string _wp;        // DAK8MD Top tagger working point
+        std::string _wp_str;    // DAK8MD Top tagger working point (e.g 0.889 -> 889)
+        float       _wp;        // DAK8MD Top tagger working point (e.g 0.889)
         TRandom3*   _rand;      // random number generator
         // DAK8MD top tagging SFs
         // https://twiki.cern.ch/twiki/bin/viewauth/CMS/DeepAK8Tagging2018WPsSFs#DeepAK8_MD_Top_quark_tagging
@@ -30,19 +31,19 @@ class DAK8PhiSFHandler {
         std::vector<std::vector<float>> SF2018_dak8    = {{0.81,0.88,0.74},{0.93,0.98,0.88},{0.96,1.02,0.92},{0.93,0.98,0.88}};
 
         // Helper functions
-        int   GetPtBin(float pt, bool ttbarCR);
+        int   GetPtBin(float pt);
         float GetSF(float pt, int variation);
         float GetEff(float pt, float eta, int jetCat);
         int   GetOriginalCat(float taggerScore);
     public:
-        DAK8PhiSFHandler(std::string year, std::string effpath, std::string wp, int seed);
+        DAK8PhiSFHandler(std::string year, std::string effpath, std::string wp_str, float wp, int seed);
         ~DAK8PhiSFHandler();
         // MAIN METHODS
         // returns the status of the jet (0: not top-tagged, 1: DAK8 top-tagged)
         int GetNewTopCat(float DAK8_discriminant, float pt, float eta, int variation, int jetCat);
 };
 
-DAK8PhiSFHandler::DAK8PhiSFHandler(std::string year, std::string effpath, std::string wp, int seed) : _year(year), _wp(wp) {
+DAK8PhiSFHandler::DAK8PhiSFHandler(std::string year, std::string effpath, std::string wp_str, float wp, int seed) : _year(year), _wp(wp), _wp_str(wp_str) {
     _effroot = TFile::Open(effpath.c_str(),"READ");
     _rand = new TRandom3(seed);
 };
@@ -66,7 +67,7 @@ float DAK8PhiSFHandler::GetSF(float pt, int variation) {
     float SF;
     int ptBin = GetPtBin(pt);
     int var = variation;
-    if (_year == "16APV") || (_year == "16") {
+    if ( (_year == "16APV") || (_year == "16") ) {
         SF = SF2016_dak8[ptBin][var];
     }
     else if (_year == "17") {
@@ -86,23 +87,23 @@ float DAK8PhiSFHandler::GetEff(float pt, float eta, int jetCat) {
     // Higgs-matched_Dijet_deepTagMD_TvsQCD_WP0p889_TEff
     std::string histname_base ("Dijet_deepTagMD_TvsQCD_WP0p");
     if (cat == 0) {
-        std::string histname = "other-matched_" + histname_base + _wp.substr(0, _wp.find(".",10)) + "_TEff";
+        std::string histname = "other-matched_" + histname_base + _wp_str + "_TEff";
         _effmap = (TEfficiency*)_effroot->Get(histname.c_str());
     }
     else if (cat == 1) {
-        std::string histname = "top_qq-matched_" + histname_base + _wp.substr(0, _wp.find(".",10)) + "_TEff";
+        std::string histname = "top_qq-matched_" + histname_base + _wp_str + "_TEff";
         _effmap = (TEfficiency*)_effroot->Get(histname.c_str());
     }
     else if (cat == 2) {
-        std::string histname = "top_bq-matched_" + histname_base + _wp.substr(0, _wp.find(".",10)) + "_TEff";
+        std::string histname = "top_bq-matched_" + histname_base + _wp_str + "_TEff";
         _effmap = (TEfficiency*)_effroot->Get(histname.c_str());
     }
     else if (cat == 3) {
-        std::string histname = "top_bqq-matched_" + histname_base + _wp.substr(0, _wp.find(".",10)) + "_TEff";
+        std::string histname = "top_bqq-matched_" + histname_base + _wp_str + "_TEff";
         _effmap = (TEfficiency*)_effroot->Get(histname.c_str());
     }
     else {
-        std::string histname = "other-matched_" + histname_base + _wp.substr(0, _wp.find(".",10)) + "_TEff";
+        std::string histname = "other-matched_" + histname_base + _wp_str + "_TEff";
         _effmap = (TEfficiency*)_effroot->Get(histname.c_str());
     }
     int globalbin = _effmap->FindFixBin(pt, eta);
@@ -110,11 +111,10 @@ float DAK8PhiSFHandler::GetEff(float pt, float eta, int jetCat) {
     return eff;
 };
 
-int GetOriginalCat(float taggerScore) {
+int DAK8PhiSFHandler::GetOriginalCat(float taggerScore) {
     // determine whether the jet is originally tagged based on its score
     int isTagged;
-    float wp = std::stof(_wp);
-    if (taggerScore > wp) {
+    if (taggerScore > _wp) {
         isTagged = 1;
     }
     else {
@@ -123,7 +123,7 @@ int GetOriginalCat(float taggerScore) {
     return isTagged;
 };
 
-int GetNewTopCat(float DAK8_discriminant, float pt, float eta, int variation, int jetCat) {
+int DAK8PhiSFHandler::GetNewTopCat(float DAK8_discriminant, float pt, float eta, int variation, int jetCat) {
     int isTagged = GetOriginalCat(DAK8_discriminant);
     int newTag = isTagged;
     float SF = GetSF(pt, variation);

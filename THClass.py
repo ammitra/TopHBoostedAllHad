@@ -423,6 +423,13 @@ class THClass:
                     mass_window[1]
                 )
             )
+
+            print('DEBUG ------------------------------------------------------------------------------------')
+            print('\t%s: \t%s'%(TvsQCD_discriminant,self.a.DataFrame.GetColumnType(TvsQCD_discriminant)))
+            print('\t%s: \t\t%s'%(genMatchCats,self.a.DataFrame.GetColumnType(genMatchCats)))
+            print('\t%s: \t\t\t%s'%(objIdxs,self.a.DataFrame.GetColumnType(objIdxs)))
+            print('------------------------------------------------------------------------------------------')
+
         else:
             # This assumes that `THmodules.cc` has been compiled already
             self.a.Define(objIdxs,
@@ -434,12 +441,6 @@ class THClass:
                     'true' if invert else 'false'
                 )
             )
-
-        print('DEBUG ------------------------------------------------------------------------------------')
-        print('\t%s: \t%s'%(TvsQCD_discriminant,self.a.DataFrame.GetColumnType(TvsQCD_discriminant)))
-        print('\t%s: \t\t%s'%(genMatchCats,self.a.DataFrame.GetColumnType(genMatchCats)))
-        print('\t%s: \t\t\t%s'%(objIdxs,self.a.DataFrame.GetColumnType(objIdxs)))
-        print('------------------------------------------------------------------------------------------')
 
         # At this point, we'll have a column named ObjIdxs_SR/CR/ttbarCR containing the indices of which
         # of the two jets is the top and which is the Higgs (tIdx, hIdx), or {-1,-1} if at least one top 
@@ -506,10 +507,13 @@ class THClass:
             self.NBEFORE_H_PICK_TTCR = self.getNweighted()
 
         # Determine whether we are working in the ttbarCR or SR/CR. 
-        # Whether we are running on signal or ttbar will have already been determined in THselection.py when
-        # instantiating the PhiSFHandler object via the std::string category arg in the constructor.
-        if ('ttbar' in self.setname):
-            if region == 'ttbarCR': # we are tagging the phi cand as a top with the DAK8MD tagger - apply tag SFs
+        # Whether we are operating on signal or ttbar will have already been determined 
+        # when instantiating the SFHandler objects via a string argument.
+        if region == 'ttbarCR':
+            # Ensure that the ttbarCR is orthogonal to the SR by requiring PNetXbb < 0.8
+            self.a.Define('SR_ttCR_orthog_cut','%s < 0.8'%Hbb_discriminant)
+            if ('ttbar' in self.setname):   # tagging phi cand as top with DAK8MD tagger - apply SFs
+                assert(PhiSFHandler_obj == 'DAKSFHandler')
                 self.a.Define('PhiTagStatus',
                     '%s.GetNewTopCat(%s, %s, %s, %s, %s);'%(
                         PhiSFHandler_obj,
@@ -520,37 +524,38 @@ class THClass:
                         genMatchCat
                     )
                 )
-            else: # we are tagging the phi cand as a phi with the PNet tagger in ttbar MC - apply mistagging SFs
+            else:   # tagging phi cand as top with DAK8MD - do not apply SFs
+                # this assumes `THmodules.cc` has been compiled already
+                if (self.year == "16") or (self.year == "16APV"):
+                    dak8t_wp = 0.889
+                elif (self.year == "17"):
+                    dak8t_wp = 0.863
+                elif (self.year == "18"):
+                    dak8t_wp = 0.92
+                self.a.Define('PhiTagStatus','Pick_H_candidate_standard(%s, %s)'%(Top_discriminant, dak8t_wp))
+        else:
+            if ('ttbar' in self.setname) or ('Tprime' in self.setname):   
+                # tagging phi cand as phi with PNet - apply tag/mistag SFs
+                assert(PhiSFHandler_obj == 'PhiSFHandler')
                 self.a.Define('PhiTagStatus',
                     '%s.GetNewHCat(%s, %s, %s, %s, %s)'%(
                         PhiSFHandler_obj,
                         Hbb_discriminant,
-                        corrected_pt,
-                        jet_eta,
+                        corrected_pt,                                                                              jet_eta,
                         phi_variation,
                         genMatchCat
                     )
                 )
-        elif ('Tprime' in self.setname): # we are tagging phi cand as phi in signal MC - apply tagging SFs
-            self.a.Define('PhiTagStatus',
-                '%s.GetNewHCat(%s, %s, %s, %s, %s)'%(
-                    PhiSFHandler_obj,
-                    Hbb_discriminant,
-                    corrected_pt,
-                    jet_eta,
-                    phi_variation,
-                    genMatchCat
-                )
-            )
-        else:
-            # this assumes `THmodules.cc` has been compiled already
-            self.a.Define('PhiTagStatus','Pick_H_candidate_standard(%s, %s)'%(Hbb_discriminant, 0.98))
+            else: # no tag/mistag SFs
+                # this assumes `THmodules.cc` has been compiled already
+                self.a.Define('PhiTagStatus','Pick_H_candidate_standard(%s, %s)'%(Hbb_discriminant, 0.98))
 
-        print('DEBUG ------------------------------------------------------------------------------------')
-        print('\t%s: \t%s'%(Hbb_discriminant,self.a.DataFrame.GetColumnType(Hbb_discriminant)))
-        print('\t%s: \t\t%s'%(genMatchCat,self.a.DataFrame.GetColumnType(genMatchCat)))
-        print('\t%s: \t\t\t%s'%('PhiTagStatus',self.a.DataFrame.GetColumnType('PhiTagStatus')))
-        print('------------------------------------------------------------------------------------------')
+        if ('ttbar' in self.setname) or ('Tprime' in self.setname):
+            print('DEBUG ------------------------------------------------------------------------------------')
+            print('\t%s: \t%s'%(Hbb_discriminant,self.a.DataFrame.GetColumnType(Hbb_discriminant)))
+            print('\t%s: \t\t%s'%(genMatchCat,self.a.DataFrame.GetColumnType(genMatchCat)))
+            print('\t%s: \t\t\t%s'%('PhiTagStatus',self.a.DataFrame.GetColumnType('PhiTagStatus')))
+            print('------------------------------------------------------------------------------------------')
 
         # At this point, we have a column describing what the tagging status of the phi candidate is:
         #   - For ttbar, mistagging SFs will have been applied to account for mistagging gen top as Hbb.

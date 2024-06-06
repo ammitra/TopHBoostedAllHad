@@ -4,7 +4,9 @@ from TIMBER.Tools.Common import CompileCpp
 from collections import OrderedDict
 import TIMBER.Tools.AutoJME as AutoJME
 from THClass import THClass
+#from memory_profiler import profile
 
+#@profile
 def selection(args):
     print('PROCESSING: {} {}'.format(args.setname, args.year))
     start = time.time()
@@ -34,6 +36,7 @@ def selection(args):
         CompileCpp('ParticleNetSFs/TopMergingFunctions.cc')
         CompileCpp('ParticleNetSFs/PNetTopSFHandler.cc')
         CompileCpp('ParticleNetSFs/PNetPhiSFHandler.cc')
+        CompileCpp('ParticleNetSFs/DAK8PhiSFHandler.cc')
         # Perform gen matching to both candidates
         selection.a.Define('Dijet_GenMatchCats','classifyProbeJets({0,1}, Dijet_phi, Dijet_eta, nGenPart, GenPart_phi, GenPart_eta, GenPart_pdgId, GenPart_genPartIdxMother)')
         # Determine which variations should be applied
@@ -72,28 +75,32 @@ def selection(args):
         t_wp = 0.94
         h_wp = 0.98
         # DAK8 top wps
+        # The DAK8 SF handler class needs the wp as a float and a string (for hist names)
         if (args.year == "16") or (args.year == "16APV"):
-            dak8t_wp = 0.889
+            dak8t_wp     = 0.889
+            dak8t_wp_str = "889"
         elif (args.year == "17"):
-            dak8t_wp = 0.863
+            dak8t_wp     = 0.863
+            dak8t_wp_str = "863"
         elif (args.year == "18"):
-            dak8t_wp = 0.92
+            dak8t_wp     = 0.92
+            dak8t_wp_str = "92"
         TopSFHandler_args = 'PNetTopSFHandler TopSFHandler = PNetTopSFHandler("%s", "%s", "%s", %f, 12345);'%(args.year, category, effpath, t_wp)
         PhiSFHandler_args = 'PNetPhiSFHandler PhiSFHandler = PNetPhiSFHandler("%s", "%s", "%s", "%s", 12345);'%(args.year, category, effpath, h_wp)
-        DAKSFHandler_args = 'DAK8PhiSFHandler DAKSFHandler = DAK8PhiSFHandler("%s", "%s", "%s", 12345);'%(args.year, effpath, dak8t_wp)
+        DAKSFHandler_args = 'DAK8PhiSFHandler DAKSFHandler = DAK8PhiSFHandler("%s", "%s", "%s", %s, 12345);'%(args.year, effpath, dak8t_wp_str, dak8t_wp)
 
         print('Instantiating PNetTopSFHandler object:\n\t%s'%TopSFHandler_args)
         CompileCpp(TopSFHandler_args)
         print('Instantiating PNetPhiSFHandler object:\n\t%s'%PhiSFHandler_args)
         CompileCpp(PhiSFHandler_args)
         print('Instantiating DAK8PhiSFHandler object:\n\t%s'%DAKSFHandler_args)
+        CompileCpp(DAKSFHandler_args)
+
     else:
         # Define variables here so script doesn't complain later
         category = 'other'
         HbbVar = 0
         TopVar = 0
-        # Used to pick Top, Phi for non-ttbar/signal files (VJets, data)
-        CompileCpp("THmodules.cc")
 
     # Check which corrections are being tracked
     print('Tracking corrections: \n%s'%('\n\t- '.join(list(selection.a.GetCorrectionNames()))))
@@ -135,7 +142,7 @@ def selection(args):
         print('Defining Fail and Pass categories based on Phi candidate score in %s...'%region)
         PassFail = selection.Pick_Phi_candidate(
             region              = region,
-            PhiSFHandler_obj    = 'PhiSFHandler',
+            PhiSFHandler_obj    = 'DAKSFHandler' if (category == 'ttbar') and (region == 'ttbarCR') else 'PhiSFHandler',
             Hbb_discriminant    = 'Higgs_particleNetMD_HbbvsQCD',
             Top_discriminant    = 'Higgs_deepTagMD_TvsQCD',
             corrected_pt        = 'Higgs_pt_corr',
@@ -156,7 +163,7 @@ def selection(args):
             print('\tEvaluating %s'%mod_title)
             mTprime = 'mth'
             mPhi    = 'Higgs_msoftdrop_corrH'
-            templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MHvMTH_%s'%mod_name, 'MH vs MTH %s'%(mod_title),binsX[0],binsX[1],binsX[2],binsY[0],binsY[1],binsY[2]),[mPhi,mTprime])
+            templates = selection.a.MakeTemplateHistos(ROOT.TH2F('MHvMTH_%s'%mod_name, 'MH vs MTH %s'%(mod_title),binsX[0],binsX[1],binsX[2],binsY[0],binsY[1],binsY[2]),[mPhi,mTprime],multiproc=True if not args.singleproc else False)
             templates.Do('Write')
 
     # Save out cutflow information from selection
@@ -200,8 +207,17 @@ if __name__ == '__main__':
     parser.add_argument('-j', type=int, dest='ijob',
                         action='store', default=1,
                         help='Which job to run on')
+    parser.add_argument('--verbose', dest='verbose',
+                        action='store_true', help='Enable RDF verbosity')
+    parser.add_argument('--singleproc', dest='singleproc',
+                        action='store_true',
+                        help='If enabled, run histo making in a single process (NOT RECOMMENDED DUE TO MEMORY LEAKS)')
 
     args = parser.parse_args()
+
+    # Debug RDataFrame JIT usage
+    if args.verbose:
+        verbosity = ROOT.Experimental.RLogScopedVerbosity(ROOT.Detail.RDF.RDFLogChannel(), ROOT.Experimental.ELogLevel.kDebug+10)
 
     # Updated method using the trigger efficiencies parameterized by 2D function
     if ('Data' not in args.setname) and (args.year == '17'): # we are dealing with MC from 2017
@@ -218,6 +234,7 @@ if __name__ == '__main__':
         else: year = args.year
         args.trigEff = Correction("TriggerEff%s"%year,'EffLoader_2DfittedHist.cc',['out_Eff_20%s.root'%year,'Eff_20%s'%year],corrtype='weight')
 
-    CompileCpp('THmodules.cc')
+    # Used to pick Top, Phi for non-ttbar/signal files (VJets, data)
+    CompileCpp("THmodules.cc")
 
     selection(args)
