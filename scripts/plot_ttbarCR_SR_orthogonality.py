@@ -48,8 +48,8 @@ def makePlot(year, outputFile, signal='1800-125', siglabel='$m_T{^\prime}$=1800,
     TopTagger = 'deepTagMD_TvsQCD'
     filePrefix = 'rootfiles/ttbarCR_vs_SR_overlap_HT750_{}_%s.root'%(year)
 
-    TTstop = 1800
-    sigstop = 200
+    TTstop = None
+    sigstop = 1
 
     # First get the ttbar for this year 
     ttFile = ROOT.TFile.Open(filePrefix.format('ttbar'),'READ')
