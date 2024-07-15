@@ -11,26 +11,19 @@ def GetProcYearFromFile(filename):
         return pieces[1], pieces[2]
 
 if __name__ == '__main__':
-    from argparse import ArgumentParser
-    parser = ArgumentParser()
-    parser.add_argument('--HT', type=str, dest='HT',
-                        action='store', default='0',
-                         help='Value of HT to cut on')
-    args = parser.parse_args()
-    out = open('condor/selection_args_HT{}.txt'.format(args.HT),'w')
+    out = open('condor/selection_args.txt','w')
     files = GetAllFiles()
     for f in files:
+        if 'snapshot' not in f: continue
+        if 'Muon' in f: continue
         setname, era = GetProcYearFromFile(f)
         if 'Data' not in setname and 'QCD' not in setname:
-            out.write('-s {} -y {} -v None --HT {}\n'.format(setname, era, args.HT))  # perform nominal variation first
+            out.write('-s {} -y {} -v None\n'.format(setname, era))  # perform nominal variation first
             JME = ['JES', 'JER', 'JMS', 'JMR']	# normal Jet corrections
-            if ('Tprime' in setname) or ('ttbar' in setname):
-                JME.extend(['PNetTop', 'PNetXbb'])	# particleNet SF corrections (See THselection.py, need to be named PNet_up/down
-                if 'ttbar' in setname:
-                    JME.extend(['DAK8Top'])
             for jme in JME:
                 for v in ['up', 'down']:
-                    out.write('-s {} -y {} -v {}_{} --HT {}\n'.format(setname, era, jme, v, args.HT))
+                    out.write('-s {} -y {} -v {}_{}\n'.format(setname, era, jme, v))
         else: 
-            out.write('-s {} -y {} -v None --HT {}\n'.format(setname, era, args.HT))
+            out.write('-s {} -y {} -v None\n'.format(setname, era))
+
     out.close()

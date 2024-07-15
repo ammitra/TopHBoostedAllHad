@@ -33,6 +33,10 @@ def analyze(selection, args):
         # pT distributions
         pt = selection.a.GetActiveNode().DataFrame.Histo1D(('GenMatched_%s_pt'%matching,'GenMatched_%s_pt'%matching,100,0,1000),'GenMatched_%s_Jets_pt_corr'%(matching))
         hists.Add('GenMatched_%s_Jets_pT'%matching, pt)
+        # score distributions
+        for tagger in ['particleNetMD_HbbvsQCD','particleNet_TvsQCD','deepTagMD_TvsQCD']:
+            score = selection.a.GetActiveNode().DataFrame.Histo1D(('GenMatched_%s_%s_score'%(matching,tagger),'GenMatched_%s_%s_score'%(matching,tagger),50,0,1),'GenMatched_%s_Jets_%s'%(matching,tagger))
+            hists.Add('GenMatched_%s_Jets_%s_score'%(matching,tagger), score)
 
     for tagger in ['Dijet_particleNetMD_HbbvsQCD','Dijet_particleNet_TvsQCD','Dijet_deepTagMD_TvsQCD']:
         for matching, statuscode in statuses.items():
@@ -53,8 +57,8 @@ def analyze(selection, args):
             selection.a.SubCollection('%sJets_all_%s'%(matching,tagger),'Dijet','jetCats == %s'%statuscode)
             selection.a.SubCollection('%sJets_tag_%s'%(matching,tagger),'Dijet','jetCats == %s && %s > %s'%(statuscode,tagger,wp))
 
-            denominator = selection.a.GetActiveNode().DataFrame.Histo2D(('%s_%s_d'%(matching,tagger),'denominator',60,0,3000,12,-2.4,2.4),'%sJets_all_%s_pt_corr'%(matching,tagger),'%sJets_all_%s_eta'%(matching,tagger)).GetValue()
-            numerator   = selection.a.GetActiveNode().DataFrame.Histo2D(('%s_%s_n'%(matching,tagger),'numerator',60,0,3000,12,-2.4,2.4),'%sJets_tag_%s_pt_corr'%(matching,tagger),'%sJets_tag_%s_eta'%(matching,tagger)).GetValue()
+            denominator = selection.a.GetActiveNode().DataFrame.Histo2D(('%s_%s_d'%(matching,tagger),'denominator',4,300,1500,4,-2.4,2.4),'%sJets_all_%s_pt_corr'%(matching,tagger),'%sJets_all_%s_eta'%(matching,tagger)).GetValue()
+            numerator   = selection.a.GetActiveNode().DataFrame.Histo2D(('%s_%s_n'%(matching,tagger),'numerator',4,300,1500,4,-2.4,2.4),'%sJets_tag_%s_pt_corr'%(matching,tagger),'%sJets_tag_%s_eta'%(matching,tagger)).GetValue()
 
             print('Creating TEfficiency for (jetCat == {0} && {1} > {2})/(jetCat == {0})'.format(matching,tagger,wp))
             eff = ROOT.TEfficiency(numerator,denominator)

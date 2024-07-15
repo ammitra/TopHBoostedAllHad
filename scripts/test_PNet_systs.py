@@ -16,9 +16,9 @@ def selection(args):
     # Apply trigger efficiencies
     selection.ApplyTrigs(args.trigEff)
     # Apply tagging (signal, ttbarMC in ttCR) or mistagging (ttbarMC) scale factors
-    #eosdir  = 'root://cmseos.fnal.gov//store/user/ammitra/topHBoostedAllHad/TaggerEfficiencies'
-    #effpath = f'{eosdir}/{args.setname}_{args.year}_Efficiencies.root'
-    effpath = f'ParticleNetSFs/EfficiencyMaps/{args.setname}_{args.year}_Efficiencies.root'
+    eosdir  = 'root://cmseos.fnal.gov//store/user/ammitra/topHBoostedAllHad/TaggerEfficiencies'
+    effpath = f'{eosdir}/{args.setname}_{args.year}_Efficiencies.root'
+
     PNetMD_HbbvsQCD_wp = 0.98
     PNet_TvsQCD_wp = 0.94
     if ('16' in args.year):
@@ -37,7 +37,7 @@ def selection(args):
         if ('ttbar' in args.setname):
             # DAK8 top tagging correction for ttbarCR
             DAK8_tagging_corr = Correction(
-                name        = 'DAK8_Top_tag_weight',
+                name        = 'DAK8_Top_tag',
                 script      = 'ParticleNetSFs/DAK8TopSF_weight.cc',
                 constructor = [args.year, effpath, DAK8_TvsQCD_wp_str, DAK8_TvsQCD_wp],
                 mainFunc    = 'eval',
@@ -50,7 +50,7 @@ def selection(args):
             )
             # PNet Xbb mistagging correction for all regions
             PNet_mistagging_corr = Correction(
-                name        = 'PNetMD_Xbb_mistag_weight',
+                name        = 'PNetMD_Xbb_mistag',
                 script      = 'ParticleNetSFs/PNetXbbSF_weight.cc',
                 constructor = [args.year, 'ttbar', effpath, PNetMD_HbbvsQCD_wp], # Note that we are telling the class to calculate ttbar mistag weights
                 mainFunc    = 'eval',
@@ -64,7 +64,7 @@ def selection(args):
         elif ('Tprime' in args.setname):
             # PNet Xbb tagging correction 
             PNet_XbbTagging_corr = Correction(
-                name        = 'PNetMD_Xbb_tag_weight',
+                name        = 'PNetMD_Xbb_tag',
                 script      = 'ParticleNetSFs/PNetXbbSF_weight.cc',
                 constructor = [args.year, 'signal', effpath, PNetMD_HbbvsQCD_wp], # Note that we are telling the class to calculate signal tag weights
                 mainFunc    = 'eval',
@@ -76,11 +76,11 @@ def selection(args):
                 evalArgs    = {'pt':'Dijet_pt_corr', 'eta':'Dijet_eta', 'PNetXbb_score':'Dijet_particleNetMD_HbbvsQCD', 'jetCat':'Dijet_GenMatchCats'}
             )
 
-            selection.a.DataFrame.Display(['PNetMD_Xbb_tag_weight__nom']).Print()
+            selection.a.DataFrame.Display(['PNetMD_Xbb_tag__nom']).Print()
 
             # PNet Top tagging correction
             PNet_TopTagging_corr = Correction(
-                name        = 'PNet_Top_tag_weight',
+                name        = 'PNet_Top_tag',
                 script      = 'ParticleNetSFs/PNetTopSF_weight.cc',
                 constructor = [args.year, effpath, PNet_TvsQCD_wp],
                 mainFunc    = 'eval',
@@ -92,8 +92,7 @@ def selection(args):
                 evalArgs   = {'pt':'Dijet_pt_corr', 'eta':'Dijet_eta', 'PNetTvsQCD_score':'Dijet_particleNet_TvsQCD', 'jetCat':'Dijet_GenMatchCats'}
             )
 
-            selection.a.DataFrame.Display(['PNet_Top_tag_weight__nom']).Print()
-            selection.a.DataFrame.Display(['genW__nom']).Print()
+            selection.a.DataFrame.Display(['PNet_Top_tag__nom']).Print()
 
     # Having added the tagging and mistagging SFs to the appropriate processes, make uncertainty columns
     print('Tracking corrections: \n%s'%('\n\t- '.join(list(selection.a.GetCorrectionNames()))))
@@ -101,99 +100,17 @@ def selection(args):
         correctionNames = list(selection.a.GetCorrectionNames()),
         extraNominal = '' if selection.a.isData else str(selection.GetXsecScale())
     )
-    # Prepare a root file to save the templates
-    if (args.njobs == 1):
-        outFileName = 'rootfiles/THselection_{}_{}{}.root'.format(args.setname,args.year,'_'+args.variation if args.variation != 'None' else '')
-    else:
-        outFileName = 'rootfiles/THselection_{}_{}{}_{}of{}.root'.format(args.setname,args.year,'_'+args.variation if args.variation != 'None' else '',args.ijob,args.njobs)
-    out = ROOT.TFile.Open(outFileName,'RECREATE')
-    out.cd()
 
-    # -----------------------------------------------------------------------------------------------------
-    # Main SR/CR/ttbarCR logic happens in this loop
-    # -----------------------------------------------------------------------------------------------------
-    cuts        = OrderedDict() # keep track of cutflow values
-    PassFail    = OrderedDict() # stores the TIMBER nodes for pass/fail regions in SR/CR/ttCR
-    for region in ['SR','CR','ttbarCR']:
-        print('-----------------------------------------------------------------------------------------------------')
-        print(f'Selecting candidate %stop in {region}...............'%('(anti-)' if region == 'CR' else ''))
-        print('-----------------------------------------------------------------------------------------------------')
-        # reset the node
-        selection.a.SetActiveNode(kinOnly)
-        cuts[f'N_BEFORE_TOP_PICK_{region}'] = selection.getNweighted()
-        # First pick the top candidate (or anti-pick, if CR)
-        objIdxs = f'ObjIdxs_{region}'
-        selection.a.Define(objIdxs,
-            'PickTopCRv2(%s, %s, %s, {0, 1}, {150., 200.}, %s, %s)'%(
-                'Dijet_msoftdrop_corrT',
-                'Dijet_particleNet_TvsQCD',
-                'Dijet_particleNetMD_HbbvsQCD',
-                0.94,
-                'true' if region == 'CR' else 'false'
-            )
-        )
-        selection.a.Define('tIdx',f'{objIdxs}[0]')
-        selection.a.Define('hIdx',f'{objIdxs}[1]')
-        selection.a.Cut('HasTop','tIdx > -1')
-        cuts[f'N_AFTER_TOP_PICK_{region}'] = selection.getNweighted()
-        selection.a.ObjectFromCollection('Top','Dijet','tIdx',skip=['msoftdrop_corrH'])
-        selection.a.ObjectFromCollection('Higgs','Dijet','hIdx',skip=['msoftdrop_corrT'])
-        selection.a.Define('Top_vect','hardware::TLvector(Top_pt_corr, Top_eta, Top_phi, Top_msoftdrop_corrT)')
-        selection.a.Define('Higgs_vect','hardware::TLvector(Higgs_pt_corr, Higgs_eta, Higgs_phi, Higgs_msoftdrop_corrH)')
-        checkpoint = selection.a.Define('mth','hardware::InvariantMass({Top_vect,Higgs_vect})')
-        # Now create Pass/Fail regions
-        print(f'Defining Fail and Pass categories based on Phi candidate score in {region}..............')
-        if region == 'ttbarCR':
-            # Ensure the ttbarCR is orthogonal to SR by requiring PNetXbb < 0.8
-            # Overwrite the old checkpoint.
-            checkpoint = selection.a.Define('SR_ttCR_orthog_cut','Higgs_particleNetMD_HbbvsQCD < 0.8')
-            # pick the second jet as a top using the DAK8MD TvsQCD tagger
-            for pf in ['fail','pass']:
-                selection.a.SetActiveNode(checkpoint)
-                print(f'Tagging phi candidate as a top in {region} {pf} using DAK8MD TvsQCD tagger...')
-                PassFail[f'{region}_{pf}'] = selection.a.Cut(f'{region}_{pf}cut',f'Higgs_deepTagMD_TvsQCD %s {DAK8_TvsQCD_wp}'%('>' if pf == 'pass' else '<'))
-                cuts[f'N_AFTER_PHI_PICK_{region}_{pf}'] = selection.getNweighted()
-        else:
-            for pf in ['fail','pass']:
-                selection.a.SetActiveNode(checkpoint)
-                if pf == 'fail':
-                    # Fail is the old "Loose" region, i.e. 0.8 <= Xbb < 0.98
-                    pf_cut = f'(Higgs_particleNetMD_HbbvsQCD < {PNetMD_HbbvsQCD_wp}) && (Higgs_particleNetMD_HbbvsQCD >= 0.8)'
-                else:
-                    pf_cut = f'Higgs_particleNetMD_HbbvsQCD > {PNetMD_HbbvsQCD_wp}'
-                print(f'Tagging phi candidate as a phi in {region} {pf} using PNetMD HbbvsQCD tagger...')
-                PassFail[f'{region}_{pf}'] = selection.a.Cut(f'{region}_{pf}_cut',pf_cut)
-                cuts[f'N_AFTER_PHI_PICK_{region}_{pf}'] = selection.getNweighted()
-    # We now have an ordered dictionary of pass/fail regions and the associated TIMBER nodes.
-    # We will use this to construct 2D templates for each region and systematic variation.
-    binsX = [50, 60, 560]
-    binsY = [27, 800, 3500]
-    for pf_region, node in PassFail.items():
-        print(f'Generating 2D templates for region {pf_region}....')
-        selection.a.SetActiveNode(node)
-        templates = selection.a.MakeTemplateHistos(
-            ROOT.TH2F(f'MHvsMTH_{pf_region}', f'MH vs MTH {pf_region}', binsX[0], binsX[1], binsX[2], binsY[0], binsY[1], binsY[2]),
-            ['Higgs_msoftdrop_corrH','mth']
-        )
-        templates.Do('Write')
-        if (args.plot) and (pf_region == 'SR_pass'):
-            for proj in ['X','Y']:
-                print(f'plotting template uncertainty histograms for {pf_region}')
-                selection.a.DrawTemplates(templates, 'plots/', projection=proj, fileType='png')
-    # Save out cutflow information from selection
-    hCutflow = ROOT.TH1F('cutflow','Number of events after each cut',len(cuts),0.5,len(cuts)+0.5)
-    nBin = 1
-    for cutname, cutval in cuts.items():
-        print(f'Obtaining cutflow for {cutname}')
-        nCut = cutval.GetValue()
-        print(f'\t{cutname} = {nCut}')
-        hCutflow.GetXaxis().SetBinLabel(nBin, cutname)
-        hCutflow.AddBinContent(nBin, nCut)
-        nBin += 1
-    print('Writring cutflow histogram to file')
-    hCutflow.Write()
-    out.Close()
-    print('Script finished')
+    # save all of the weight columns
+    corrs = list(selection.a.GetCorrectionNames())
+    cols = []
+    for corr in corrs:
+        if corr == 'genW': continue
+        for var in ['nom','up','down']:
+            cols.append(f'{corr}__{var}')           # the individual correction
+            cols.append(f'weight__{corr}_{var}')    # the weight column calculated by MakeWeightCols()
+    cols.append('weight__nominal')
+    selection.a.Snapshot(cols,f'TEST_PNET_SYSTS_{args.setname}_{args.year}.root','Events')
 
 
 if __name__ == "__main__":
@@ -231,7 +148,5 @@ if __name__ == "__main__":
             constructor = [f'out_Eff_20{trigyear}.root', f'Eff_20{trigyear}'],
             corrtype    = 'weight'
         )
-    else:
-        args.trigEff = None
     CompileCpp('THmodules.cc')
     selection(args)

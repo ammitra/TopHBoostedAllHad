@@ -65,6 +65,7 @@ class THClass:
         else:
             self.a.isData = False
 
+    
     def GetXsecScale(self):
         lumi = self.config['lumi{}'.format(self.year)]
         xsec = self.config['XSECS'][self.setname]
@@ -73,6 +74,7 @@ class THClass:
         print('Normalizing by lumi*xsec/genEventSumw:\n\t{} * {} / {} = {}'.format(lumi,xsec,self.a.genEventSumw,lumi*xsec/self.a.genEventSumw))
         return lumi*xsec/self.a.genEventSumw
 
+    
     def AddCutflowColumn(self, var, varName):
         '''
         for future reference:
@@ -81,6 +83,7 @@ class THClass:
         print('Adding cutflow information...\n\t{}\t{}'.format(varName, var))
         self.a.Define('{}'.format(varName),str(var))
 
+    
     def getNweighted(self):
         # Avoid executing the event loop via GetValue(), instead just get the RResultPtr and call it later
         if not self.a.isData:
@@ -149,6 +152,7 @@ class THClass:
         '''
         return self.a.GetActiveNode()
 
+    
     def ApplyStandardCorrections(self,snapshot=False):
         if snapshot:
             if self.a.isData:
